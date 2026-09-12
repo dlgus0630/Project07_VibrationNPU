@@ -1,0 +1,14 @@
+{
+  "date": "2026-09-12",
+  "board": "Zybo Z7-20",
+  "device": "xc7z020",
+  "pl_clock_hz": 100000000,
+  "bitstream_sha256": "ee5f55296147652112a3a44e4b765aff1c54cffb9577e6f231773a3deac8673f",
+  "application_sha256": "5eb48eb1c646f353a16f089a2411e884537801abfa34becde1a7728785009f99",
+  "command": "b",
+  "replay_count": 100,
+  "match_count": 100,
+  "result": "PASS",
+  "first_result": "RESULT,benchmark,0,847,833,18,26,1,92,11,4,3,84,74,0,0,127,-128",
+  "last_result": "RESULT,benchmark,1,848,833,18,27,1,87,79,20,15,0,0,0,127,-128,122"
+}
