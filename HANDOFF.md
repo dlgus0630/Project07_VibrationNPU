@@ -33,7 +33,7 @@
 - 공식 bitstream을 Zybo에 내려받아 replay 100/100 전체 결과 일치 확인
 
 위 결과는 분리 전 동일 RTL의 공식 검증 결과이며 `artifacts/`에 증거를 보관했다. 저장소가
-`Project07_VibrationNPU`로 분리되면서 소스 해시가 달라졌으므로, 다음 build 전에
+`Project08_VibrationNPU`로 분리되면서 소스 해시가 달라졌으므로, 다음 build 전에
 `artifacts/matlab_input.zip`을 MATLAB Online에서 실행하고 XSim을 다시 실행해야 한다. gate를
 통과시키기 위해 결과 파일이나 해시를 수동으로 만들지 않는다.
 

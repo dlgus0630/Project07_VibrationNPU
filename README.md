@@ -1,4 +1,4 @@
-# Project07_VibrationNPU
+# Project08_VibrationNPU
 
 Zybo Z7-20에서 MPU-9250의 진동 데이터를 수집하고, PL의 64-point FFT와 소형 INT8 NPU로
 두 상태를 분류하는 학부 포트폴리오 프로젝트다.
@@ -45,7 +45,7 @@ MPU-9250 -> SPI -> ARM Cortex-A9
 MATLAB Online에서 프로젝트 전체를 업로드한 뒤 실행한다.
 
 ```matlab
-cd Project07_VibrationNPU
+cd Project08_VibrationNPU
 RUN_MATLAB_CHECKS
 ```
 
