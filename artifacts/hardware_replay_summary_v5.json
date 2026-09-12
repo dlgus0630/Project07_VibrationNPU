@@ -1,0 +1,26 @@
+{
+  "board": "Zybo Z7-20",
+  "source": "official v5-gated bitstream",
+  "samples": 100,
+  "matches": 100,
+  "cpu_us": {
+    "min": 849,
+    "median": 850.0,
+    "max": 852
+  },
+  "pl_cycles": {
+    "min": 833,
+    "median": 833.0,
+    "max": 833
+  },
+  "npu_cycles": {
+    "min": 18,
+    "median": 18.0,
+    "max": 18
+  },
+  "e2e_us": {
+    "min": 26,
+    "median": 26.0,
+    "max": 27
+  }
+}

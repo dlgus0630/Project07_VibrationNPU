@@ -1,0 +1,49 @@
+# 작업 인수인계
+
+## 먼저 지킬 조건
+
+- `docs/PROJECT_RULES.md`와 `DESIGN.md`를 먼저 읽는다.
+- 소스 변경 후에는 MATLAB, XSim, synthesis/implementation 순서를 다시 지킨다.
+- 실행하지 않은 검증을 통과로 기록하지 않는다.
+- 커밋 작성자는 `dlgus0630` 한 명으로 유지하고 공동 작성자 트레일러를 넣지 않는다.
+- MPU breakout 전압과 L298N 점퍼를 확인하기 전에는 12 V 출력을 켜지 않는다.
+
+## 완료 상태
+
+- MATLAB/Simulink Fourier 20/20 PASS
+- XSim `tb_mac`, `tb_fft_npu`, `tb_core`, `tb_axi`, `tb_spi`, `tb_fourier_motor` PASS
+- Vivado 2024.2 synthesis/implementation/bitstream PASS
+- setup `+0.178 ns`, hold `+0.035 ns`, DRC Error 0
+- Vitis 2024.2 standalone BSP, FSBL, ARM 앱 빌드 PASS
+- JTAG에서 BRAM `0x40000000`, control `0x43C00004` 접근 확인
+- 공식 bitstream을 Zybo에 내려받아 replay 100/100 전체 결과 일치 확인
+
+보드 초기 접근이 멈춘 원인은 `proc_sys_reset/aux_reset_in`이 active-low인데 0에 고정된 것이었다.
+현재 `vivado/create_fourier.tcl`은 aux reset을 1에 연결하고 SmartConnect와 peripheral reset을
+각각 올바른 active-low 출력에 연결한다. ARM 시간값이 0이던 문제는 `main.c` 시작에서 `usleep(1)`로
+global timer를 시작해 해결했다. 이 두 수정은 제거하지 않는다.
+
+## 바로 이어서 할 일
+
+1. MPU-9250 breakout 앞뒷면, L298N 단자·점퍼, 모터 6핀 케이블을 사진으로 확인한다.
+2. bench supply는 출력 OFF로 두고 전압/전류 제한을 설정한다.
+3. 모터 없이 PWM 20 kHz, 0..3.3 V와 arm/stop 동작을 오실로스코프로 확인한다.
+4. MPU 전압 호환을 확인한 뒤 `i` 명령으로 WHO_AM_I와 register readback을 확인한다.
+5. `d` 명령으로 정지와 회전 조건의 raw 64 sample을 서로 다른 acquisition run으로 저장한다.
+6. 실제 run 단위 train/validation 데이터를 만든 뒤 `tools/train_export.py --real-data <폴더>`로 재학습한다.
+7. 새 weight를 사용하면 MATLAB부터 모든 검증을 다시 수행한다.
+
+현재 합성 모델의 class 0/1 이름을 실제 정상/고장 상태로 바꾸면 안 된다. 64 sample, 1 kHz의 FFT
+간격은 15.625 Hz이므로 110 RPM 출력축의 약 1.83 Hz를 직접 분해하지 못한다. 모터 하우징 진동의
+고조파·광대역 차이를 먼저 관찰한다.
+
+## 보드 콘솔
+
+- `r`: 제공 입력 한 번 replay
+- `b`: replay 100회와 timing 출력
+- `i`: MPU-9250 초기화와 ID/readback
+- `d`: raw 64 sample 출력
+- `s`: sensor sample 후 FFT/NPU 실행
+
+12 V와 센서가 연결되지 않은 상태에서는 `r`, `b`만 사용한다.
+

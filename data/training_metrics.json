@@ -1,0 +1,21 @@
+{
+  "dataset": "synthetic only; no real machine fault measurements",
+  "seed_train": 410,
+  "seed_val": 411,
+  "seed_weights": 412,
+  "train_count": 1600,
+  "val_count": 400,
+  "fp32_accuracy": 1.0,
+  "int8_accuracy": 1.0,
+  "fp32_int8_agreement": 1.0,
+  "confusion": [
+    [
+      200,
+      0
+    ],
+    [
+      0,
+      200
+    ]
+  ]
+}

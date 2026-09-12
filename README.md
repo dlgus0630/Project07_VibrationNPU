@@ -1,0 +1,80 @@
+# Project07_VibrationNPU
+
+Zybo Z7-20에서 MPU-9250의 진동 데이터를 수집하고, PL의 64-point FFT와 소형 INT8 NPU로
+두 상태를 분류하는 학부 포트폴리오 프로젝트다.
+
+## 구조
+
+```text
+MPU-9250 -> SPI -> ARM Cortex-A9
+                    |
+                    v
+              AXI + Dual-port BRAM
+                    |
+                    v
+          FFT64 -> 4-band feature -> 4x4x2 INT8 NPU
+                    |
+                    v
+                  UART
+```
+
+- PS: 센서 설정, 64개 sample 수집, BRAM 전송, 가속기 시작, 결과 출력
+- PL: radix-2 FFT, 주파수 대역 특징, 2개 MAC PE 기반 MLP 추론
+- 별도 모터 출력: L298N에 20 kHz, 0/25/50/75% PWM 제공
+- 학습: PC에서만 수행하며 FPGA는 inference만 수행
+- HDL: 직접 작성한 Verilog-2001, HDL Coder 미사용
+
+## 현재 검증 결과
+
+| 항목 | 결과 |
+|---|---:|
+| MATLAB/Simulink | 20/20 PASS |
+| XSim | 6개 testbench PASS |
+| Vivado 2024.2 timing | setup +0.178 ns, hold +0.035 ns |
+| 구현 자원 | LUT 10,626, FF 7,246, DSP 5, BRAM 1 |
+| Zybo replay | 100/100 CPU-PL 일치 |
+| PL FFT+NPU | 833 cycle = 8.33 us @ 100 MHz |
+| NPU 구간 | 18 cycle |
+| 가속기 전체 구간 | 26-27 us |
+
+위 정확도와 분류 결과는 합성 데이터 검증이다. 실제 모터 상태 진단 성능은 MPU-9250 실측 데이터를
+수집해 별도 run 단위로 학습/검증한 뒤 평가해야 한다.
+
+## 실행
+
+MATLAB Online에서 프로젝트 전체를 업로드한 뒤 실행한다.
+
+```matlab
+cd Project07_VibrationNPU
+RUN_MATLAB_CHECKS
+```
+
+PC 검증과 Vivado 실행:
+
+```text
+python3 -m pip install -r requirements.txt
+python3 tools/offline_check.py
+python3 tools/run.py sim
+python3 tools/run.py build
+```
+
+Vivado 2024.2와 Digilent Zybo Z7-20 board files가 필요하다. Vivado가 PATH에 없으면 `VIVADO`에
+실행 파일 경로를, 보드 파일을 별도로 설치했다면 `DIGILENT_BOARD_REPO`에 `new/board_files` 경로를
+지정한다. Vitis 실행과 UART 명령은 [docs/VITIS_2024_2.md](docs/VITIS_2024_2.md)를 따른다.
+
+## 폴더
+
+| 경로 | 내용 |
+|---|---|
+| `fourier/rtl` | FFT, NPU, AXI, SPI, 모터 PWM RTL |
+| `fourier/tb` | 자동 PASS/FAIL testbench 6개 |
+| `fourier/firmware` | ARM 앱과 독립 C 기준 모델 |
+| `data` | 학습 데이터, 정수 가중치, test vector |
+| `matlab` | MATLAB Golden 및 Simulink 함수 |
+| `vivado` | 프로젝트 생성, XSim, bitstream Tcl |
+| `artifacts` | 통과한 bit/XSA/ELF, 보고서, 보드 측정 결과 |
+| `HANDOFF.md` | 다음 작업자가 먼저 읽을 진행 기록 |
+
+실물 배선 전에는 [docs/HARDWARE.md](docs/HARDWARE.md)를 확인한다. 센서 breakout 전압과 L298N
+점퍼 상태를 확인하기 전까지 12 V 출력을 켜지 않는다.
+

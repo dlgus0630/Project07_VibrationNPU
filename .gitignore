@@ -1,0 +1,10 @@
+build/
+reports/
+__pycache__/
+*.pyc
+*.jou
+*.log
+*.str
+*.wdb
+.Xil/
+

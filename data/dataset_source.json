@@ -1,0 +1,5 @@
+{
+  "type": "synthetic",
+  "sample_rate_hz": 1000,
+  "sensor_contract": "MPU-9250 X +/-2g"
+}
