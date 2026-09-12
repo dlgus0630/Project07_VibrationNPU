@@ -8,6 +8,20 @@
 - 커밋 작성자는 `dlgus0630` 한 명으로 유지하고 공동 작성자 트레일러를 넣지 않는다.
 - MPU breakout 전압과 L298N 점퍼를 확인하기 전에는 12 V 출력을 켜지 않는다.
 
+## 유지할 설계 규칙
+
+1. 학부 수준의 중간 난이도와 설명 가능한 완성도를 유지한다.
+2. PC 학습, MATLAB Golden, Simulink, Verilog simulation, synthesis, implementation,
+   보드 검증 순서를 지킨다.
+3. FPGA에서는 학습하지 않고 `4 -> 4 ReLU -> 2` INT8 모델의 추론만 수행한다.
+4. ARM은 센서와 제어, PL은 FFT와 NPU 가속을 담당한다.
+5. 직접 작성하는 HDL은 Verilog-2001로 유지하며 SystemVerilog와 HDL Coder를 사용하지 않는다.
+6. bit width, signedness, saturation, truncation 또는 shift 변경 전 `DESIGN.md`를 갱신한다.
+7. MATLAB 중간값, C 기준 모델과 RTL testbench를 자동 비교한다.
+8. 합성 데이터 정확도를 실제 설비의 고장 진단 정확도로 표현하지 않는다.
+9. 실측 train/validation은 서로 다른 acquisition run으로 나눈다.
+10. 실행하거나 측정하지 않은 결과를 PASS 또는 실측값으로 기록하지 않는다.
+
 ## 완료 상태
 
 - MATLAB/Simulink Fourier 20/20 PASS
@@ -18,6 +32,11 @@
 - JTAG에서 BRAM `0x40000000`, control `0x43C00004` 접근 확인
 - 공식 bitstream을 Zybo에 내려받아 replay 100/100 전체 결과 일치 확인
 
+위 결과는 분리 전 동일 RTL의 공식 검증 결과이며 `artifacts/`에 증거를 보관했다. 저장소가
+`Project07_VibrationNPU`로 분리되면서 소스 해시가 달라졌으므로, 다음 build 전에
+`artifacts/matlab_input.zip`을 MATLAB Online에서 실행하고 XSim을 다시 실행해야 한다. gate를
+통과시키기 위해 결과 파일이나 해시를 수동으로 만들지 않는다.
+
 보드 초기 접근이 멈춘 원인은 `proc_sys_reset/aux_reset_in`이 active-low인데 0에 고정된 것이었다.
 현재 `vivado/create_fourier.tcl`은 aux reset을 1에 연결하고 SmartConnect와 peripheral reset을
 각각 올바른 active-low 출력에 연결한다. ARM 시간값이 0이던 문제는 `main.c` 시작에서 `usleep(1)`로
@@ -25,10 +44,12 @@ global timer를 시작해 해결했다. 이 두 수정은 제거하지 않는다
 
 ## 바로 이어서 할 일
 
-1. MPU-9250 breakout 앞뒷면, L298N 단자·점퍼, 모터 6핀 케이블을 사진으로 확인한다.
+1. 사진에서 MPU 공용 breakout의 핀 표기와 모터 6핀 실크를 확인했다. `docs/HARDWARE.md`의 후보
+   배선표를 무전원 연속성 측정으로 확정하고 L298N 점퍼의 실크를 직접 읽는다.
 2. bench supply는 출력 OFF로 두고 전압/전류 제한을 설정한다.
 3. 모터 없이 PWM 20 kHz, 0..3.3 V와 arm/stop 동작을 오실로스코프로 확인한다.
-4. MPU 전압 호환을 확인한 뒤 `i` 명령으로 WHO_AM_I와 register readback을 확인한다.
+4. MPU 전압 호환을 확인한 뒤 `i` 명령으로 WHO_AM_I와 register readback을 확인한다. 공용
+   `MPU-9250/6500` PCB이므로 실제 값이 MPU-9250의 `0x71`인지 기록한다.
 5. `d` 명령으로 정지와 회전 조건의 raw 64 sample을 서로 다른 acquisition run으로 저장한다.
 6. 실제 run 단위 train/validation 데이터를 만든 뒤 `tools/train_export.py --real-data <폴더>`로 재학습한다.
 7. 새 weight를 사용하면 MATLAB부터 모든 검증을 다시 수행한다.
@@ -46,4 +67,3 @@ global timer를 시작해 해결했다. 이 두 수정은 제거하지 않는다
 - `s`: sensor sample 후 FFT/NPU 실행
 
 12 V와 센서가 연결되지 않은 상태에서는 `r`, `b`만 사용한다.
-
