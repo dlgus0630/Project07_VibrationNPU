@@ -33,7 +33,8 @@ def main():
     source='synthetic only; no real machine fault measurements'
     if args.real_data:
         meta=json.loads((args.real_data/'dataset.json').read_text())
-        assert meta['sample_rate_hz']==1000 and meta['sensor']=='MPU-9250' and meta['axis']=='X' and meta['range_g']==2
+        sensors=meta['sensor'] if isinstance(meta['sensor'],list) else [meta['sensor']]
+        assert meta['sample_rate_hz']==1000 and sensors and set(sensors)<= {'MPU-6500','MPU-9250'} and meta['axis']=='X' and meta['range_g']==2
         assert meta['split_by']=='run_id','Split by separate acquisition runs, not adjacent overlapping windows.'
         waves=np.loadtxt(args.real_data/'train_samples.csv',delimiter=',',dtype=int,ndmin=2)
         val=np.loadtxt(args.real_data/'val_samples.csv',delimiter=',',dtype=int,ndmin=2)
@@ -47,7 +48,7 @@ def main():
         (DATA/'dataset_source.json').write_text(json.dumps(meta,indent=2)+'\n')
     else:
         waves,y=dataset(410,1600); val,yv=dataset(411,400)
-        (DATA/'dataset_source.json').write_text(json.dumps({'type':'synthetic','sample_rate_hz':1000,'sensor_contract':'MPU-9250 X +/-2g'},indent=2)+'\n')
+        (DATA/'dataset_source.json').write_text(json.dumps({'type':'synthetic','sample_rate_hz':1000,'sensor_contract':'MPU-6500/9250 X +/-2g'},indent=2)+'\n')
     f=np.array([features(x) for x in waves]);fv=np.array([features(x) for x in val])
     x=f.astype(np.float32)/128; xv=fv.astype(np.float32)/128
     rng=np.random.default_rng(412)

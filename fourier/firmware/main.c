@@ -27,20 +27,23 @@ static int spi(int read_op,int two,uint8_t addr,uint8_t data,uint16_t *result) {
 }
 static int write_reg(uint8_t a,uint8_t v){uint16_t ignored;return spi(0,0,a,v,&ignored);}
 static int sensor_init(void) {
-    uint16_t id,check;
+    uint16_t id,check;uint8_t sample_divider;
     if(spi(1,0,0x75,0,&id))return -1;
-    printf("WHO_AM_I,0x%02x,expected,0x71\r\n",id);
-    if(id!=0x71)return -1; // MPU-9250; do not silently accept MPU-6500/9255.
+    printf("WHO_AM_I,0x%02x,supported,0x70|0x71\r\n",id);
+    if(id==0x70){puts("SENSOR_MODEL,MPU-6500");sample_divider=3;}
+    else if(id==0x71){puts("SENSOR_MODEL,MPU-9250");sample_divider=0;}
+    else return -1; // Do not silently accept an unknown or disconnected device.
     if(write_reg(0x6b,0x80))return -1;
     usleep(100000);
     if(write_reg(0x6b,0x01))return -1;
     usleep(100000);
     // Disable I2C interface, leave SPI active; wake all accel axes, +/-2g.
-    if(write_reg(0x6a,0x10)||write_reg(0x6c,0)||write_reg(0x19,0)||write_reg(0x1b,0)||
+    if(write_reg(0x6a,0x10)||write_reg(0x6c,0)||write_reg(0x19,sample_divider)||write_reg(0x1b,0)||
        write_reg(0x1a,1)||write_reg(0x1c,0)||write_reg(0x1d,1)||write_reg(0x37,0)||write_reg(0x38,1))return -1;
     usleep(20000);
     if(spi(1,0,0x1c,0,&check)||check!=0)return -1;
     if(spi(1,0,0x1d,0,&check)||check!=1)return -1;
+    if(spi(1,0,0x19,0,&check)||check!=sample_divider)return -1;
     return 0;
 }
 static int acquire(int16_t x[64],uint32_t dt[64]) {
@@ -53,7 +56,10 @@ static int acquire(int16_t x[64],uint32_t dt[64]) {
             if(micros(ticks()-deadline)>5000U)return -1;
         }while(!(status&1));
         now=ticks();dt[n]=n?micros(now-previous):0;previous=now;
-        if(n && (dt[n]<700 || dt[n]>1300))return -2; // discarded window, no silent timing gaps
+        if(n && (dt[n]<700 || dt[n]>1300)) {
+            printf("TIMING_ERROR,%u,%lu\r\n",n,(unsigned long)dt[n]);
+            return -2; // discarded window, no silent timing gaps
+        }
         if(spi(1,1,0x3b,0,&raw))return -1;
         x[n]=(int16_t)(raw<32768?raw:(int32_t)raw-65536);
     }

@@ -1,0 +1,42 @@
+{
+  "date": "2026-09-13",
+  "board": "Zybo Z7-20",
+  "sensor_marking": "MPU-9250/6500 breakout",
+  "detected_sensor": "MPU-6500",
+  "who_am_i": "0x70",
+  "interface": "SPI mode 0 at approximately 1 MHz",
+  "axis": "X",
+  "range_g": 2,
+  "sample_rate_configuration": {
+    "observed_before_fix_us": 254,
+    "mpu6500_smplrt_div": 3,
+    "samples": 64,
+    "dt_min_us": 994,
+    "dt_max_us": 1004,
+    "dt_mean_us": 998.921,
+    "effective_rate_hz": 1001.081
+  },
+  "stationary_raw_x": {
+    "minimum": -2260,
+    "maximum": -2108,
+    "mean": -2180.312,
+    "sample_stddev": 35.893
+  },
+  "live_sensor_inference": {
+    "cpu_pl_match": true,
+    "class_id": 0,
+    "pl_cycles": 833,
+    "npu_cycles": 18,
+    "end_to_end_us": 26,
+    "note": "Class name remains synthetic until real motor runs are collected and retrained."
+  },
+  "replay_regression": "2/2 CPU-PL match",
+  "bitstream_sha256": "ee5f55296147652112a3a44e4b765aff1c54cffb9577e6f231773a3deac8673f",
+  "firmware_elf_sha256": "175fa0cf42e1ff9eb20dcff6e5b7ae11dbb95d906a1c40d785885516f75b9219",
+  "evidence": [
+    "uart_mpu6500_init_2026-09-13.csv",
+    "uart_mpu6500_stationary_2026-09-13.csv",
+    "uart_mpu6500_sensor_infer_2026-09-13.csv",
+    "uart_replay_mpu6500_firmware_2026-09-13.csv"
+  ]
+}

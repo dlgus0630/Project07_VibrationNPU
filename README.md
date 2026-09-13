@@ -1,12 +1,12 @@
-# Project08_VibrationNPU
+# Project07_VibrationNPU
 
-Zybo Z7-20에서 MPU-9250의 진동 데이터를 수집하고, PL의 64-point FFT와 소형 INT8 NPU로
-두 상태를 분류하는 학부 포트폴리오 프로젝트다.
+Zybo Z7-20에서 MPU-6500/9250의 진동 데이터를 수집하고, PL의 64-point FFT와 소형 INT8 NPU로
+두 상태를 분류하고 모터 안전 제어와 통합하는 FPGA/SoC 포트폴리오 프로젝트다.
 
 ## 구조
 
 ```text
-MPU-9250 -> SPI -> ARM Cortex-A9
+MPU-6500/9250 -> SPI -> ARM Cortex-A9
                     |
                     v
               AXI + Dual-port BRAM
@@ -33,11 +33,14 @@ MPU-9250 -> SPI -> ARM Cortex-A9
 | Vivado 2024.2 timing | setup +0.178 ns, hold +0.035 ns |
 | 구현 자원 | LUT 10,626, FF 7,246, DSP 5, BRAM 1 |
 | Zybo replay | 100/100 CPU-PL 일치 |
+| 실물 센서 | MPU-6500, WHO_AM_I `0x70`, 초기화 PASS |
+| 실측 sample 간격 | 평균 998.921 us, 994..1004 us |
+| 실측 sensor FFT/NPU | CPU-PL 일치, 833 cycle |
 | PL FFT+NPU | 833 cycle = 8.33 us @ 100 MHz |
 | NPU 구간 | 18 cycle |
 | 가속기 전체 구간 | 26-27 us |
 
-위 정확도와 분류 결과는 합성 데이터 검증이다. 실제 모터 상태 진단 성능은 MPU-9250 실측 데이터를
+위 정확도와 분류 결과는 합성 데이터 검증이다. 실제 모터 상태 진단 성능은 MPU-6500/9250 실측 데이터를
 수집해 별도 run 단위로 학습/검증한 뒤 평가해야 한다.
 
 ## 실행
@@ -45,7 +48,7 @@ MPU-9250 -> SPI -> ARM Cortex-A9
 MATLAB Online에서 프로젝트 전체를 업로드한 뒤 실행한다.
 
 ```matlab
-cd Project08_VibrationNPU
+cd Project07_VibrationNPU
 RUN_MATLAB_CHECKS
 ```
 
@@ -57,6 +60,9 @@ python3 tools/offline_check.py
 python3 tools/run.py sim
 python3 tools/run.py build
 ```
+
+실제 MPU-6500/9250 데이터는 독립 run으로 수집하고 분리한다. 수집 명령, 최소 반복 횟수와 재학습 절차는
+[docs/REAL_DATASET.md](docs/REAL_DATASET.md)를 따른다.
 
 Vivado 2024.2와 Digilent Zybo Z7-20 board files가 필요하다. Vivado가 PATH에 없으면 `VIVADO`에
 실행 파일 경로를, 보드 파일을 별도로 설치했다면 `DIGILENT_BOARD_REPO`에 `new/board_files` 경로를
@@ -72,9 +78,9 @@ Vivado 2024.2와 Digilent Zybo Z7-20 board files가 필요하다. Vivado가 PATH
 | `data` | 학습 데이터, 정수 가중치, test vector |
 | `matlab` | MATLAB Golden 및 Simulink 함수 |
 | `vivado` | 프로젝트 생성, XSim, bitstream Tcl |
+| `tools` | 학습, 검증, UART 실측 데이터 수집 도구 |
 | `artifacts` | 통과한 bit/XSA/ELF, 보고서, 보드 측정 결과 |
 | `HANDOFF.md` | 다음 작업자가 먼저 읽을 진행 기록 |
 
 실물 배선 전에는 [docs/HARDWARE.md](docs/HARDWARE.md)를 확인한다. 센서 breakout 전압과 L298N
 점퍼 상태를 확인하기 전까지 12 V 출력을 켜지 않는다.
-

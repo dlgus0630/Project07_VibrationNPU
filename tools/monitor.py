@@ -8,7 +8,7 @@ def main():
     import serial
     out=Path(a.output);out.parent.mkdir(parents=True,exist_ok=True)
     with serial.Serial(a.port,115200,timeout=.2) as ser,out.open('w',newline='') as f:
-        writer=csv.writer(f);writer.writerow(['host_time_s','line'])
+        writer=csv.writer(f,lineterminator='\n');writer.writerow(['host_time_s','line'])
         ser.reset_input_buffer();ser.write(a.command.encode('ascii'));deadline=time.monotonic()+a.seconds
         while time.monotonic()<deadline:
             line=ser.readline().decode('ascii',errors='replace').strip()
