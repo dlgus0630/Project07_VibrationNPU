@@ -25,6 +25,7 @@ def make_run(path, run_id, condition, base):
         "label": label, "sample_rate_hz": 1000, "sensor": "MPU-6500",
         "axis": "X", "range_g": 2, "samples_per_window": 64,
         "windows": 8, "supply_v": 12.0, "motor_target_rpm": 40.0,
+        "motor_duty_pct": None,
         "note": "test fixture", "capture_csv": path.name,
     })
 

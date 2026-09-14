@@ -6,7 +6,7 @@ from pathlib import Path
 from gates import digest
 
 ROOT = Path(__file__).resolve().parents[1]
-EXCLUDED = {'artifacts', 'reports', 'build', '__pycache__', '.git'}
+EXCLUDED = {'artifacts', 'reports', 'build', 'measurements', '__pycache__', '.git'}
 
 
 def main():
@@ -32,4 +32,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-

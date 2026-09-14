@@ -20,28 +20,36 @@ MPU-6500/9250 -> SPI -> ARM Cortex-A9
 
 - PS: 센서 설정, 64개 sample 수집, BRAM 전송, 가속기 시작, 결과 출력
 - PL: radix-2 FFT, 주파수 대역 특징, 2개 MAC PE 기반 MLP 추론
-- 별도 모터 출력: L298N에 20 kHz, 0/25/50/75% PWM 제공
+- 별도 모터 출력: L298N에 20 kHz PWM을 제공하고 SW3로 32 Hz 토크 리플 fault injection
 - 학습: PC에서만 수행하며 FPGA는 inference만 수행
 - HDL: 직접 작성한 Verilog-2001, HDL Coder 미사용
 
-## 현재 검증 결과
+## 검증 결과
 
 | 항목 | 결과 |
 |---|---:|
-| MATLAB/Simulink | 20/20 PASS |
-| XSim | 6개 testbench PASS |
-| Vivado 2024.2 timing | setup +0.178 ns, hold +0.035 ns |
-| 구현 자원 | LUT 10,626, FF 7,246, DSP 5, BRAM 1 |
+| 실제 데이터 | 정상 3 run 180 window, 토크 리플 3 run 180 window |
+| 분리 방법 | run 1/2 학습, run 3 검증; 인접 window 혼합 없음 |
+| FP32 검증 정확도 | 99.17% (119/120) |
+| INT8 검증 정확도 | 98.33% (118/120) |
+| INT8 혼동행렬 | normal 58/60, injected fault 60/60 |
+| 독립 C/정수 Golden | 20 window, 2,560 FFT component, 220 result PASS |
+| 재학습 전 MATLAB/Simulink | 20/20 PASS |
+| 재학습 전 XSim | 6개 testbench PASS |
+| fault-injection bit timing | setup +0.010 ns, hold +0.032 ns, DRC Error 0 |
+| 해당 bit 구현 자원 | LUT 10,628, FF 7,270, DSP 5, BRAM 1 |
 | Zybo replay | 100/100 CPU-PL 일치 |
 | 실물 센서 | MPU-6500, WHO_AM_I `0x70`, 초기화 PASS |
 | 실측 sample 간격 | 평균 998.921 us, 994..1004 us |
-| 실측 sensor FFT/NPU | CPU-PL 일치, 833 cycle |
+| 재학습 전 실측 sensor FFT/NPU | CPU-PL 일치, 833 cycle |
 | PL FFT+NPU | 833 cycle = 8.33 us @ 100 MHz |
 | NPU 구간 | 18 cycle |
 | 가속기 전체 구간 | 26-27 us |
 
-위 정확도와 분류 결과는 합성 데이터 검증이다. 실제 모터 상태 진단 성능은 MPU-6500/9250 실측 데이터를
-수집해 별도 run 단위로 학습/검증한 뒤 평가해야 한다.
+실측 분류의 class 1은 자연 발생 베어링 고장이 아니라 PL이 만든 `25%<->75% @ 32 Hz` 토크 리플이다.
+정상 조건은 50% 고정 duty이며 두 조건 모두 12.0 V와 평균 duty 50%를 사용했다. 재학습으로
+`data/`와 펌웨어 모델 상수가 바뀌었으므로 최종 MATLAB/Simulink, XSim, implementation과 Zybo
+실측은 다시 수행해야 한다. 완료 전에는 위의 재학습 전 gate 결과를 새 모델의 결과로 해석하지 않는다.
 
 ## 실행
 
@@ -63,6 +71,11 @@ python3 tools/run.py build
 
 실제 MPU-6500/9250 데이터는 독립 run으로 수집하고 분리한다. 수집 명령, 최소 반복 횟수와 재학습 절차는
 [docs/REAL_DATASET.md](docs/REAL_DATASET.md)를 따른다.
+
+실측 분류 데이터는 정상 `50%` 고정 duty와 fault injection `25%<->75% @ 32 Hz`를 비교한다.
+두 조건의 평균 duty와 전원 전압은 같으며, 이 조건은 자연 발생 베어링 고장이 아니라 PL이 만든
+재현 가능한 토크 리플 시험 자극으로 기록한다. SW0은 arm, SW2..1은 정상 duty, SW3는 fault injection,
+BTN0은 비상 정지다.
 
 Vivado 2024.2와 Digilent Zybo Z7-20 board files가 필요하다. Vivado가 PATH에 없으면 `VIVADO`에
 실행 파일 경로를, 보드 파일을 별도로 설치했다면 `DIGILENT_BOARD_REPO`에 `new/board_files` 경로를

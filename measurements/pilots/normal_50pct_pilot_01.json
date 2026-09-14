@@ -1,0 +1,20 @@
+{
+  "format_version": 1,
+  "run_id": "normal_50pct_pilot_01",
+  "condition": "normal",
+  "label": 0,
+  "sample_rate_hz": 1000,
+  "sensor": "MPU-6500",
+  "axis": "X",
+  "range_g": 2,
+  "samples_per_window": 64,
+  "windows": 10,
+  "supply_v": 12.0,
+  "motor_target_rpm": null,
+  "motor_duty_pct": 50.0,
+  "note": "Constant 50 percent PWM duty; pilot paired with 32 Hz PL torque-ripple injection",
+  "capture_csv": "normal_50pct_pilot_01.csv",
+  "captured_at_utc": "2026-09-14T01:11:18.515748+00:00",
+  "bitstream_sha256": "98ea0a59087d08f5507aa9d796f8be67616c76b125e4e6290687ea308f3a48c5",
+  "firmware_elf_sha256": "175fa0cf42e1ff9eb20dcff6e5b7ae11dbb95d906a1c40d785885516f75b9219"
+}

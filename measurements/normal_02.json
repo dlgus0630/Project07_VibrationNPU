@@ -1,0 +1,20 @@
+{
+  "format_version": 1,
+  "run_id": "normal_02",
+  "condition": "normal",
+  "label": 0,
+  "sample_rate_hz": 1000,
+  "sensor": "MPU-6500",
+  "axis": "X",
+  "range_g": 2,
+  "samples_per_window": 64,
+  "windows": 60,
+  "supply_v": 12.0,
+  "motor_target_rpm": null,
+  "motor_duty_pct": 25.0,
+  "note": "open_loop_25pct_measured_12V_0.07A_fixed_mount",
+  "capture_csv": "normal_02.csv",
+  "captured_at_utc": "2026-09-13T23:38:59.644903+00:00",
+  "bitstream_sha256": "ee5f55296147652112a3a44e4b765aff1c54cffb9577e6f231773a3deac8673f",
+  "firmware_elf_sha256": "175fa0cf42e1ff9eb20dcff6e5b7ae11dbb95d906a1c40d785885516f75b9219"
+}

@@ -36,4 +36,5 @@ B/R backpressure 동안 응답을 유지한다. PS는 accelerator busy 동안 BR
 
 PS FCLK0은 100 MHz다. `JE1..4`는 MPU-6500/9250 SPI, `JD1..3`은 L298N ENA/IN1/IN2다.
 모터 PWM은 20 kHz이며 SW2..1로 0/25/50/75%를 고른다. reset 뒤 SW0을 OFF에서 ON으로
-바꿔야 arm되고 BTN0 또는 SW0 OFF로 즉시 차단된다.
+바꿔야 arm되고 BTN0 또는 SW0 OFF로 즉시 차단된다. SW3가 ON이면 정상 duty 선택을 대신해
+25%와 75% duty를 32 Hz로 교대한다. 이때 평균 duty는 정상 비교 조건인 50%와 같다.

@@ -1,0 +1,19 @@
+{
+  "source_sha256": "f3924de3018720bcc99c0e55c711df8e9f56691b89f6d98573d070207a2109c7",
+  "matlab_input_zip_sha256": "32e66d800193c9fe5626d98c2cbd3d88c44ae150281c8bacdf8e677c47881b88",
+  "pc_integer_golden": "PASS",
+  "matlab_simulink": "PASS",
+  "xsim": "PASS 6/6",
+  "vivado_implementation": "PASS setup +0.009 ns, hold +0.029 ns, DRC Error 0",
+  "vitis_elf": "PASS",
+  "zybo_live_classification": "PASS 2차 측정 기준 정확도 97.8%, 이상 검출 60/60, 정상 오검출 2/30",
+  "latched_motor_stop": "NOT_IMPLEMENTED",
+  "bit_sha256": "6a1fcd2477a063eabf23852596d00e111b091eebd291b49f0b5399a37a70ff28",
+  "xsa_sha256": "70e2122d94bc560a4bf48df22418fd5fc04aaeb0f9f1c31c8211d3aa574aa5ec",
+  "elf_sha256": "8bd647a3f71f0b02abdffdd351bc3a74ac5df313872048c942338f7444c8a810",
+  "previous_bit_sha256": "98ea0a59087d08f5507aa9d796f8be67616c76b125e4e6290687ea308f3a48c5",
+  "previous_elf_sha256": "175fa0cf42e1ff9eb20dcff6e5b7ae11dbb95d906a1c40d785885516f75b9219",
+  "zybo_replay_cpu_pl": "PASS 100/100",
+  "zybo_live_note": "1차 측정은 이상 검출 15%. 센서 재고정 후 100%로 복귀. artifacts/hardware_validation_2026-09-14.md 참조",
+  "consecutive_latch_threshold_evidence": "3연속 조건 이상 구간 192 ms 성립, 정상 구간 0건"
+}

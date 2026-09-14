@@ -23,7 +23,7 @@ create_bd_cell -type module -reference axi_vibration_top accelerator
 create_bd_cell -type module -reference fourier_motor_control motor
 net ps/FCLK_CLK0 motor/clk
 net reset/peripheral_aresetn motor/reset_n
-create_bd_port -dir I -from 2 -to 0 motor_sw
+create_bd_port -dir I -from 3 -to 0 motor_sw
 connect_bd_net [get_bd_ports motor_sw] [get_bd_pins motor/sw]
 create_bd_port -dir I motor_stop
 connect_bd_net [get_bd_ports motor_stop] [get_bd_pins motor/stop_button]

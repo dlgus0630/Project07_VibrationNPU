@@ -34,7 +34,8 @@ def read_line(ser, deadline):
     while time.monotonic() < deadline:
         line = ser.readline().decode("ascii", errors="replace").strip()
         if line:
-            print(line, flush=True)
+            if not line.startswith("SAMPLE,"):
+                print(line, flush=True)
             return line
     raise TimeoutError("UART response timed out")
 
@@ -152,7 +153,8 @@ def capture(args):
         "label": label, "sample_rate_hz": SAMPLE_RATE_HZ, "sensor": sensor_model,
         "axis": "X", "range_g": 2, "samples_per_window": SAMPLES_PER_WINDOW,
         "windows": args.windows, "supply_v": args.supply_v,
-        "motor_target_rpm": args.motor_target_rpm, "note": args.note,
+        "motor_target_rpm": args.motor_target_rpm,
+        "motor_duty_pct": args.motor_duty_pct, "note": args.note,
         "capture_csv": Path(args.output).name,
         "captured_at_utc": datetime.now(timezone.utc).isoformat(),
         "bitstream_sha256": sha256_file(ROOT / "artifacts/fourier.bit"),
@@ -294,7 +296,9 @@ def parser():
     cap.add_argument("--windows", type=int, default=60)
     cap.add_argument("--output", type=Path, required=True)
     cap.add_argument("--supply-v", type=float, default=12.0)
-    cap.add_argument("--motor-target-rpm", type=float, required=True)
+    motor = cap.add_mutually_exclusive_group(required=True)
+    motor.add_argument("--motor-target-rpm", type=float)
+    motor.add_argument("--motor-duty-pct", type=float)
     cap.add_argument("--note", default="")
     cap.add_argument("--init-timeout", type=float, default=3.0)
     cap.add_argument("--window-timeout", type=float, default=2.0)

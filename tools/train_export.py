@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Small PC-only MLP training on explicitly SYNTHETIC vibration windows."""
+"""PC-only MLP training and INT8 export for synthetic or recorded vibration windows."""
 import argparse,json
 from pathlib import Path
 import numpy as np
