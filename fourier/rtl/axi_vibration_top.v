@@ -34,7 +34,10 @@ module axi_vibration_top #(
     (* X_INTERFACE_INFO="xilinx.com:interface:bram:1.0 M_BRAM DIN" *) output wire [31:0] m_bram_wdata,
     (* X_INTERFACE_INFO="xilinx.com:interface:bram:1.0 M_BRAM DOUT" *) input wire [31:0] m_bram_rdata,
     output wire mpu_sclk,output wire mpu_mosi,input wire mpu_miso,output wire mpu_cs_n,
-    output wire irq
+    output wire irq,
+    // Classification stream out to the motor guard, latched-fault state back in.
+    output wire class_valid,output wire class_id,
+    input wire motor_fault_latched
 );
     reg aw_hold,w_hold;reg [11:0] addr_hold;reg [31:0] data_hold;reg [3:0] strb_hold;
     reg start_pulse,sticky_done,sticky_error;
@@ -46,6 +49,8 @@ module axi_vibration_top #(
     assign m_bram_clk=aclk;assign m_bram_rst=!aresetn;
     assign m_bram_addr={20'd0,word_addr,2'b00}; // BRAM controller mode uses BYTE addressing.
     assign irq=sticky_done;
+    assign class_valid=core_done;
+    assign class_id=cls;
     vibration_core core(aclk,!aresetn,start_pulse,busy,core_done,cycles,ncycles,feat,hidden,logits,cls,
         m_bram_en,m_bram_we,word_addr,m_bram_wdata,m_bram_rdata);
     reg spi_start,spi_rd,spi_two,spi_done_sticky;reg [6:0] spi_addr;reg [7:0] spi_wdata;
@@ -89,7 +94,7 @@ module axi_vibration_top #(
                 s_axi_rvalid<=1;s_axi_rresp<=0;
                 case(s_axi_araddr)
                 12'h000:s_axi_rdata<=0;
-                12'h004:s_axi_rdata<={29'd0,sticky_error,sticky_done,visible_busy};
+                12'h004:s_axi_rdata<={28'd0,motor_fault_latched,sticky_error,sticky_done,visible_busy};
                 12'h008:s_axi_rdata<={31'd0,cls};
                 12'h00c:s_axi_rdata<=cycles;
                 12'h010:s_axi_rdata<=ncycles;

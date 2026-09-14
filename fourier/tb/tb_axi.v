@@ -5,10 +5,10 @@ module tb_axi;
     reg [31:0] wdata=0;reg [3:0] strb=0;
     wire awready,wready,bvalid,arready,rvalid;wire [1:0] bresp,rresp;wire [31:0] rdata;
     wire bc,br,be;wire [3:0] bwe;wire [31:0] ba,bwd;reg [31:0] brd=0;
-    wire sclk,mosi,cs,irq;reg [31:0] mem[0:1023];reg [15:0] samples[0:1279];integer k;
+    wire sclk,mosi,cs,irq,cv,ci;reg [31:0] mem[0:1023];reg [15:0] samples[0:1279];integer k;
     reg [31:0] value;
     axi_vibration_top dut(clk,resetn,awaddr,3'd0,awvalid,awready,wdata,strb,wvalid,wready,bresp,bvalid,bready,
-        araddr,3'd0,arvalid,arready,rdata,rresp,rvalid,rready,bc,br,be,bwe,ba,bwd,brd,sclk,mosi,1'b0,cs,irq);
+        araddr,3'd0,arvalid,arready,rdata,rresp,rvalid,rready,bc,br,be,bwe,ba,bwd,brd,sclk,mosi,1'b0,cs,irq,cv,ci,1'b0);
     always @(posedge clk)if(be)begin if(bwe==4'hf)mem[ba[11:2]]<=bwd;else brd<=mem[ba[11:2]];end
     task send_aw;
         input [11:0] a;

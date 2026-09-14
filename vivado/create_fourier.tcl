@@ -27,10 +27,15 @@ create_bd_port -dir I -from 3 -to 0 motor_sw
 connect_bd_net [get_bd_ports motor_sw] [get_bd_pins motor/sw]
 create_bd_port -dir I motor_stop
 connect_bd_net [get_bd_ports motor_stop] [get_bd_pins motor/stop_button]
-foreach port {motor_pwm motor_in1 motor_in2 motor_armed} {
+foreach port {motor_pwm motor_in1 motor_in2 motor_armed motor_fault} {
     create_bd_port -dir O $port
     connect_bd_net [get_bd_ports $port] [get_bd_pins motor/$port]
 }
+# Classification -> motor guard, latched fault -> status register. Both cells run on
+# ps/FCLK_CLK0 and reset/peripheral_aresetn, so this is a single clock domain.
+net accelerator/class_valid motor/class_valid
+net accelerator/class_id motor/class_id
+net motor/motor_fault accelerator/motor_fault_latched
 net ps/FCLK_CLK0 ps/M_AXI_GP0_ACLK reset/slowest_sync_clk interconnect/aclk ram_controller/s_axi_aclk accelerator/aclk
 net ps/FCLK_RESET0_N reset/ext_reset_in
 net one/dout reset/dcm_locked reset/aux_reset_in

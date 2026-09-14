@@ -1,0 +1,26 @@
+{
+  "date": "2026-09-14",
+  "board": "Zybo Z7-20",
+  "sensor": "MPU-6500 WHO_AM_I 0x70",
+  "motor": "JGB37-520 12V 110RPM",
+  "driver": "L298N",
+  "bit_sha256": "cc48b9e7577f06f7978887f3a582018285058b828409ace5b291ec34eb9e9360",
+  "xsa_sha256": "9bb245d0958c871fa8820785b90f296f018fb4694bb7363e96b28e76fc31374b",
+  "elf_sha256": "428f788bfcf8710d217aeca11d023babd43255dec8d8a219b3e8aecad1c66e46",
+  "normal_windows": "PASS class0 3/3, CPU-PL match 3/3",
+  "fault_sequence": [0, 1, 1, 1, 0, 0],
+  "trip_condition": "three consecutive class1 windows",
+  "axi_status_after_trip": "0x0000000A, fault bit3=1, error bit2=0",
+  "physical_trip": "PASS motor stopped, LD0 OFF, LD1 ON",
+  "current_before_trip_a": 0.13,
+  "current_after_trip_a": 0.01,
+  "clear_rearm": "PASS SW0 OFF clear; SW0 ON with SW2 ON restarted motor",
+  "current_after_rearm_a": 0.13,
+  "source_logs": [
+    "measurements/hw_validation_2026-09-14/hw_live_normal_latch_motor_final.csv",
+    "measurements/hw_validation_2026-09-14/hw_live_fault_latch_motor_final.csv",
+    "measurements/hw_validation_2026-09-14/hw_live_fault_latch_motor_final_cont.csv",
+    "measurements/hw_validation_2026-09-14/hw_replay_latch_trigger.csv",
+    "measurements/hw_validation_2026-09-14/hw_sensor_init_latch_motor_final.csv"
+  ]
+}

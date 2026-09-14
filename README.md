@@ -13,14 +13,18 @@ MPU-6500/9250 -> SPI -> ARM Cortex-A9
                     |
                     v
           FFT64 -> 4-band feature -> 4x4x2 INT8 NPU
-                    |
-                    v
-                  UART
+                    |                         |
+                    v                         v
+                  UART          3 consecutive faults
+                                             |
+                                             v
+                                  PL latched motor stop
 ```
 
 - PS: 센서 설정, 64개 sample 수집, BRAM 전송, 가속기 시작, 결과 출력
 - PL: radix-2 FFT, 주파수 대역 특징, 2개 MAC PE 기반 MLP 추론
 - 별도 모터 출력: L298N에 20 kHz PWM을 제공하고 SW3로 32 Hz 토크 리플 fault injection
+- 안전 정지 RTL: 3회 연속 이상 판정에서 PL이 모터 PWM을 latch 차단하며, 운전 재arm은 SW0 OFF를 거쳐 수행
 - 학습: PC에서만 수행하며 FPGA는 inference만 수행
 - HDL: 직접 작성한 Verilog-2001, HDL Coder 미사용
 
@@ -35,21 +39,33 @@ MPU-6500/9250 -> SPI -> ARM Cortex-A9
 | INT8 혼동행렬 | normal 58/60, injected fault 60/60 |
 | 독립 C/정수 Golden | 20 window, 2,560 FFT component, 220 result PASS |
 | 재학습 전 MATLAB/Simulink | 20/20 PASS |
-| 재학습 전 XSim | 6개 testbench PASS |
-| fault-injection bit timing | setup +0.010 ns, hold +0.032 ns, DRC Error 0 |
-| 해당 bit 구현 자원 | LUT 10,628, FF 7,270, DSP 5, BRAM 1 |
-| Zybo replay | 100/100 CPU-PL 일치 |
+| 재학습 전 bit 구현 자원 | LUT 10,628, FF 7,270, DSP 5, BRAM 1 |
+| 최종 latch bit timing | post-route setup +0.039 ns, hold +0.013 ns, DRC Error 0 |
+| Zybo replay (실측 모델) | 100/100 CPU-PL 일치 |
+| 실시간 분류 (센서 재고정 후) | 이상 60/60, 정상 28/30, 전체 97.8% |
+| 이상 판정 마진 | 최소 117 |
 | 실물 센서 | MPU-6500, WHO_AM_I `0x70`, 초기화 PASS |
-| 실측 sample 간격 | 평균 998.921 us, 994..1004 us |
-| 재학습 전 실측 sensor FFT/NPU | CPU-PL 일치, 833 cycle |
+| 실측 sample 간격 | 998.8 us = 1001.2 Hz, 폐기 window 0건 |
 | PL FFT+NPU | 833 cycle = 8.33 us @ 100 MHz |
 | NPU 구간 | 18 cycle |
-| 가속기 전체 구간 | 26-27 us |
+| 가속기 end-to-end | 26.38 us (ARM 소프트웨어 847 us 대비 약 32배) |
+| 최종 MATLAB/Simulink | source digest 일치 PASS |
+| 최종 XSim | 7/7 PASS, fault latch 회귀시험 포함 |
+| 최종 Vitis | 새 XSA 기반 BSP·FSBL·ARM 앱 build PASS |
+| PL 안전 정지 실측 | 실제 class 1 연속 3회 후 모터 정지, `LD0 OFF / LD1 ON` |
+| 차단 전후 전류 | 0.13 A -> 0.01 A |
+| clear/rearm | SW0 OFF clear 후 SW0 ON 재회전, 0.13 A |
 
 실측 분류의 class 1은 자연 발생 베어링 고장이 아니라 PL이 만든 `25%<->75% @ 32 Hz` 토크 리플이다.
-정상 조건은 50% 고정 duty이며 두 조건 모두 12.0 V와 평균 duty 50%를 사용했다. 재학습으로
-`data/`와 펌웨어 모델 상수가 바뀌었으므로 최종 MATLAB/Simulink, XSim, implementation과 Zybo
-실측은 다시 수행해야 한다. 완료 전에는 위의 재학습 전 gate 결과를 새 모델의 결과로 해석하지 않는다.
+정상 조건은 50% 고정 duty이며 두 조건 모두 12.0 V와 평균 duty 50%를 사용했다. 보드 측정 전체
+기록은 [artifacts/hardware_validation_2026-09-14.md](artifacts/hardware_validation_2026-09-14.md)에
+있고 원본 CSV는 `measurements/hw_validation_2026-09-14/`에 있다. 최종 latch 포함 artifact는
+`fourier.bit` SHA-256 `cc48b9e7...e9360`, `fourier_app.elf` SHA-256 `428f788b...6e46`이다.
+
+최종 실물 시험에서는 정상 class 0을 `3/3` 확인한 뒤 SW3 토크 리플을 입력했다. 판정열
+`0,1,1,1,0,0`에서 세 번째 연속 class 1 직후 모터가 정지했고 AXI status `0x004`는
+`0x0000000A`로 fault bit 3을 표시했다. `LD0 OFF / LD1 ON`, 전류 `0.13 A -> 0.01 A`를
+확인했으며 SW0 OFF clear와 SW0 ON rearm 뒤 모터가 0.13 A로 다시 회전했다.
 
 ## 실행
 
@@ -81,12 +97,35 @@ Vivado 2024.2와 Digilent Zybo Z7-20 board files가 필요하다. Vivado가 PATH
 실행 파일 경로를, 보드 파일을 별도로 설치했다면 `DIGILENT_BOARD_REPO`에 `new/board_files` 경로를
 지정한다. Vitis 실행과 UART 명령은 [docs/VITIS_2024_2.md](docs/VITIS_2024_2.md)를 따른다.
 
+## 트러블슈팅: 센서 고정 상태 변화로 인한 이상 검출률 저하
+
+실측 모델을 올린 첫 실시간 측정에서 정상은 60/60 정답이었으나 이상 검출률이 학습 시 98%에서
+15%(9/60)로 떨어졌다. 재학습이나 모델 문제로 보이기 쉬운 증상이지만 원인은 연산 경로 밖에 있었다.
+
+배제 과정은 다음과 같다. 첫째, 같은 window에서 CPU와 PL 결과가 60/60 일치했으므로 FFT/NPU
+연산 경로와 AXI 전송은 정상이다. 둘째, fault injection RTL(`fourier_motor_control.v`,
+`FAULT_HZ=32`)의 마지막 변경 시각이 데이터 수집 시각보다 앞섰으므로 주입 파형 자체가 바뀐 것이
+아니다. 셋째, 샘플 간격을 직접 측정해 1001.2 Hz임을 확인했으므로 주파수 축 왜곡도 아니다.
+
+남은 것은 특징 분포였다. four-band feature 평균을 학습 데이터와 대조하니 정상 상태는 거의
+같았으나 이상 상태의 에너지가 band 0(16~94 Hz)에서 band 1(109~188 Hz)로 옮겨가 있었다.
+원시 스펙트럼에서도 상위 성분이 32 Hz의 1.5~2.5 배음에서 4 배음인 125.2 Hz로 바뀌어 있었다.
+모델은 band 0 증가를 이상의 근거로 학습했으므로 이 신호를 인식하지 못한다.
+
+전원을 내리고 센서를 gearbox bracket에 다시 고정한 뒤 같은 조건으로 재측정하니 band 0이
+0.98에서 2.90으로 복귀했고 이상 검출률은 60/60 = 100%, 전체 정확도 97.8%, 이상 판정 마진
+최소 117이 됐다. 재학습이나 RTL 수정 없이 기계적 전달 경로만 바로잡아 해결한 사례다.
+
+남은 불확실성이 있다. 재고정 직전에 센서가 실제로 느슨했는지는 직접 확인하지 않았으므로
+원인은 "고정 상태 변화"로만 기록하고 나사 풀림으로 단정하지 않는다. 재발을 빨리 판별하려면
+측정 시작 전에 정상 조건의 four-band feature 평균을 기준값과 비교하는 절차가 필요하다.
+
 ## 폴더
 
 | 경로 | 내용 |
 |---|---|
 | `fourier/rtl` | FFT, NPU, AXI, SPI, 모터 PWM RTL |
-| `fourier/tb` | 자동 PASS/FAIL testbench 6개 |
+| `fourier/tb` | 자동 PASS/FAIL testbench 7개 |
 | `fourier/firmware` | ARM 앱과 독립 C 기준 모델 |
 | `data` | 학습 데이터, 정수 가중치, test vector |
 | `matlab` | MATLAB Golden 및 Simulink 함수 |

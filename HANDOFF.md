@@ -15,6 +15,8 @@
 8. 커밋 작성자는 사용자 `dlgus0630` 한 명만 유지한다. 공동 작성자 트레일러나 자동 생성자 표기를
    넣지 않으며 커밋과 push는 사용자가 요청한 시점에만 수행한다.
 9. 전원 인가 상태에서 배선을 바꾸지 않는다. 종료 순서는 `SW0 OFF -> PSU OUTPUT OFF`다.
+10. `README.md`, `DESIGN.md`, `HANDOFF.md`, `docs/`도 source digest에 포함된다. RTL과 문서 변경을
+    한 묶음으로 확정한 다음 MATLAB package를 새로 만들고 모든 gate를 다시 통과시킨다.
 
 ## 프로젝트 범위
 
@@ -23,7 +25,7 @@
 ```text
 MPU-6500 X축 -> Cortex-A9 SPI 수집 -> dual-port BRAM
              -> PL FFT64 -> 4 band -> 4x4x2 INT8 NPU
-             -> 연속 이상 판정 -> PL motor limit/latched stop (아직 구현 전)
+             -> 3회 연속 이상 판정 -> PL motor latched stop
 ```
 
 별도 `Project07_MotorControl` 저장소에는 Basys3 pure-RTL PI, anti-windup, encoder hybrid estimator와
@@ -55,7 +57,7 @@ SW3 OFF: 정상 50% 고정 duty
 SW3 ON: 25%/75%를 32 Hz로 교대, 평균 duty 50%
 ```
 
-## 완료된 실물 수집
+## 완료된 실물 수집과 통합 검증
 
 새 fault-injection bit를 Zybo에 프로그램했고 센서 초기화를 다시 확인했다.
 
@@ -78,6 +80,37 @@ bitstream SHA-256과 ELF SHA-256이 기록돼 있다. 잘못 측정한 13 V 파�
 - four-band INT8 feature mean: normal `[0.9, 0.7, 1.0, 1.9]`
 - four-band INT8 feature mean: injected `[2.6, 1.2, 2.8, 2.5]`
 - band 1/3 pooled effect size: `3.970`, `4.025`
+
+새 실측 모델을 포함한 bit/XSA와 ARM 앱을 만든 뒤 Zybo에서 다음 검증을 완료했다.
+
+- bitstream SHA-256:
+  `6a1fcd2477a063eabf23852596d00e111b091eebd291b49f0b5399a37a70ff28`
+- XSA SHA-256:
+  `70e2122d94bc560a4bf48df22418fd5fc04aaeb0f9f1c31c8211d3aa574aa5ec`
+- ELF SHA-256:
+  `8bd647a3f71f0b02abdffdd351bc3a74ac5df313872048c942338f7444c8a810`
+- post-route timing: setup `+0.009 ns`, hold `+0.029 ns`, DRC Error 0
+- replay 100회: CPU/PL class `100/100` 일치
+- PL latency: 833 cycle at 100 MHz
+- ARM 기준 실행시간: 847 us
+- end-to-end 평균 latency: 26.38 us
+
+최초 실시간 분류에서는 정상 `60/60`, 토크 리플 `9/60`만 검출됐다. 계산 경로를 대조한 결과
+CPU/PL 판정은 일치했고 fault-injection RTL도 데이터 수집 당시와 같았다. 샘플링 속도는
+`1001.2 Hz`였으며 fault 에너지가 학습 당시 band 0에서 실측 당시 band 1로 이동했다. 따라서
+원인은 FFT/NPU 계산 오류가 아니라 센서와 모터 사이의 기계적 전달 조건 변화로 좁혀졌다.
+
+센서를 같은 위치에서 다시 단단히 고정한 뒤 재측정한 결과는 다음과 같다.
+
+- 토크 리플: `60/60` 검출
+- 정상: `28/30` 정상 판정
+- 전체: `88/90 = 97.8%`
+- fault class 최소 margin: `117`
+
+재고정 전 센서가 실제로 느슨했는지는 직접 확인하지 못했으므로, 문서에는 나사 풀림으로 단정하지
+않고 센서 고정 상태와 기계적 전달 경로의 변화로 기록한다. 원본 8개 CSV는
+`measurements/hw_validation_2026-09-14/`, 전체 분석은
+`artifacts/hardware_validation_2026-09-14.md`에 있다.
 
 ## 데이터셋과 재학습 결과
 
@@ -104,68 +137,51 @@ FFT 최대 오차는 부동소수점 FFT/64 대비 6 LSB였다.
 
 ## gate와 artifact의 정확한 현재 상태
 
-재학습 전 fault-injection acquisition bit는 아래 검증을 통과했다.
+PL 안전정지 latch를 포함한 최종 실행 artifact는 다음과 같다.
 
-- MATLAB/Simulink PASS
-- XSim 6/6 PASS
-- post-route timing: setup `+0.010 ns`, hold `+0.032 ns`
-- DRC Error 0
-- Zybo motor normal/fault mode와 MPU UART 실물 PASS
-- `artifacts/fourier.bit` SHA-256:
-  `98ea0a59087d08f5507aa9d796f8be67616c76b125e4e6290687ea308f3a48c5`
-- 이전 bit 백업 `artifacts/fourier_pre_fault_injection.bit` SHA-256:
-  `ee5f55296147652112a3a44e4b765aff1c54cffb9577e6f231773a3deac8673f`
-- 현재 보드에 올린 ELF SHA-256:
-  `175fa0cf42e1ff9eb20dcff6e5b7ae11dbb95d906a1c40d785885516f75b9219`
+- `artifacts/fourier.bit`: SHA-256 `cc48b9e7577f06f7978887f3a582018285058b828409ace5b291ec34eb9e9360`
+- `artifacts/fourier.xsa`: SHA-256 `9bb245d0958c871fa8820785b90f296f018fb4694bb7363e96b28e76fc31374b`
+- `artifacts/fourier_app.elf`: SHA-256 `428f788bfcf8710d217aeca11d023babd43255dec8d8a219b3e8aecad1c66e46`
+- `artifacts/fsbl.elf`: SHA-256 `b6645ffd48ab1d2f8cffb4af2b62704d0b691ca37683da58952f8bc72a8c5f44`
+- 이전 실측 모델 artifact는 `*_pre_latch.*` 이름으로 보존
 
-중요: 재학습으로 `data/`와 `model_data.h`가 바뀌었다. 따라서 위 bit와 ELF에는 새 실측 모델이
-아직 들어 있지 않다. 현재 `reports/matlab.pass`와 `reports/sim.pass`도 새 소스 digest에는 유효하지
-않다. 새 모델의 MATLAB, XSim, Vivado, ELF 재빌드와 Zybo 검증이 다음 필수 작업이다.
+검증 결과:
+
+- MATLAB/Simulink: PASS
+- XSim: 7/7 PASS
+- Vivado post-route: setup `+0.039 ns`, hold `+0.013 ns`, DRC Error 0
+- resource: LUT 11,265, register 7,272, BRAM tile 1, DSP 5
+- 새 XSA 기반 Vitis platform/BSP/FSBL/ARM app: PASS
+- ARM-PL replay: `match=1`
+- MPU-6500 재초기화: `WHO_AM_I=0x70`, `SENSOR_READY=1`
+
+최종 실물 시험은 정상 운전 class 0 `3/3`, CPU-PL `3/3` 일치로 시작했다. SW3 토크 리플을
+인가한 뒤 판정열 `0,1,1,1,0,0`에서 세 번째 연속 class 1에 latch가 설정됐다. AXI status는
+`0x0000000A`, 모터는 정지, `LD0 OFF / LD1 ON`, 전류는 0.13 A에서 0.01 A로 감소했다.
+SW0 OFF clear 후 SW2를 유지하고 SW0 ON으로 재arm하자 `LD0 ON / LD1 OFF`, 모터 재회전,
+0.13 A로 복귀했다.
+
+원본 로그는 `measurements/hw_validation_2026-09-14/*latch_motor_final*.csv`, 전체 설명은
+`artifacts/hardware_validation_2026-09-14.md`, 구조화 요약은
+`artifacts/latch_hardware_summary_2026-09-14.json`에 있다.
 
 ## 다음 작업 순서
 
-1. 현재 전체 소스로 MATLAB 입력을 만든다.
+필수 구현과 실물 통합 검증은 완료됐다. 남은 작업은 결과물 정리다.
 
-   ```bash
-   python3 tools/package_matlab.py
-   ```
-
-2. `artifacts/matlab_input.zip`을 MATLAB Drive에 업로드하고 다음을 실행한다.
-
-   ```matlab
-   bdclose('all');
-   clear functions;
-   cd('/MATLAB Drive');
-   if isfolder('Project07_real_model_final')
-       rmdir('Project07_real_model_final','s');
-   end
-   unzip('matlab_input.zip','Project07_real_model_final');
-   cd('/MATLAB Drive/Project07_real_model_final/Project07_VibrationNPU');
-   RUN_MATLAB_CHECKS
-   ```
-
-3. PASS 뒤 `reports/matlab_results.zip`을 이 저장소 루트로 가져와 압축을 풀고
-   `python3 tools/gates.py check matlab`로 source digest 일치를 확인한다.
-4. `python3 tools/run.py sim`을 실행해 XSim 6개를 모두 통과시킨다.
-5. `python3 tools/run.py build`로 새 실측 가중치가 포함된 bit/XSA를 만든다. setup과 hold slack이
-   모두 0 이상이고 DRC Error 0인지 확인한다. 직전 구현은 최초 route setup `-0.046 ns`였으나
-   post-route `phys_opt_design -directive AggressiveExplore`로 `+0.010 ns`가 됐다. 같은 문제가 나면
-   위 명령을 적용하고 최종 timing report를 다시 생성하되 음수 slack bit를 사용하지 않는다.
-6. 새 XSA로 Vitis standalone 앱을 다시 build한다. `model_data.h`가 변경됐으므로 기존
-   `artifacts/fourier_app.elf`를 재사용하지 않는다.
-7. 새 bit와 ELF를 Zybo에 프로그램한 뒤 replay 100회 CPU/PL 일치와 normal/fault 실시간 분류를
-   각각 독립적으로 측정한다. validation 정확도는 PC 수치만으로 PL 실측 PASS로 대체하지 않는다.
-8. 실측 분류가 확인된 다음 PL에 연속 이상 frame 판정과 latched stop을 추가한다. 권장 최소 설계는
-   3회 연속 class 1에서 fault latch, SW0 OFF에서만 clear, BTN0 즉시 차단이다. 예상 판정시간은
-   64 ms window 기준 약 192 ms이며 실측한다. testbench에 단발성 class 1 무시, 3회 연속 latch,
-   latch 유지, SW0 clear를 넣는다.
-9. 최종 bit에서 `정상 운전 -> SW3 ON -> NPU 이상 판정 -> motor PWM 차단 -> latched fault`를
-   UART와 오실로스코프로 함께 측정한다. 이 결과가 통합 프로젝트의 최종 증거다.
+1. 최종 문서가 포함된 source digest로 MATLAB/Simulink와 XSim marker를 한 번 갱신한다.
+2. 가능하면 오실로스코프 single-shot으로 JD1 PWM의 정상 20 kHz 파형과 latch 후 LOW를 기록한다.
+   UART 명령 사이의 사용자 확인 시간이 있으므로 현재 로그의 host timestamp를 차단 지연시간으로
+   사용하지 않는다.
+3. 정상 유지 -> SW3 이상 주입 -> 자동 정지 -> SW0 clear/rearm을 한 영상으로 촬영한다.
+4. 사용자 검토 뒤 사용자 계정만으로 commit/push한다.
 
 ## 제한과 선택 확장
 
 - class 1은 통제된 토크 리플이며 자연 고장 일반화 결과가 아니다.
 - 정상 run 3개를 먼저, class 1 run 3개를 나중에 수집했으므로 온도 추세가 class와 결합됐을 수 있다.
+- 센서의 고정 상태와 기계적 전달 경로가 분류 결과를 크게 바꾼다. 새 실험 전 정상 상태의 four-band
+  평균을 기존 baseline과 비교하고 차이가 크면 센서 고정부터 점검한다.
 - 최소 데이터셋은 완성됐다. 더 강한 통계가 필요하면 다른 날 조건을 번갈아 3 run씩 추가한다.
 - oscilloscope는 최종 통합에서 JD1 PWM과 fault latch 직후 차단 시간을 증명할 때 사용한다.
 - 전압 외란, encoder C2 quadrature, Zybo에 Basys3 전체 PI 이식은 최종 통합 뒤 선택 항목이다.
@@ -173,6 +189,6 @@ FFT 최대 오차는 부동소수점 FFT/64 대비 6 LSB였다.
 
 ## 저장소 상태
 
-실측 수집, fault-injection RTL, 실제 데이터 모델 파일과 문서가 아직 커밋되지 않았다. 커밋 전에
-`git diff --check`, MATLAB/XSim/Vivado gate, 새 ELF와 최종 보드 검증을 완료하는 편이 안전하다.
-중간 체크포인트가 필요하면 사용자 계정의 이름과 이메일로만 커밋하고 공동 작성자 표기를 넣지 않는다.
+실측 수집, 실제 데이터 모델, latch RTL/testbench, 최종 artifact와 문서는 아직 커밋되지 않았다.
+커밋과 push는 수행하지 않았다. 최종 문서 digest의 MATLAB/XSim marker와 `git diff --check`를
+확인한 다음 사용자 요청 시 사용자 계정의 이름과 이메일만 사용한다.

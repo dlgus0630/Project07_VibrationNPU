@@ -1,7 +1,7 @@
 Copyright 1986-2022 Xilinx, Inc. All Rights Reserved. Copyright 2022-2024 Advanced Micro Devices, Inc. All Rights Reserved.
 -------------------------------------------------------------------------------------------------------------------------------------------------------------
 | Tool Version : Vivado v.2024.2 (lin64) Build 5239630 Fri Nov 08 22:34:34 MST 2024
-| Date         : Mon Sep 14 11:03:16 2026
+| Date         : Mon Sep 14 13:42:49 2026
 | Host         : dlgus0630-850XAC running 64-bit Ubuntu 24.04.4 LTS
 | Command      : check_timing -verbose -file /home/dlgus0630/Downloads/fpga_fourier_pid_v4/Project07_VibrationNPU/reports/fourier_postroute/check_timing.rpt
 | Design       : system_wrapper
@@ -20,7 +20,7 @@ Table of Contents
 3. checking pulse_width_clock (0)
 4. checking unconstrained_internal_endpoints (0)
 5. checking no_input_delay (6)
-6. checking no_output_delay (6)
+6. checking no_output_delay (7)
 7. checking multiple_clock (0)
 8. checking generated_clocks (0)
 9. checking loops (0)
@@ -64,13 +64,14 @@ motor_sw[3]
 mpu_miso
 
 
-6. checking no_output_delay (6)
+6. checking no_output_delay (7)
 -------------------------------
  There are 0 ports with no output delay specified.
 
- There are 6 ports with no output delay but user has a false path constraint (MEDIUM)
+ There are 7 ports with no output delay but user has a false path constraint (MEDIUM)
 
 motor_armed
+motor_fault
 motor_in1
 motor_pwm
 mpu_cs_n

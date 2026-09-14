@@ -206,3 +206,41 @@ python3 tools/monitor.py --port /dev/ttyUSB1 --command i --seconds 6 \
 
 실시간 분류는 `s` 명령을 반복 전송하며 `RESULT` 줄을 수집한다. 종료 순서는
 `SW3 OFF -> SW0 OFF -> PSU OUTPUT OFF`다.
+
+## 9. PL fault latch 최종 실물 검증
+
+3회 연속 이상 판정에서 모터 출력을 latch 차단하는 최종 RTL을 전체 게이트 후 Zybo에 올렸다.
+
+| 파일 | SHA-256 |
+|---|---|
+| `artifacts/fourier.bit` | `cc48b9e7577f06f7978887f3a582018285058b828409ace5b291ec34eb9e9360` |
+| `artifacts/fourier.xsa` | `9bb245d0958c871fa8820785b90f296f018fb4694bb7363e96b28e76fc31374b` |
+| `artifacts/fourier_app.elf` | `428f788bfcf8710d217aeca11d023babd43255dec8d8a219b3e8aecad1c66e46` |
+
+PSU 12.0 V, SW2 ON, SW1/SW3 OFF에서 정상 운전한 결과는 class 0 `3/3`, CPU-PL 일치
+`3/3`, 모터 전류 약 0.13 A였다. SW3를 ON으로 전환한 뒤 실시간 판정열은
+`0, 1, 1, 1, 0, 0`이었다. 전환 직후 class 0 다음에 class 1이 세 번 연속 입력되자 모터가
+정지했고, 정지 뒤 두 window는 class 0으로 복귀했다.
+
+차단 직후 관측값은 다음과 같다.
+
+```text
+AXI status 0x004 = 0x0000000A
+fault latch bit3 = 1
+PL error bit2    = 0
+motor            = stopped
+LD0 / LD1        = OFF / ON
+PSU current      = 0.13 A -> 0.01 A
+```
+
+SW3를 OFF로 복구하고 SW0을 OFF로 내리자 LD1이 꺼지며 latch가 clear됐다. SW2만 유지한 채
+SW0을 다시 ON으로 올리자 `LD0 ON / LD1 OFF`, 모터 재회전, 약 0.13 A로 복귀했다. 따라서
+정상 유지, 실제 센서 이상 판정, PL latched stop, operator clear/rearm 전체 경로를 실물에서
+확인했다.
+
+원본은 `hw_live_normal_latch_motor_final.csv`, `hw_live_fault_latch_motor_final.csv`,
+`hw_live_fault_latch_motor_final_cont.csv`이며 요약은
+`artifacts/latch_hardware_summary_2026-09-14.json`에 있다. 판정 명령 사이에 사용자 확인 시간이
+포함됐으므로 이 로그의 host timestamp로 192 ms 차단 시간을 주장하지 않는다. 192 ms는 64 ms
+window 세 개의 알고리즘 기준값이며, 실제 출력 차단 시간의 계측은 오실로스코프 single-shot으로
+별도 수행해야 한다.
