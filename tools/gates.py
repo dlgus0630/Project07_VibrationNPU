@@ -15,6 +15,8 @@ def digest():
         relative = path.relative_to(ROOT)
         if any(part in EXCLUDED for part in relative.parts):
             continue
+        if path.suffix.lower() == '.md':
+            continue
         value.update(relative.as_posix().encode())
         value.update(path.read_bytes())
     return value.hexdigest()

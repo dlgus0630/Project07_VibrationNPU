@@ -12,6 +12,7 @@ EXCLUDED = {'artifacts', 'reports', 'build', 'measurements', '__pycache__', '.gi
 def main():
     files = [path for path in sorted(ROOT.rglob('*')) if path.is_file()
              and not any(part in EXCLUDED for part in path.relative_to(ROOT).parts)]
+    digest_files = [path for path in files if path.suffix.lower() != '.md']
     expected = digest()
     output = ROOT / 'artifacts' / 'matlab_input.zip'
     output.parent.mkdir(exist_ok=True)
@@ -21,7 +22,7 @@ def main():
     with zipfile.ZipFile(output) as archive:
         assert archive.testzip() is None
         actual = hashlib.sha256()
-        for path in files:
+        for path in digest_files:
             relative = path.relative_to(ROOT).as_posix()
             actual.update(relative.encode())
             actual.update(archive.read(ROOT.name + '/' + relative))

@@ -4,16 +4,33 @@
 `artifacts/`는 source digest에서 제외되므로 MATLAB gate 실행 중에도 이 문서를 갱신할 수 있다.
 상충하는 메모가 있으면 실제 파일, gate marker, SHA-256, UART 원본 순서로 확인한다.
 
-## 1. 가장 먼저 확인할 것
+## 1. 가장 먼저 확인할 것 (2026-09-15 갱신)
 
-현재 사용자는 MATLAB Online에서 아래 패키지를 실행 중이다.
+`matlab_results (16).zip`으로 MATLAB gate와 XSim 8/8이 이전 digest(`422079b8…`)로 모두 PASS했고,
+그 결과가 커밋 `eb21f85`로 들어갔다. 이후 검토에서 그 커밋의 문서(`docs/SAFETY_SUPERVISOR.md`,
+`README.md`, `HANDOFF.md`)에 실제로 오실로스코프/듀티 실측 없이 PASS라고 쓴 과장 표현이 여러 곳
+발견되어, 사실 수준에 맞게 정정하고 같은 커밋에 amend했다 (`93e0615`, author/committer
+`dlgus0630 <dlgus0630@naver.com>` 단독, push 안 함).
 
-- 로컬 파일: `artifacts/p07_safety_final.zip`
-- ZIP SHA-256: `62895c4c40fdc62233241bfeb36927e4ee17ad1f605d2b075b096288def79422`
-- package source digest: `422079b82774fa927e9590a17f90c525075f9103a3bfb072c4fee4ab3c2ede18`
-- MATLAB 내부 경로: `/MATLAB Drive/Project07_Safety_Final/Project07_VibrationNPU`
-- 실행 명령: `RUN_MATLAB_CHECKS`
-- 기대 출력: `MATLAB/SIMULINK PASS. Download reports/matlab_results.zip.`
+**설계 변경 (2026-09-15, 두 번째 갱신): digest 범위에서 설명용 문서를 뺐다.** 사용자가 README/HANDOFF
+같은 prose 문서를 언제든 자유롭게 고칠 수 있어야 한다고 판단해서, `tools/gates.py:digest()`와
+`matlab/source_digest.m`을 동일하게 고쳐 **모든 `.md` 파일을 확장자 기준으로 digest 계산에서
+제외**했다 (`artifacts/reports/build/measurements/__pycache__/.git` 디렉터리 제외는 그대로 유지).
+`tools/package_matlab.py`도 zip에는 `.md`를 그대로 담되 digest 검증 대상에서는 뺐다. 이제부터
+RTL/firmware/MATLAB 스크립트/테스트/데이터 파일만 digest에 들어가고, README/HANDOFF/docs/*.md
+수정은 게이트를 무효화하지 않는다. 세 파일 모두 exclusion 로직이 완전히 동일한지 항상 대조해서
+유지할 것 — 하나만 고치면 Python/MATLAB digest가 영구히 갈라진다.
+
+이 알고리즘 변경 자체가 digest를 다시 바꿨다. 사용자는 아래 새 패키지를 MATLAB Online에 올려야 한다.
+
+- 로컬 파일: `artifacts/matlab_input.zip` (`tools/package_matlab.py`로 재생성 완료)
+- ZIP SHA-256: `71dbe9c9c6834050cf0600fa44cada1245b18bee7012f9373612c14e84b87ccb`
+- package source digest: `f1901eba6458efde05adff4a7101e76b677b0181f5d9575574d3da05adb34fbe`
+- MATLAB 내부 경로/실행 명령/기대 출력은 이전과 동일 (`RUN_MATLAB_CHECKS` ->
+  `MATLAB/SIMULINK PASS. Download reports/matlab_results.zip.`)
+- `tools/gates.py`, `matlab/source_digest.m`, `tools/package_matlab.py`, `artifacts/matlab_input.zip`
+  변경은 별도 커밋으로 남길 계획이며 (안전 supervisor 커밋 `93e0615`와 분리), 이 문서 작성 시점에
+  아직 commit 여부를 확정하지 않았다면 `git log -1`로 실제 반영 여부를 먼저 확인한다.
 
 **사용자가 새 `matlab_results.zip`을 반환하기 전에는 `artifacts/`와 `reports/` 밖의 파일을 수정하지
 말 것.** 소스, README, HANDOFF, docs를 한 글자라도 바꾸면 위 digest와 반환 marker가 무효가 된다.

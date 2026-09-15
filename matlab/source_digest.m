@@ -6,6 +6,8 @@ for k=1:numel(d)
     full=fullfile(d(k).folder,d(k).name);rel=strrep(full(numel(root)+2:end),'\','/');
     parts=strsplit(rel,'/');
     if any(ismember(parts,{'artifacts','reports','build','measurements','__pycache__','.git'})),continue;end
+    [~,~,ext]=fileparts(rel);
+    if strcmpi(ext,'.md'),continue;end
     paths{end+1}=rel;
 end
 paths=sort(paths);md=java.security.MessageDigest.getInstance('SHA-256');
