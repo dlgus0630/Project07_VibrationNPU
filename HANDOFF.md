@@ -15,8 +15,12 @@
 8. 커밋 작성자는 사용자 `dlgus0630` 한 명만 유지한다. 공동 작성자 트레일러나 자동 생성자 표기를
    넣지 않으며 커밋과 push는 사용자가 요청한 시점에만 수행한다.
 9. 전원 인가 상태에서 배선을 바꾸지 않는다. 종료 순서는 `SW0 OFF -> PSU OUTPUT OFF`다.
-10. `README.md`, `DESIGN.md`, `HANDOFF.md`, `docs/`도 source digest에 포함된다. RTL과 문서 변경을
-    한 묶음으로 확정한 다음 MATLAB package를 새로 만들고 모든 gate를 다시 통과시킨다.
+10. `tools/gates.py`의 digest는 `.md` 파일과 `artifacts/reports/build/measurements`를 제외한다.
+    RTL, `.tcl`, `.c/.h`, `.py`를 바꾸면 MATLAB/XSim gate를 다시 통과시켜야 하지만 문서만 고칠
+    때는 그럴 필요가 없다.
+11. 최종 목표가 2026-09-15에 바뀌었다: `Project07_MotorControl`(Basys3)의 PI/encoder hybrid
+    estimator를 이 저장소의 Zybo PL로 이식해 **한 보드로 완전 통합**한다. Basys3 저장소는
+    삭제하지 않고 "개발·검증 기준선"으로 유지한다. 아래 "다음 작업 순서"를 따른다.
 
 ## 프로젝트 범위
 
@@ -196,39 +200,71 @@ SW0 OFF clear 후 SW2를 유지하고 SW0 ON으로 재arm하자 `LD0 ON / LD1 OF
 검증 명령이다. 긴 센서 수집 중에는 16 sample마다 heartbeat를 보내도록 보강했다. 상세 실측 기록은
 `artifacts/safety_supervisor_hardware_2026-09-15.md`와 `artifacts/safety_logs_2026-09-15/`에 있다.
 
-## 다음 작업 순서
+## 2026-09-15 오실로스코프·watchdog 후속 실측 (완료)
 
-gate 현황: 증거 표현 정정 직전 source digest에서 MATLAB/Simulink gate와 공식 XSim 8/8이 모두
-PASS였다. `tools/gates.py`의 digest는 `artifacts`, `reports`, `build`, `measurements`를 제외한
-저장소 전체를 해시하므로 README/HANDOFF/docs 수정도 digest를 바꾼다. 따라서 이번 문서 정정으로
-두 marker는 무효가 되고 재생성이 필요하다.
+위 "안전 supervisor 확장 상태"에 기록된 시점 이후 추가로 완료한 것:
 
-아직 완료로 기록하면 안 되는 항목:
+- **JD1 duty 오실로스코프 실측 완료**: baseline 50.0%, warning 50.0%(불변), derate 25.0%,
+  latch 0%(파형 소실), SW0 clear/rearm 50.0% 복귀. 전부 `pwm_period` 계산값과 일치.
+  스크린샷은 `measurements/scope_captures_2026-09-15/`, 상세 기록은
+  `artifacts/safety_supervisor_hardware_2026-09-15.md`의 "Oscilloscope confirmation of JD1
+  duty cycle" 절.
+- **watchdog 발동 지연 정정**: 이 문서와 README가 이전에 적었던 "1.010 s 안에 정지"는 부정확한
+  값이었다. 스크립트 기반 이분탐색으로 실제 발동 지점이 **1.489~1.600 s**임을 확인했다
+  (RTL 설계값 500 ms의 약 3배). 원인은 아직 못 찾았다 — 클럭(오실로스코프로 20.00 kHz 독립
+  확인)과 파라미터 비트 폭(합성 checkpoint에서 26 bit 확인)은 배제했지만, 카운터 값 자체가
+  AXI로 노출되지 않아 ILA 없이는 더 못 판다. 상세는 같은 문서의 "Correction" 절,
+  이분탐색 원본은 `measurements/watchdog_bisection_2026-09-15/trials.csv`.
+- 두 결과 모두 커밋·push 완료 (`346cd6a`, `3a9b9dc`). 문서만 바뀌었으므로 (원칙 10) MATLAB/XSim
+  gate는 영향 없다.
 
-- 정정된 문서를 포함한 새 source digest의 MATLAB/Simulink 반환 gate
-- 오실로스코프 JD1의 50% -> 25% -> LOW 파형과 차단 지연시간(선택이지만 포트폴리오 권장)
-- JD1 duty 25%와 latch LOW의 실제 파형. 현재 증거는 AXI 레지스터 bit 확인까지다
+## 다음 작업 순서 — Zybo 단일보드 완전 통합 (2026-09-15 결정)
 
-1. 현재 source로 `python3 tools/package_matlab.py`를 실행하고 MATLAB/Simulink gate를 갱신한다.
-2. 공식 XSim 8/8을 다시 실행한다. firmware/문서만 바뀌었으므로 bit/XSA 재구현은 필요하지 않다.
-3. 가능하면 오실로스코프 single-shot으로 JD1의 정상 50%, 제한 25%, latch LOW를 기록한다.
-   UART 명령 사이의 사용자 확인 시간이 있으므로 현재 로그의 host timestamp를 차단 지연시간으로
-   사용하지 않는다.
-4. 모든 결과를 문서에 반영하고 사용자 검토 뒤 사용자 계정만으로 commit/push한다.
+**최종 목표가 바뀌었다.** `Project07_MotorControl`(Basys3)의 encoder hybrid estimator와
+PI/anti-windup을 이 저장소의 Zybo PL로 이식해 한 보드로 통합한다. Basys3 프로젝트는 삭제하지
+않고 "개발·검증 기준선"으로 남긴다. 포트폴리오 서술: "Basys3에서 순수 RTL 모터 폐루프 제어기를
+개발·검증한 뒤 Zybo Z7-20 PL로 이식해 ARM 센서 수집, FFT/NPU 진동 분류, 단계별 안전 제어와
+통합했다." 이 결정과 근거는 작업 대화 기록에 있다.
 
-## 제한과 선택 확장
+목표 구조:
 
-- class 1은 통제된 토크 리플이며 자연 고장 일반화 결과가 아니다.
-- 정상 run 3개를 먼저, class 1 run 3개를 나중에 수집했으므로 온도 추세가 class와 결합됐을 수 있다.
-- 센서의 고정 상태와 기계적 전달 경로가 분류 결과를 크게 바꾼다. 새 실험 전 정상 상태의 four-band
-  평균을 기존 baseline과 비교하고 차이가 크면 센서 고정부터 점검한다.
-- 최소 데이터셋은 완성됐다. 더 강한 통계가 필요하면 다른 날 조건을 번갈아 3 run씩 추가한다.
-- oscilloscope는 최종 통합에서 JD1 PWM과 fault latch 직후 차단 시간을 증명할 때 사용한다.
-- 전압 외란, encoder C2 quadrature, Zybo에 Basys3 전체 PI 이식은 최종 통합 뒤 선택 항목이다.
-- `Project07_MotorControl`의 pure-RTL 제어 결과와 중복되는 기능 확장은 우선순위가 낮다.
+```text
+Encoder C1 -> hybrid 속도추정 -> PI/anti-windup -> safety limiter -> PWM
+                                       ^                  ^
+                                   속도 목표        warning/derate/stop
+                                                          ^
+MPU-6500 -> ARM 수집 -> PL FFT64 -> INT8 NPU -> safety supervisor
+                                                          ^
+                                                 PS heartbeat watchdog
+```
+
+순서:
+
+1. **watchdog 지연 문제(1.489~1.6 s) 원인 규명.** ILA를 `watchdog_count`에 붙이거나 디버그
+   출력 pin을 추가해 카운터가 실제로 어떻게 도는지 확인한다. 이 문제를 안고 이식하면 통합
+   시스템의 안전 정지 시간을 신뢰할 수 없다.
+2. **PI/encoder 이식.** `Project07_MotorControl/laplace/rtl/encoder_speed_hybrid.v`,
+   `pid_fixed.v`, `unsigned_divider.v`를 이 저장소 `fourier/rtl/`로 가져온다.
+   `laplace/rtl/telemetry_uart.v`, `uart_tx.v`는 이식하지 않는다 — Zybo는 ARM이 이미 UART를
+   맡고 있으므로 PI/encoder 상태는 `axi_vibration_top.v`에 읽기 레지스터를 추가하고 ARM
+   firmware가 UART로 찍는 방식으로 대체한다(`print_safety()`와 같은 패턴). encoder C1 입력은
+   새 물리 핀이 필요하다 — `fourier/constraints/zybo_z7_20.xdc`에서 미사용 JD/PMOD 핀을
+   확인한다.
+3. **PI 출력을 기존 safety limiter에 연결.** `fourier_motor_control.v`의 `requested_duty`
+   소스를 스위치 고정값에서 PI 출력으로 바꾼다. `motor_derated`/`fault_latched`에 의한 25%
+   제한과 PWM 차단 로직은 그대로 두고, PI 출력이 그 앞단으로 들어가게만 배선한다.
+4. **단일보드 통합 실물 시험.** 속도제어 + 진동분류 + 제한 + 정지가 한 보드에서 함께 동작하는
+   것을 확인한다. Basys3 기준선 결과(예: 13.66/27.32 RPM step 응답, 정착시간)와 비교한다.
+5. **12 -> 9 -> 12 V 외란 시험을 Zybo 통합판에서 수행.** Basys3에서는 반복하지 않는다.
+   `docs/TELEMETRY_EXPERIMENT.md`(MotorControl)의 절차를 참고해 이 저장소에 맞게 다시 쓴다.
+   오실로스코프로 응답을 같이 기록한다.
+6. **두 저장소와 포트폴리오 최종 정리.**
+
+각 단계에서 RTL을 바꾸면 원칙 10에 따라 MATLAB/XSim gate를 다시 통과시킨다. 물리 작업(배선,
+스위치, PSU)은 사용자가 직접 하므로 안내는 쉬운 한국어로 한 동작씩 나눈다.
 
 ## 저장소 상태
 
-실측 수집, 실제 데이터 모델, latch RTL/testbench, 최종 artifact와 문서는 아직 커밋되지 않았다.
-커밋과 push는 수행하지 않았다. 최종 문서 digest의 MATLAB/XSim marker와 `git diff --check`를
-확인한 다음 사용자 요청 시 사용자 계정의 이름과 이메일만 사용한다.
+이 문서 작성 시점까지의 모든 실측 결과(재학습 모델, latch RTL, safety supervisor, 오실로스코프
+확인, watchdog 이분탐색)는 커밋·push 완료돼 있다 (`git log`로 확인). 다음 세션은 위 "Zybo 단일
+보드 완전 통합" 순서의 1번(watchdog 원인 규명)부터 시작한다.
