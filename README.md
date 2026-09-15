@@ -57,7 +57,8 @@ MPU-6500/9250 -> SPI -> ARM Cortex-A9
 | clear/rearm | SW0 OFF clear 후 SW0 ON 재회전, 0.13 A |
 | 안전 확장 구현 | warning → 25% 제한 → 복구/최종 latch, PS heartbeat watchdog |
 | 안전 확장 구현 결과 | setup +0.015 ns, hold +0.031 ns, DRC Error 0 |
-| 통제된 리플 완화 경로 | class `1,1,0`: warning → derated bit=1로 25% 제한 상태 → 정상 복구 확인. 레지스터 bit 확인이며 JD1 duty%는 미실측 |
+| 통제된 리플 완화 경로 | class `1,1,0`: warning → derated bit=1로 25% 제한 상태 → 정상 복구 확인. 레지스터 bit 확인이며 이 시험의 JD1 duty%는 미실측 |
+| JD1 duty 오실로스코프 실측 | baseline 50.0% → warning 50.0%(불변) → derate 25.0% → latch 0%(파형 소실) → SW0 clear/rearm 50.0%. 전부 RTL 계산값과 일치 |
 | 지속 이상 차단 경로 | class `1,1,1`: warning → 제한 → latch 정지 PASS |
 | 안전 확장 차단 전후 | 0.13 A → 0.01 A, SW0 clear/rearm 뒤 0.13 A |
 | Watchdog 실물 차단 | ARM 1.010 s 정지 중 모터 차단, `cause=2`, 0.13 A → 0.01 A |
@@ -79,7 +80,23 @@ MPU-6500/9250 -> SPI -> ARM Cortex-A9
 확인했다. 저장된 실제 이상 window를 동일한 PL FFT/NPU에 3회 연속 통과시킨 class `1,1,1`에서는
 warning, 제한, classifier latch 정지를 확인했다. 별도로 Cortex-A9를 JTAG로 1.010초 정지하자
 `watchdog=1`, `cause=2`로 모터가 0.01 A에서 정지했고 SW0 clear/rearm 뒤 0.13 A로 복귀했다.
-RTL timeout은 500 ms지만 정확한 물리 차단 지연은 오실로스코프 측정 전까지 실측값으로 쓰지 않는다.
+RTL timeout은 500 ms지만 watchdog 경로의 정확한 물리 차단 지연은 오실로스코프 측정 전까지
+실측값으로 쓰지 않는다. classifier latch 경로의 JD1 duty는 아래 오실로스코프 실측으로 확인했다.
+
+### 오실로스코프 실측 — JD1 PWM duty (classifier latch 경로)
+
+UART `x` 명령으로 저장된 실제 이상 window를 3회 통과시키며 JD1(L298N ENA/PWM)을 프로브로 직접
+측정했다. 표시된 duty/period 값은 스코프 화면 그대로이며 RTL의 `pwm_period` 계산값과 전부 일치한다.
+
+| baseline 50.0% | derate 25.0% | latch 0% (파형 소실) |
+|---|---|---|
+| ![baseline 50%](measurements/scope_captures_2026-09-15/jd1_pwm_baseline_50pct.jpg) | ![derated 25%](measurements/scope_captures_2026-09-15/jd1_pwm_derated_25pct.jpg) | ![latched 0%](measurements/scope_captures_2026-09-15/jd1_pwm_latched_0pct.jpg) |
+
+latch 상태에서는 더 이상 주기 신호가 없어 스코프의 duty/frequency 자동측정이 `?`로 무효 표시되고
+트리거 상태도 `Trig'd`에서 `Auto`로 바뀐다. 이 측정 실패 자체가 PWM이 정적 LOW로 떨어졌다는 증거다.
+상세 절차와 표는
+[artifacts/safety_supervisor_hardware_2026-09-15.md](artifacts/safety_supervisor_hardware_2026-09-15.md)의
+"Oscilloscope confirmation of JD1 duty cycle" 절에 있다.
 
 ## 실행
 

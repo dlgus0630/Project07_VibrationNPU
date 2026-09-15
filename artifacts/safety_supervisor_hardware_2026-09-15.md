@@ -38,9 +38,12 @@ This is the intended recovery path: the supervisor does not stop the motor when 
 detected condition. The lifetime abnormal count remained 2.
 
 The derate evidence here is the AXI `0x04`/`0x4C` register state (`derated=1`), not a measured duty cycle. The
-25% figure is the RTL cap on the duty request; the actual JD1 duty percentage was never captured with an
-oscilloscope or any other instrument. The class 1 windows come from the controlled 32 Hz torque-ripple switch,
-which is an injected condition and not a naturally occurring bearing fault.
+25% figure is the RTL cap on the duty request; the actual JD1 duty percentage was not captured with an
+oscilloscope during this specific live-SW3 trial. The duty math itself (50% -> 25% -> 0%) was independently
+confirmed with a scope on the UART `x` persistent-fault trial below, which exercises the same `pwm_period`
+and derate-clamp logic from a different trigger source; see "Oscilloscope confirmation of JD1 duty cycle".
+The class 1 windows come from the controlled 32 Hz torque-ripple switch, which is an injected condition and
+not a naturally occurring bearing fault.
 
 ## Persistent-fault and rearm response
 
@@ -76,6 +79,40 @@ the lifetime abnormal count at 3, and SW0 ON restarted the motor at approximatel
 The RTL timeout is 50,000,000 cycles at 100 MHz, or 500 ms. This test proves that the stop occurred within the
 1.010 s halt interval. It does not measure the exact physical cutoff latency; a JD1 oscilloscope single-shot is
 required before reporting a measured 500 ms value.
+
+## Oscilloscope confirmation of JD1 duty cycle
+
+The persistent-fault trial above proved the register-level state transitions but not the physical PWM duty
+cycle; the derate evidence was `derated=1` in the status register, not a measured waveform. This closes that
+gap. A Tektronix TBS 1102B-EDU was probed on JD1 (L298N ENA/PWM) with common GND, 25.0 us/div, Duty Cycle and
+Period measurement on CH1, while the same UART `x` sequence used above was repeated on the safety-supervisor
+build.
+
+| Step | AXI status | Scope duty | Scope period | RTL prediction | Match |
+|---|---|---:|---:|---:|---|
+| baseline (armed, no injection) | all clear | 50.0% | 50.00 us | 50.0% (`threshold=2500/5000`) | yes |
+| after 1st `x` (warning) | `warning=1` | 50.0% | 50.00 us | 50.0%, unchanged | yes |
+| after 2nd `x` (derated) | `derated=1` | 25.0% | 50.00 us | 25.0% (`threshold=1250/5000`) | yes |
+| after 3rd `x` (latched) | `latched=1, cause=1` | 0% (flat, scope reports `?`) | invalid | 0% (`enable=0`) | yes |
+| SW0 OFF -> ON (clear/rearm) | all clear, `abnormal_total=3` retained | 50.0% | 50.00 us | 50.0% | yes |
+
+At the latched step the scope's own duty/period/frequency readouts turned into `?`-flagged garbage (for
+example a spurious "66.6%?" duty and "3.333 MHz?" frequency) because there is no periodic edge left to lock
+onto; the trigger status line also fell from `Trig'd` to `Auto`. That failure to measure is itself the
+confirmation that the PWM line is a static low, not a fast signal outside the scope's range.
+
+Every measured duty cycle matches the `pwm_period` calculation exactly (`scaled=(duty*PERIOD)>>12` with
+`PERIOD=5000` at the 100 MHz PL clock), including the unchanged 50.0% through the warning step, which is the
+detail most likely to be wrong if the derate compare (`requested_duty>13'd1024`) had an off-by-one error.
+
+This trial reused the same physical setup as the persistent-fault trial (UART `x` command, not the live SW3
+torque-ripple switch), so it demonstrates the classifier-latch and derate paths, not a live-sensor derate
+recovery with a scope attached. The watchdog path's physical cutoff latency is still not scope-measured; the
+1.010 s JTAG-halt trial above only bounds it, and a single-shot capture on JD1 during a watchdog trip is the
+remaining gap.
+
+Screenshots: `measurements/scope_captures_2026-09-15/jd1_pwm_baseline_50pct.jpg`,
+`jd1_pwm_derated_25pct.jpg`, `jd1_pwm_latched_0pct.jpg`.
 
 ## Raw evidence
 

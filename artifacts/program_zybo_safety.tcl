@@ -1,28 +1,41 @@
 set R [file normalize [file join [file dirname [info script]] ..]]
 
+# Programs the safety-supervisor build (warning / derate / latch / heartbeat watchdog),
+# which lives in its own artifacts rather than in fourier.bit and fourier_app.elf.
+
 connect
+
+# The board is normally already running the previous firmware, so the APU holds the DAP
+# and ps7_init cannot write the PLL registers. Reset the system first, then load the PL,
+# then halt core 0 before running ps7_init. The level-0 ARM target is reported as "APU"
+# when healthy and "DAP" when the debug access port is in the error state.
 targets -set -nocase -filter {name =~ "APU*" || name =~ "DAP*"}
 puts "STEP0 system reset"
 rst -srst
 after 3000
+puts "STEP0 done"
 
 targets -set -nocase -filter {name =~ "xc7z020*"}
-puts "STEP1 safety FPGA download"
+puts "STEP1 fpga download start"
 fpga -file $R/artifacts/fourier_safety_supervisor.bit
+puts "STEP1 fpga download done"
 
 targets -set -nocase -filter {name =~ "ARM*#0"}
 stop
 configparams force-mem-access 1
-puts "STEP2 PS initialization"
+puts "STEP2 ps7 init start"
 source $R/artifacts/ps7_init.tcl
 ps7_init
 ps7_post_config
+puts "STEP2 ps7 init done"
 
-puts "STEP3 safety firmware download"
+puts "STEP3 elf load start"
 rst -processor
 dow $R/artifacts/fourier_safety_supervisor.elf
 configparams force-mem-access 0
+puts "STEP3 elf load done"
+
 con
 after 1500
-puts "SAFETY IMAGE RUNNING"
+puts "STEP4 processor running"
 exit
