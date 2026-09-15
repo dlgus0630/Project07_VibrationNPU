@@ -114,6 +114,55 @@ remaining gap.
 Screenshots: `measurements/scope_captures_2026-09-15/jd1_pwm_baseline_50pct.jpg`,
 `jd1_pwm_derated_25pct.jpg`, `jd1_pwm_latched_0pct.jpg`.
 
+## Correction: the watchdog trip latency is not 500 ms, and not "within 1.010 s"
+
+The "Watchdog response" section above states the halt-to-trip stop happened "within the 1.010 s halt
+interval" and separately that the RTL timeout is 500 ms. Both statements are misleading on their own, and a
+follow-up session bisected the real value with scripted (not manually-typed) JTAG timing.
+
+Method: `stop` on Cortex-A9 #0, a Tcl `after <N>` wait, `con`, then either a UART `f` read or a direct
+`mrd -force -value 0x43c00004` over JTAG (which works while the core is still halted, since ARM memory-mapped
+debug access does not require the core to be running). The UART route was cross-checked against the direct
+JTAG register read and the two agreed. `armed` was confirmed 1 throughout (the motor was audibly running) and
+UART was confirmed unresponsive during the halt (see `probe_during_halt.py`), ruling out "wrong core halted"
+or "watchdog counter held at 0 by `!armed`" as explanations.
+
+| Halt duration | Result |
+|---:|---|
+| 380 - 500 ms (7 steps) | never tripped |
+| 700 ms | never tripped |
+| 778 ms (continuous poll, still halted) | never tripped |
+| 1489 ms (continuous poll, still halted) | never tripped |
+| **1600 ms** | **tripped** |
+| 1700 ms | tripped |
+| 2000 ms | tripped |
+| 3000 ms (confirmed latched while still halted, before resume) | tripped |
+
+The real trip threshold sits in **(1489 ms, 1600 ms]**, roughly 3x the RTL-computed 50,000,000-cycle / 500 ms
+figure. Yesterday's "1.010 s" data point is now understood to have most likely included unscripted, manual
+command-entry time between `stop` and `con` that was not actually 1.010 s of halted duration -- the clean,
+scripted 1.010 s-equivalent range (700 ms, 778 ms) here did not trip.
+
+Root cause is not identified. What has been ruled out:
+
+- Wrong halt target: `mrd -force -value` during the halt reads a live, correct baseline (`raw=2`, matching the
+  known `sticky_done=1` idle state seen over UART), and UART is confirmed silent during the halt.
+- Wrong parameter value: `open_checkpoint` on `reports/fourier_safety/fourier_safety.dcp` shows
+  `watchdog_count_reg[0..25]`, a 26-bit counter -- exactly `ceil(log2(50000000))`, which is the width a
+  50,000,000-target counter needs. A 3x larger effective target (about 150,000,000) would need a 28-bit
+  counter, so the register width argues the constant elaborated correctly and the extra delay is not a
+  simple parameter-propagation bug.
+- Wrong clock: the same `clk` net drives `pwm_period` in the same module, and the oscilloscope measured
+  exactly 50.00 us / 20.00 kHz for the PWM period earlier in this document, matching the 100 MHz assumption
+  independently.
+
+What is not yet identified: why `watchdog_count` takes roughly 3x longer than its target to reach
+`WATCHDOG_CYCLES-1` while genuinely halted the whole time. Diagnosing this further needs visibility into the
+counter itself, which is not exposed over AXI; the practical next step is an ILA on `watchdog_count` (or a
+debug output pin) in a future rebuild, not something resolved by more black-box halt trials.
+
+Trial log: `measurements/watchdog_bisection_2026-09-15/trials.csv`.
+
 ## Raw evidence
 
 - `artifacts/safety_logs_2026-09-15/safety_normal_01_cause2.csv` (first, unexplained `cause=2` event)

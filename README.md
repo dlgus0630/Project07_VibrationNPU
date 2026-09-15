@@ -61,7 +61,8 @@ MPU-6500/9250 -> SPI -> ARM Cortex-A9
 | JD1 duty 오실로스코프 실측 | baseline 50.0% → warning 50.0%(불변) → derate 25.0% → latch 0%(파형 소실) → SW0 clear/rearm 50.0%. 전부 RTL 계산값과 일치 |
 | 지속 이상 차단 경로 | class `1,1,1`: warning → 제한 → latch 정지 PASS |
 | 안전 확장 차단 전후 | 0.13 A → 0.01 A, SW0 clear/rearm 뒤 0.13 A |
-| Watchdog 실물 차단 | ARM 1.010 s 정지 중 모터 차단, `cause=2`, 0.13 A → 0.01 A |
+| Watchdog 실물 차단 | ARM 정지 중 모터 차단, `cause=2`, 0.13 A → 0.01 A |
+| Watchdog 발동 지연 실측 | 1.489~1.600 s (스크립트 기반 이분탐색). RTL 설계값 500 ms 대비 약 3배, 원인 미규명 |
 
 실측 분류의 class 1은 자연 발생 베어링 고장이 아니라 PL이 만든 `25%<->75% @ 32 Hz` 토크 리플이다.
 정상 조건은 50% 고정 duty이며 두 조건 모두 12.0 V와 평균 duty 50%를 사용했다. 보드 측정 전체
@@ -78,10 +79,19 @@ MPU-6500/9250 -> SPI -> ARM Cortex-A9
 
 안전 확장 시험에서는 실제 토크 리플의 class `1,1,0`으로 warning과 25% 제한 뒤 자동 복구를
 확인했다. 저장된 실제 이상 window를 동일한 PL FFT/NPU에 3회 연속 통과시킨 class `1,1,1`에서는
-warning, 제한, classifier latch 정지를 확인했다. 별도로 Cortex-A9를 JTAG로 1.010초 정지하자
-`watchdog=1`, `cause=2`로 모터가 0.01 A에서 정지했고 SW0 clear/rearm 뒤 0.13 A로 복귀했다.
-RTL timeout은 500 ms지만 watchdog 경로의 정확한 물리 차단 지연은 오실로스코프 측정 전까지
-실측값으로 쓰지 않는다. classifier latch 경로의 JD1 duty는 아래 오실로스코프 실측으로 확인했다.
+warning, 제한, classifier latch 정지를 확인했다. 별도로 Cortex-A9를 JTAG로 정지시켜
+`watchdog=1`, `cause=2`로 모터가 0.01 A에서 정지하는 것을 확인했고 SW0 clear/rearm 뒤 0.13 A로
+복귀했다. classifier latch 경로의 JD1 duty는 아래 오실로스코프 실측으로 확인했다.
+
+watchdog 발동 지연은 스크립트로 정확히 시간을 잰 halt 시험으로 이분탐색했다. RTL 설계값은
+50,000,000 cycle(100 MHz 기준 500 ms)이지만 실측 발동 지점은 **1.489~1.600 s** 사이였다 --
+설계값의 약 3배다. 근본 원인은 아직 못 찾았다. 클럭(같은 100 MHz PWM 경로에서 오실로스코프로
+정확히 20.00 kHz를 실측함)과 파라미터 폭(구현 checkpoint에서 26 bit counter 확인, 5천만 목표에
+필요한 정확한 비트 수)은 검토해 배제했다. 카운터 값 자체가 AXI로 노출되지 않아 추가 진단에는
+ILA가 필요하다. 이전에 기록했던 "1.010초 이내 정지"는 수동 명령 입력 시간이 섞인 부정확한
+값으로 판단해 이 수치로 대체한다. 상세 이분탐색 표는
+[artifacts/safety_supervisor_hardware_2026-09-15.md](artifacts/safety_supervisor_hardware_2026-09-15.md)의
+"Correction" 절에 있다.
 
 ### 오실로스코프 실측 — JD1 PWM duty (classifier latch 경로)
 

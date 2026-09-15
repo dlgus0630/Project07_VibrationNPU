@@ -1,0 +1,15 @@
+halt_ms,method,latched_still_halted,latched_after_resume,watchdog_bit,notes
+380,uart_after_resume,,0,0,ascending bisection first pass; all uart-based trials below used stop/after/con then one UART 'f' read
+400,uart_after_resume,,0,0,
+420,uart_after_resume,,0,0,
+440,uart_after_resume,,0,0,
+460,uart_after_resume,,0,0,
+480,uart_after_resume,,0,0,
+500,uart_after_resume,,0,0,
+700,uart_after_resume,,0,0,single-shot diagnostic; uart silent during halt (confirmed core genuinely stopped)
+778,jtag_mrd_poll_during_halt,0,,0,last sample of a 50ms-step poll run that continued the same halt to 778ms without resuming
+1489,jtag_mrd_poll_during_halt,0,,0,last sample of a 100ms-step poll run continuing the same halt to 1489ms without resuming
+1600,jtag_mrd_single_shot,,1,1,first duration in the narrowing pass that tripped
+1700,jtag_mrd_single_shot,,1,1,
+2000,jtag_mrd_single_shot,,1,1,
+3000,jtag_mrd_poll_during_halt,1,1,1,latched=1 already observed via mrd while still halted at t=3000ms, before resume
