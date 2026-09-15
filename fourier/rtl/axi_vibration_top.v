@@ -37,7 +37,10 @@ module axi_vibration_top #(
     output wire irq,
     // Classification stream out to the motor guard, latched-fault state back in.
     output wire class_valid,output wire class_id,
-    input wire motor_fault_latched
+    input wire motor_fault_latched,input wire motor_warning,input wire motor_derated,
+    input wire motor_watchdog_fault,input wire [1:0] motor_fault_cause,
+    input wire [7:0] motor_fault_consec,input wire [15:0] motor_abnormal_count,
+    output reg ps_heartbeat
 );
     reg aw_hold,w_hold;reg [11:0] addr_hold;reg [31:0] data_hold;reg [3:0] strb_hold;
     reg start_pulse,sticky_done,sticky_error;
@@ -60,11 +63,12 @@ module axi_vibration_top #(
     mpu_reg_spi #(.CLK_HZ(CLK_HZ)) spi(aclk,!aresetn,spi_start,spi_rd,spi_two,spi_addr,spi_wdata,
         spi_r8,spi_r16,spi_busy,spi_done,mpu_sclk,mpu_mosi,miso_sync[1],mpu_cs_n);
     always @(posedge aclk)begin
-        start_pulse<=0;spi_start<=0;
+        start_pulse<=0;spi_start<=0;ps_heartbeat<=0;
         if(!aresetn)begin
             aw_hold<=0;w_hold<=0;addr_hold<=0;data_hold<=0;strb_hold<=0;
             s_axi_bvalid<=0;s_axi_bresp<=0;s_axi_rvalid<=0;s_axi_rresp<=0;s_axi_rdata<=0;
             sticky_done<=0;sticky_error<=0;spi_rd<=0;spi_two<=0;spi_addr<=0;spi_wdata<=0;spi_done_sticky<=0;
+            ps_heartbeat<=0;
         end else begin
             if(core_done)sticky_done<=1;
             if(spi_done)spi_done_sticky<=1;
@@ -87,6 +91,7 @@ module axi_vibration_top #(
                     else begin spi_rd<=data_hold[7];spi_two<=data_hold[8];spi_addr<=data_hold[6:0];
                         spi_wdata<=data_hold[23:16];spi_start<=1;spi_done_sticky<=0;end
                 end else if(strb_hold!=0)s_axi_bresp<=2;
+                12'h048:if(strb_hold[0] && data_hold[0])ps_heartbeat<=1;
                 default:s_axi_bresp<=2;
                 endcase
             end
@@ -94,7 +99,8 @@ module axi_vibration_top #(
                 s_axi_rvalid<=1;s_axi_rresp<=0;
                 case(s_axi_araddr)
                 12'h000:s_axi_rdata<=0;
-                12'h004:s_axi_rdata<={28'd0,motor_fault_latched,sticky_error,sticky_done,visible_busy};
+                12'h004:s_axi_rdata<={25'd0,motor_watchdog_fault,motor_derated,motor_warning,
+                    motor_fault_latched,sticky_error,sticky_done,visible_busy};
                 12'h008:s_axi_rdata<={31'd0,cls};
                 12'h00c:s_axi_rdata<=cycles;
                 12'h010:s_axi_rdata<=ncycles;
@@ -105,6 +111,9 @@ module axi_vibration_top #(
                 12'h030:s_axi_rdata<={{24{logits[7]}},logits[7:0]};
                 12'h034:s_axi_rdata<={{24{logits[15]}},logits[15:8]};
                 12'h044:s_axi_rdata<={14'd0,spi_done_sticky,(spi_busy||spi_start),(spi_two?spi_r16:{8'd0,spi_r8})};
+                12'h048:s_axi_rdata<=0;
+                12'h04c:s_axi_rdata<={motor_abnormal_count,4'd0,motor_fault_cause,
+                    motor_derated,motor_warning,motor_fault_consec};
                 default:begin s_axi_rdata<=0;s_axi_rresp<=2;end
                 endcase
             end

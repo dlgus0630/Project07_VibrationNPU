@@ -1,0 +1,5 @@
+host_time_s,sequence,line
+1789433150.8615458,1,"RESULT,sensor,0,847,833,18,26,1,1,1,1,1,16,15,21,20,65,-68"
+1789433151.2784052,2,"RESULT,sensor,0,847,833,18,26,1,1,0,0,1,20,19,25,25,94,-98"
+1789433151.6938233,3,"RESULT,sensor,0,846,833,18,27,1,1,0,1,2,14,14,18,17,49,-52"
+1789433151.8691216,4,"SAFETY,warning,0,derated,0,latched,0,watchdog,0,cause,0,consecutive,0,abnormal_total,0"

@@ -48,3 +48,9 @@ clip을 연결하면 안 된다. 모터 차동 전압은 두 채널을 각각 OU
 실측 진동 분류 수집에서는 12.0 V를 유지한다. 정상 조건은 `SW2=ON, SW1=OFF, SW3=OFF`의
 50% 고정 duty다. fault injection 조건은 같은 스위치에서 SW3만 ON해 25%와 75% duty를
 32 Hz로 교대한다. 이는 재현 가능한 토크 리플 시험이며 자연 발생 기계 고장으로 표현하지 않는다.
+
+안전 supervisor 확장판은 첫 이상에서 warning, 두 번째 연속 이상에서 최대 25% PWM 제한,
+세 번째 연속 이상에서 latch 정지한다. UART `f` 명령으로 각 상태와 fault cause를 읽는다.
+watchdog 시험은 모터 구동 중 ARM만 의도적으로 정지해 500 ms 이후 PL이 차단하는지 확인하되,
+배선이나 PSU 출력은 시험 도중 변경하지 않는다. 오실로스코프 CH1은 JD1, ground는 공통 GND에 두고
+single-shot으로 정상 50%, 제한 25%, 최종 LOW를 기록한다.

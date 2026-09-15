@@ -11,11 +11,21 @@
 #include "model_data.h"
 #define CTRL 0x43c00000U
 #define RAM  0x40000000U
+#define HEARTBEAT_US 100000U
 #ifndef STDIN_BASEADDRESS
 #define STDIN_BASEADDRESS XPAR_XUARTPS_0_BASEADDR
 #endif
 static uint64_t ticks(void){XTime t;XTime_GetTime(&t);return (uint64_t)t;}
 static uint32_t micros(uint64_t t){return (uint32_t)(t*1000000U/COUNTS_PER_SECOND);}
+static void heartbeat(void){Xil_Out32(CTRL+0x48,1U);}
+static void print_safety(void) {
+    uint32_t status=Xil_In32(CTRL+0x04),detail=Xil_In32(CTRL+0x4c);
+    printf("SAFETY,warning,%lu,derated,%lu,latched,%lu,watchdog,%lu,cause,%lu,consecutive,%lu,abnormal_total,%lu\r\n",
+        (unsigned long)((status>>4)&1U),(unsigned long)((status>>5)&1U),
+        (unsigned long)((status>>3)&1U),(unsigned long)((status>>6)&1U),
+        (unsigned long)((detail>>10)&3U),(unsigned long)(detail&255U),
+        (unsigned long)(detail>>16));
+}
 static int spi(int read_op,int two,uint8_t addr,uint8_t data,uint16_t *result) {
     uint64_t t=ticks();uint32_t status;
     Xil_Out32(CTRL+0x40,0x80000000U|((uint32_t)data<<16)|(two?256U:0U)|(read_op?128U:0U)|addr);
@@ -34,8 +44,10 @@ static int sensor_init(void) {
     else if(id==0x71){puts("SENSOR_MODEL,MPU-9250");sample_divider=0;}
     else return -1; // Do not silently accept an unknown or disconnected device.
     if(write_reg(0x6b,0x80))return -1;
+    heartbeat();
     usleep(100000);
     if(write_reg(0x6b,0x01))return -1;
+    heartbeat();
     usleep(100000);
     // Disable I2C interface, leave SPI active; wake all accel axes, +/-2g.
     if(write_reg(0x6a,0x10)||write_reg(0x6c,0)||write_reg(0x19,sample_divider)||write_reg(0x1b,0)||
@@ -50,6 +62,9 @@ static int acquire(int16_t x[64],uint32_t dt[64]) {
     unsigned n;uint16_t status,raw;uint64_t previous=0,deadline,now;
     if(spi(1,0,0x3a,0,&status))return -1; // clear stale data-ready status
     for(n=0;n<64;n++) {
+        // Keep the PL supervisor serviced during the blocking sensor window.
+        // A stalled SPI transaction still times out and lets the watchdog trip.
+        if((n&15U)==0U)heartbeat();
         deadline=ticks();
         do {
             if(spi(1,0,0x3a,0,&status))return -1;
@@ -68,7 +83,7 @@ static int acquire(int16_t x[64],uint32_t dt[64]) {
 static int run_window(const char *source,const int16_t x[64]) {
     unsigned n;int match=1;inference_result golden;
     uint64_t t=ticks();uint32_t cpu_us,elapsed,status,plcycles,ncycles;
-    infer_integer(x,&golden);cpu_us=micros(ticks()-t);
+    heartbeat();infer_integer(x,&golden);cpu_us=micros(ticks()-t);
     t=ticks();
     for(n=0;n<64;n++)Xil_Out32(RAM+4*n,(uint16_t)x[n]);
     __asm__ volatile("dsb sy" ::: "memory");
@@ -94,20 +109,26 @@ static int run_window(const char *source,const int16_t x[64]) {
 }
 int main(void) {
     int16_t samples[64];uint32_t dt[64];unsigned n;int sensor_ready=0;
+    uint64_t heartbeat_time;unsigned char command;
     // The first xiltimer sleep starts the Cortex-A9 global timer used below.
     usleep(1);
     // Simple, explicit BRAM coherency. Benchmark must report that D-cache is disabled.
     Xil_DCacheDisable();
     puts("V4 Fourier SoC, 100 MHz PL, 64 samples, 2 MAC PEs, D-cache OFF");
-    puts("Commands: r=replay, i=init MPU9250, s=sample+infer, d=dump raw, b=100 replays");
+    puts("Commands: r=replay pair, x=replay one stored fault, i=init sensor, s=sample+infer, d=dump raw, b=100 replays, f=safety status");
     puts("RESULT columns: source,class,cpu_us,pl_cycles,npu_cycles,e2e_us,match,f0..f3,h0..h3,o0,o1");
+    heartbeat();heartbeat_time=ticks();
     for(;;) {
-        unsigned char command=XUartPs_RecvByte(STDIN_BASEADDRESS);
+        if(micros(ticks()-heartbeat_time)>=HEARTBEAT_US){heartbeat();heartbeat_time=ticks();}
+        if(!XUartPs_IsReceiveData(STDIN_BASEADDRESS)){usleep(1000);continue;}
+        command=XUartPs_RecvByte(STDIN_BASEADDRESS);
         if(command=='r'){run_window("replay_normal",demo_samples[0]);run_window("replay_fault",demo_samples[1]);}
+        else if(command=='x')run_window("replay_fault_injection",demo_samples[1]);
         else if(command=='b') {
             for(n=0;n<100;n++)if(run_window("benchmark",demo_samples[n%2]))break;
         }
         else if(command=='i'){sensor_ready=(sensor_init()==0);printf("SENSOR_READY,%d\r\n",sensor_ready);}
+        else if(command=='f')print_safety();
         else if(command=='s'||command=='d') {
             int result;
             if(!sensor_ready){puts("ERROR,run i first");continue;}

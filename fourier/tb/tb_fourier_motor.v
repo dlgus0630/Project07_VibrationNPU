@@ -4,12 +4,16 @@ module tb_fourier_motor;
     reg reset_n=0,stop_button=0;
     reg [3:0] sw=4'b0111;
     reg class_valid=0,class_id=0;
-    wire pwm,in1,in2,armed,motor_fault;
+    wire pwm,in1,in2,armed,motor_fault,motor_warning,motor_derated,motor_watchdog_fault;
+    wire [1:0] motor_fault_cause;wire [7:0] motor_fault_consec;wire [15:0] motor_abnormal_count;
     integer j,n;
     fourier_motor_control #(.CLK_HZ(320000),.FAULT_HZ(1000),.FAULT_CONSEC(3)) dut(
         .clk(clk),.reset_n(reset_n),.stop_button(stop_button),.sw(sw),
         .motor_pwm(pwm),.motor_in1(in1),.motor_in2(in2),.motor_armed(armed),
-        .class_valid(class_valid),.class_id(class_id),.motor_fault(motor_fault));
+        .class_valid(class_valid),.class_id(class_id),.ps_heartbeat(1'b1),
+        .motor_fault(motor_fault),.motor_warning(motor_warning),.motor_derated(motor_derated),
+        .motor_watchdog_fault(motor_watchdog_fault),.motor_fault_cause(motor_fault_cause),
+        .motor_fault_consec(motor_fault_consec),.motor_abnormal_count(motor_abnormal_count));
     task classify;
         input value;
         begin
@@ -63,13 +67,18 @@ module tb_fourier_motor;
         frame(2,8);
         if(motor_fault!==0)begin $display("TEST FAIL Fourier fault idle");$finish;end
         classify(1);
-        if(motor_fault!==0 || armed!==1)begin $display("TEST FAIL Fourier isolated abnormal");$finish;end
+        if(motor_fault!==0 || armed!==1 || motor_warning!==1 || motor_derated!==0)begin
+            $display("TEST FAIL Fourier isolated abnormal warning");$finish;
+        end
         pwm_frame(8);
         classify(0);
         classify(1);classify(1);
-        if(motor_fault!==0 || armed!==1)begin $display("TEST FAIL Fourier two abnormal");$finish;end
+        if(motor_fault!==0 || armed!==1 || motor_derated!==1)begin
+            $display("TEST FAIL Fourier two abnormal derate");$finish;
+        end
+        pwm_frame(4);
         classify(1);
-        if(motor_fault!==1 || pwm!==0 || in1!==0 || armed!==0)begin
+        if(motor_fault!==1 || pwm!==0 || in1!==0 || armed!==0 || motor_fault_cause!==1)begin
             $display("TEST FAIL Fourier latched stop");$finish;
         end
         repeat(3)begin
@@ -79,7 +88,7 @@ module tb_fourier_motor;
             end
         end
         sw[0]=0;repeat(12)@(negedge clk);
-        if(motor_fault!==0)begin $display("TEST FAIL Fourier latch clear");$finish;end
+        if(motor_fault!==0 || motor_fault_cause!==0)begin $display("TEST FAIL Fourier latch clear");$finish;end
         sw[0]=1;repeat(12)@(negedge clk);
         if(motor_fault!==0 || armed!==1)begin $display("TEST FAIL Fourier fault rearm");$finish;end
         frame(2,8);

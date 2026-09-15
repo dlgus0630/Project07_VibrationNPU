@@ -15,16 +15,16 @@ MPU-6500/9250 -> SPI -> ARM Cortex-A9
           FFT64 -> 4-band feature -> 4x4x2 INT8 NPU
                     |                         |
                     v                         v
-                  UART          3 consecutive faults
-                                             |
-                                             v
-                                  PL latched motor stop
+                  UART          PL safety supervisor
+                                  |       |       |
+                                warn   25% cap  latched stop
 ```
 
 - PS: 센서 설정, 64개 sample 수집, BRAM 전송, 가속기 시작, 결과 출력
 - PL: radix-2 FFT, 주파수 대역 특징, 2개 MAC PE 기반 MLP 추론
 - 별도 모터 출력: L298N에 20 kHz PWM을 제공하고 SW3로 32 Hz 토크 리플 fault injection
-- 안전 정지 RTL: 3회 연속 이상 판정에서 PL이 모터 PWM을 latch 차단하며, 운전 재arm은 SW0 OFF를 거쳐 수행
+- 안전 supervisor RTL: 1회 이상은 warning, 2회 연속은 PWM 25% 제한, 3회 연속은 latch 차단
+- PS heartbeat watchdog: ARM 소프트웨어가 100 ms마다 heartbeat를 쓰며 500 ms 단절 시 PL이 독립 차단
 - 학습: PC에서만 수행하며 FPGA는 inference만 수행
 - HDL: 직접 작성한 Verilog-2001, HDL Coder 미사용
 
@@ -50,22 +50,36 @@ MPU-6500/9250 -> SPI -> ARM Cortex-A9
 | NPU 구간 | 18 cycle |
 | 가속기 end-to-end | 26.38 us (ARM 소프트웨어 847 us 대비 약 32배) |
 | 최종 MATLAB/Simulink | source digest 일치 PASS |
-| 최종 XSim | 7/7 PASS, fault latch 회귀시험 포함 |
-| 최종 Vitis | 새 XSA 기반 BSP·FSBL·ARM 앱 build PASS |
+| 안전 확장 XSim | 8/8 PASS, supervisor·watchdog·AXI 회귀시험 포함 |
+| 최종 Vitis | safety XSA에 대해 ARM 앱 ELF build PASS. FSBL·BSP는 safety XSA로 재빌드하지 않았고, 실물 기동은 JTAG `ps7_init` + ELF 다운로드 경로라 FSBL을 사용하지 않는다 |
 | PL 안전 정지 실측 | 실제 class 1 연속 3회 후 모터 정지, `LD0 OFF / LD1 ON` |
 | 차단 전후 전류 | 0.13 A -> 0.01 A |
 | clear/rearm | SW0 OFF clear 후 SW0 ON 재회전, 0.13 A |
+| 안전 확장 구현 | warning → 25% 제한 → 복구/최종 latch, PS heartbeat watchdog |
+| 안전 확장 구현 결과 | setup +0.015 ns, hold +0.031 ns, DRC Error 0 |
+| 통제된 리플 완화 경로 | class `1,1,0`: warning → derated bit=1로 25% 제한 상태 → 정상 복구 확인. 레지스터 bit 확인이며 JD1 duty%는 미실측 |
+| 지속 이상 차단 경로 | class `1,1,1`: warning → 제한 → latch 정지 PASS |
+| 안전 확장 차단 전후 | 0.13 A → 0.01 A, SW0 clear/rearm 뒤 0.13 A |
+| Watchdog 실물 차단 | ARM 1.010 s 정지 중 모터 차단, `cause=2`, 0.13 A → 0.01 A |
 
 실측 분류의 class 1은 자연 발생 베어링 고장이 아니라 PL이 만든 `25%<->75% @ 32 Hz` 토크 리플이다.
 정상 조건은 50% 고정 duty이며 두 조건 모두 12.0 V와 평균 duty 50%를 사용했다. 보드 측정 전체
 기록은 [artifacts/hardware_validation_2026-09-14.md](artifacts/hardware_validation_2026-09-14.md)에
-있고 원본 CSV는 `measurements/hw_validation_2026-09-14/`에 있다. 최종 latch 포함 artifact는
-`fourier.bit` SHA-256 `cc48b9e7...e9360`, `fourier_app.elf` SHA-256 `428f788b...6e46`이다.
+있고 원본 CSV는 `measurements/hw_validation_2026-09-14/`에 있다. 안전 supervisor 확장의 bitstream은
+`fourier_safety_supervisor.bit` SHA-256 `a57f472a...eb255`, ARM ELF는 SHA-256
+`be278a0f...39a21`이다. 확장 실물 결과는
+[artifacts/safety_supervisor_hardware_2026-09-15.md](artifacts/safety_supervisor_hardware_2026-09-15.md)에 있다.
 
 최종 실물 시험에서는 정상 class 0을 `3/3` 확인한 뒤 SW3 토크 리플을 입력했다. 판정열
 `0,1,1,1,0,0`에서 세 번째 연속 class 1 직후 모터가 정지했고 AXI status `0x004`는
 `0x0000000A`로 fault bit 3을 표시했다. `LD0 OFF / LD1 ON`, 전류 `0.13 A -> 0.01 A`를
 확인했으며 SW0 OFF clear와 SW0 ON rearm 뒤 모터가 0.13 A로 다시 회전했다.
+
+안전 확장 시험에서는 실제 토크 리플의 class `1,1,0`으로 warning과 25% 제한 뒤 자동 복구를
+확인했다. 저장된 실제 이상 window를 동일한 PL FFT/NPU에 3회 연속 통과시킨 class `1,1,1`에서는
+warning, 제한, classifier latch 정지를 확인했다. 별도로 Cortex-A9를 JTAG로 1.010초 정지하자
+`watchdog=1`, `cause=2`로 모터가 0.01 A에서 정지했고 SW0 clear/rearm 뒤 0.13 A로 복귀했다.
+RTL timeout은 500 ms지만 정확한 물리 차단 지연은 오실로스코프 측정 전까지 실측값으로 쓰지 않는다.
 
 ## 실행
 
@@ -125,7 +139,7 @@ Vivado 2024.2와 Digilent Zybo Z7-20 board files가 필요하다. Vivado가 PATH
 | 경로 | 내용 |
 |---|---|
 | `fourier/rtl` | FFT, NPU, AXI, SPI, 모터 PWM RTL |
-| `fourier/tb` | 자동 PASS/FAIL testbench 7개 |
+| `fourier/tb` | 자동 PASS/FAIL testbench 8개 |
 | `fourier/firmware` | ARM 앱과 독립 C 기준 모델 |
 | `data` | 학습 데이터, 정수 가중치, test vector |
 | `matlab` | MATLAB Golden 및 Simulink 함수 |

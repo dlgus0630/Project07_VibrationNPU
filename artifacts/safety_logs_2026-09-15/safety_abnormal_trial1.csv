@@ -1,0 +1,2 @@
+RESULT,sensor,1,847,833,18,27,1,1,2,3,2,6,5,9,8,-12,10
+SAFETY,warning,1,derated,0,latched,0,watchdog,0,cause,0,consecutive,1,abnormal_total,1

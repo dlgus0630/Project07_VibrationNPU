@@ -36,6 +36,13 @@ foreach port {motor_pwm motor_in1 motor_in2 motor_armed motor_fault} {
 net accelerator/class_valid motor/class_valid
 net accelerator/class_id motor/class_id
 net motor/motor_fault accelerator/motor_fault_latched
+net accelerator/ps_heartbeat motor/ps_heartbeat
+net motor/motor_warning accelerator/motor_warning
+net motor/motor_derated accelerator/motor_derated
+net motor/motor_watchdog_fault accelerator/motor_watchdog_fault
+net motor/motor_fault_cause accelerator/motor_fault_cause
+net motor/motor_fault_consec accelerator/motor_fault_consec
+net motor/motor_abnormal_count accelerator/motor_abnormal_count
 net ps/FCLK_CLK0 ps/M_AXI_GP0_ACLK reset/slowest_sync_clk interconnect/aclk ram_controller/s_axi_aclk accelerator/aclk
 net ps/FCLK_RESET0_N reset/ext_reset_in
 net one/dout reset/dcm_locked reset/aux_reset_in

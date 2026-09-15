@@ -24,17 +24,21 @@ MLP는 `4 -> 4 ReLU -> 2`, MAC PE는 2개다. 동점이면 class 0이다.
 - BRAM input: word 0..63
 - BRAM result: feature 256..259, hidden 260..263, logits 264..265, class 266
 - control `0x00`: START bit0, DONE/error clear bit1
-- status `0x04`: busy bit0, done bit1, rejected-start bit2, fault latch bit3
+- status `0x04`: busy bit0, done bit1, rejected-start bit2, fault latch bit3,
+  warning bit4, derated bit5, watchdog fault bit6
 - class `0x08`, total cycle `0x0C`, NPU cycle `0x10`
 - feature `0x20..0x2C`, logits `0x30..0x34`
 - SPI command `0x40`, SPI response `0x44`
+- heartbeat `0x48`: bit0 write pulse, firmware period 100 ms
+- safety telemetry `0x4C`: consecutive `[7:0]`, warning bit8, derated bit9,
+  fault cause `[11:10]`, lifetime abnormal count `[31:16]`
 
 START는 idle에서만 수락하고 DONE은 모든 결과 기록 뒤 올라간다. AXI AW/W는 독립 수신하며
 B/R backpressure 동안 응답을 유지한다. PS는 accelerator busy 동안 BRAM을 접근하지 않는다.
 
-status bit3은 새로 추가한 모터 fault latch 상태이며 읽기 값은
-`{28'd0, motor_fault_latched, sticky_error, sticky_done, visible_busy}`다. 기존 펌웨어는
-`0x04`에서 bit1과 bit0/bit2만 검사하므로 bit3 추가로 동작이 바뀌지 않는다.
+status bit3 이상은 PL 안전 supervisor 상태다. 가속기 완료 확인은 기존처럼 bit0..2만 사용하므로
+안전상태 추가가 FFT/NPU polling 계약을 바꾸지 않는다. `0x4C`의 fault cause bit0은 분류기 trip,
+bit1은 heartbeat watchdog trip이다.
 
 ## 보드 출력
 
@@ -43,7 +47,20 @@ PS FCLK0은 100 MHz다. `JE1..4`는 MPU-6500/9250 SPI, `JD1..3`은 L298N ENA/IN1
 바꿔야 arm되고 BTN0 또는 SW0 OFF로 즉시 차단된다. SW3가 ON이면 정상 duty 선택을 대신해
 25%와 75% duty를 32 Hz로 교대한다. 이때 평균 duty는 정상 비교 조건인 50%와 같다.
 
-## 연속 이상 판정 latch
+## 안전 supervisor와 연속 이상 판정
+
+검증된 v1 `fault_latch`는 기준선으로 남겨 두고, 확장판에서는 `safety_supervisor`가 run-length와
+watchdog를 함께 소유한다. 첫 class 1은 warning, 두 번째 연속 class 1은 derated 상태를 만들며
+`fourier_motor_control`이 요청 duty를 최대 25%로 제한한다. 세 번째 연속 class 1은 latch를 세워
+PWM과 IN1을 0으로 만든다. trip 전 class 0은 run-length와 warning/derated를 0으로 복구한다.
+latch와 fault cause는 정상 판정으로 해제되지 않으며 SW0 OFF 또는 reset만 해제한다.
+
+ARM 펌웨어는 AXI `0x48`에 100 ms마다 heartbeat를 기록한다. 모터가 arm된 동안 500 ms 이상
+heartbeat가 없으면 분류 결과와 독립적으로 watchdog cause를 latch한다. heartbeat 처리와 모터 보호는
+동일한 100 MHz PL clock domain이며, PS가 정지해도 watchdog counter와 PWM 차단은 계속 동작한다.
+누적 abnormal count는 SW0 clear 뒤에도 유지되고 FPGA reset에서만 0이 된다.
+
+## v1 연속 이상 판정 latch 실측 기준선
 
 `fault_latch`는 `class_valid` 펄스가 뜬 사이클에서만 판정을 갱신한다. `class_id`가 1이면
 `consec_count`를 1 증가시키고 0이면 `consec_count`만 0으로 되돌린다. `consec_count`는

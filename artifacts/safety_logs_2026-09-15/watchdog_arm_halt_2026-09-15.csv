@@ -1,0 +1,26 @@
+
+****** Software Commandline Tool (XSCT) v2024.2.0
+  **** SW Build 5239620 on Fri Nov 08 16:21:51 MST 2024
+    ** Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
+    ** Copyright 2022-2024 Advanced Micro Devices, Inc. All Rights Reserved.
+
+
+Warning: XSCT is deprecated and will be removed in future releases.
+We recommend using the new Python command-line tool for project management and debugging:
+- Run "vitis -i" for interactive mode.
+- Run "vitis -s <script>" for script mode.
+attempting to launch hw_server
+
+****** Xilinx hw_server v2024.2
+  **** Build date : Nov  7 2024 at 13:42:15
+    ** Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
+    ** Copyright 2022-2024 Advanced Micro Devices, Inc. All Rights Reserved.
+
+INFO: hw_server application started
+INFO: Use Ctrl-C to exit hw_server application
+
+INFO: To connect to this hw_server instance use url: TCP:127.0.0.1:3121
+
+WATCHDOG_TEST,halt_begin,1789435497333
+WATCHDOG_TEST,resume_begin,1789435498343
+WATCHDOG_TEST,processor_resumed,1789435498556

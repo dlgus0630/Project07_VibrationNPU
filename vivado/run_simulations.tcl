@@ -11,7 +11,7 @@ add_rtl fourier
 add_files -fileset sim_1 [glob [file join $root fourier tb *.v]]
 set_property file_type Verilog [get_files *.v]
 set_property xsim.simulate.runtime 0ns [get_filesets sim_1]
-set tests {tb_mac tb_fft_npu tb_core tb_axi tb_spi tb_fault_latch tb_fourier_motor}
+set tests {tb_mac tb_fft_npu tb_core tb_axi tb_spi tb_fault_latch tb_safety_supervisor tb_fourier_motor}
 file mkdir [file join $root reports]
 foreach test $tests {
     catch {close_sim}

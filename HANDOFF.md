@@ -1,6 +1,6 @@
 # 작업 인수인계
 
-기준 시각은 2026-09-14이며, 다음 작업 세션은 이 문서와 `docs/PROJECT_RULES.md`, `DESIGN.md`를
+기준 시각은 2026-09-15이며, 다음 작업 세션은 이 문서와 `docs/PROJECT_RULES.md`, `DESIGN.md`를
 먼저 읽는다. 기록된 결과와 실제 파일을 대조하고 실행하지 않은 항목을 PASS로 쓰지 않는다.
 
 ## 지켜야 할 원칙
@@ -165,16 +165,56 @@ SW0 OFF clear 후 SW2를 유지하고 SW0 ON으로 재arm하자 `LD0 ON / LD1 OF
 `artifacts/hardware_validation_2026-09-14.md`, 구조화 요약은
 `artifacts/latch_hardware_summary_2026-09-14.json`에 있다.
 
+## 안전 supervisor 확장 상태
+
+구현과 빌드 완료 항목:
+
+- `safety_supervisor.v`: 1회 warning, 2회 연속 25% derate, 3회 연속 classifier latch
+- arm 중 500 ms PS heartbeat timeout에서 독립 watchdog latch
+- AXI `0x48` heartbeat, `0x4C` 안전 telemetry와 status bit4..6
+- ARM 100 ms heartbeat 및 UART `f` 안전상태 출력
+- 공식 XSim 8/8 PASS: `tb_mac`, `tb_fft_npu`, `tb_core`, `tb_axi`, `tb_spi`, `tb_fault_latch`,
+  `tb_safety_supervisor`, `tb_fourier_motor`
+- MATLAB/Simulink gate: 이 문서의 증거 표현 정정 직전 source digest에서 PASS. 아래 "다음 작업 순서"
+  참고 — 정정으로 digest가 바뀌므로 두 marker는 재생성 대상이다
+- Vivado post-route setup `+0.015 ns`, hold `+0.031 ns`, DRC Error 0
+- resource: LUT 11,332, register 7,333, BRAM tile 1, DSP 5
+- bit SHA `a57f472a1c4f31c3baa10cf35126dbf65b2e4557dc1b1296f290e3dd5aceb255`
+- XSA SHA `344c6a754543682bf382fea537357506bdc3d15db90fb5c3a177d0c814a865b1`
+- 최신 ELF SHA `be278a0fe3efc8fd9039983a5a125ef6dc10b759de91e713e65274a34af39a21`
+- 정상 실센서 class 0 3/3, CPU/PL 3/3 일치. 단 최초 정상 시험 1회에서 `cause=2`가 발생했다
+  (class 0 3/3, abnormal_total 0이라 기계·오분류 문제는 아니었으나 원인 미규명, 이후 재현 안 됨).
+  acquisition 중 heartbeat 보강 firmware로 최종 시험에서 watchdog 0 유지
+- 통제된 32 Hz 인위적 토크 리플 class `1,1,0`에서 warning -> derated bit=1로 25% 제한 상태 ->
+  정상 복구 확인. AXI 레지스터 bit 확인이며 JD1 duty%는 측정하지 않았다
+- 저장된 실제 이상 window class `1,1,1`에서 warning -> 제한 -> latch 정지 PASS
+- 모터 전류 `0.13 A -> 0.01 A`, latch 유지, SW0 clear/rearm 뒤 `0.13 A` 재회전 PASS
+- Cortex-A9 #0 JTAG 정지 1.010 s 동안 watchdog latch, `cause=2`, 모터 `0.13 A -> 0.01 A` PASS
+- watchdog SW0 clear/rearm 뒤 모터 `0.13 A` 재회전 PASS
+
+`fourier/firmware/main.c`의 `x`는 저장된 실제 이상 window를 한 번 FFT/NPU에 통과시키는 지속 이상
+검증 명령이다. 긴 센서 수집 중에는 16 sample마다 heartbeat를 보내도록 보강했다. 상세 실측 기록은
+`artifacts/safety_supervisor_hardware_2026-09-15.md`와 `artifacts/safety_logs_2026-09-15/`에 있다.
+
 ## 다음 작업 순서
 
-필수 구현과 실물 통합 검증은 완료됐다. 남은 작업은 결과물 정리다.
+gate 현황: 증거 표현 정정 직전 source digest에서 MATLAB/Simulink gate와 공식 XSim 8/8이 모두
+PASS였다. `tools/gates.py`의 digest는 `artifacts`, `reports`, `build`, `measurements`를 제외한
+저장소 전체를 해시하므로 README/HANDOFF/docs 수정도 digest를 바꾼다. 따라서 이번 문서 정정으로
+두 marker는 무효가 되고 재생성이 필요하다.
 
-1. 최종 문서가 포함된 source digest로 MATLAB/Simulink와 XSim marker를 한 번 갱신한다.
-2. 가능하면 오실로스코프 single-shot으로 JD1 PWM의 정상 20 kHz 파형과 latch 후 LOW를 기록한다.
+아직 완료로 기록하면 안 되는 항목:
+
+- 정정된 문서를 포함한 새 source digest의 MATLAB/Simulink 반환 gate
+- 오실로스코프 JD1의 50% -> 25% -> LOW 파형과 차단 지연시간(선택이지만 포트폴리오 권장)
+- JD1 duty 25%와 latch LOW의 실제 파형. 현재 증거는 AXI 레지스터 bit 확인까지다
+
+1. 현재 source로 `python3 tools/package_matlab.py`를 실행하고 MATLAB/Simulink gate를 갱신한다.
+2. 공식 XSim 8/8을 다시 실행한다. firmware/문서만 바뀌었으므로 bit/XSA 재구현은 필요하지 않다.
+3. 가능하면 오실로스코프 single-shot으로 JD1의 정상 50%, 제한 25%, latch LOW를 기록한다.
    UART 명령 사이의 사용자 확인 시간이 있으므로 현재 로그의 host timestamp를 차단 지연시간으로
    사용하지 않는다.
-3. 정상 유지 -> SW3 이상 주입 -> 자동 정지 -> SW0 clear/rearm을 한 영상으로 촬영한다.
-4. 사용자 검토 뒤 사용자 계정만으로 commit/push한다.
+4. 모든 결과를 문서에 반영하고 사용자 검토 뒤 사용자 계정만으로 commit/push한다.
 
 ## 제한과 선택 확장
 
