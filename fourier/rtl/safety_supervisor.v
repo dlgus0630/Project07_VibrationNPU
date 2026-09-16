@@ -11,12 +11,14 @@ module safety_supervisor #(
     input wire class_valid,input wire class_id,input wire heartbeat,
     output wire warning,output wire derated,output reg latched,
     output wire watchdog_fault,output reg [1:0] fault_cause,
-    output reg [7:0] consec_count,output reg [15:0] abnormal_count);
+    output reg [7:0] consec_count,output reg [15:0] abnormal_count,
+    output wire [31:0] watchdog_count_out);
     reg [31:0] watchdog_count;
 
     assign warning=!latched && (consec_count>=1);
     assign derated=!latched && (consec_count>=DERATE_CONSEC);
     assign watchdog_fault=fault_cause[1];
+    assign watchdog_count_out=watchdog_count;
 
     always @(posedge clk)begin
         if(rst)begin

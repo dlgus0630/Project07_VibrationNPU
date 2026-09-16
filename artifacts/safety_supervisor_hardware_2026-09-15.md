@@ -163,6 +163,17 @@ debug output pin) in a future rebuild, not something resolved by more black-box 
 
 Trial log: `measurements/watchdog_bisection_2026-09-15/trials.csv`.
 
+**Superseded 2026-09-16**: the root cause was found the next session. `watchdog_count` was exposed directly
+over a new AXI register (`0x43c00064`) instead of an ILA, and two independent halt+poll trials with direct
+register reads confirmed the counter runs at the true 100 MHz (within 0.06%) and trips at the true ~500 ms
+design value (measured 452-508 ms, within the ~50 ms JTAG polling resolution used). The 1489-1600 ms figure
+above was an artifact of that session's external-symptom-only methodology (motor current/LEDs, no direct
+register access), not a real RTL delay. The RTL counter itself was never a bug. See
+`artifacts/single_board_integration_2026-09-16.md`'s "Watchdog 지연 미스터리 — 근본원인 규명 완료" section
+and `HANDOFF.md`'s "2026-09-16 watchdog 근본원인 규명 (해결)" section for the full corrected measurement and
+conclusion. This section's text is left unchanged below as the historical record of what was observed and
+believed at the time.
+
 ## Raw evidence
 
 - `artifacts/safety_logs_2026-09-15/safety_normal_01_cause2.csv` (first, unexplained `cause=2` event)

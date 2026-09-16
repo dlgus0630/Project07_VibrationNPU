@@ -1,5 +1,5 @@
-// Independent motor drive for vibration experiments; no PID or AXI.
-// SW0 arms after OFF -> ON. SW2..1 select 0/25/50/75% duty. BTN0 stops.
+// Independent motor drive for vibration experiments; closed-loop speed, no AXI command path.
+// SW0 arms after OFF -> ON. SW2..1 select 0/25/50/75% of full-scale speed. BTN0 stops.
 // SW3 injects a controlled 32 Hz torque ripple by alternating 25/75% duty.
 module fourier_motor_control #(
     parameter integer CLK_HZ=100000000,
@@ -12,7 +12,13 @@ module fourier_motor_control #(
     input wire class_valid,input wire class_id,input wire ps_heartbeat,
     output wire motor_fault,output wire motor_warning,output wire motor_derated,
     output wire motor_watchdog_fault,output wire [1:0] motor_fault_cause,
-    output wire [7:0] motor_fault_consec,output wire [15:0] motor_abnormal_count);
+    output wire [7:0] motor_fault_consec,output wire [15:0] motor_abnormal_count,
+    input wire encoder_a,
+    output wire [12:0] motor_speed_reference,
+    output wire [12:0] motor_measured_speed,
+    output wire [12:0] motor_requested_duty,
+    output wire signed [31:0] motor_pid_integral,
+    output wire [31:0] motor_watchdog_count);
     wire rst;
     reset_sync resetter(clk,!reset_n||stop_button,rst);
     (* ASYNC_REG="TRUE" *) reg [3:0] sw_meta,sw_sync;
@@ -28,11 +34,44 @@ module fourier_motor_control #(
         .WATCHDOG_CYCLES(WATCHDOG_CYCLES)) safety_unit(
         clk,rst,!sw_sync[0],armed,class_valid,class_id,ps_heartbeat,
         motor_warning,motor_derated,fault_latched,motor_watchdog_fault,
-        motor_fault_cause,motor_fault_consec,motor_abnormal_count);
+        motor_fault_cause,motor_fault_consec,motor_abnormal_count,motor_watchdog_count);
     wire enabled=armed && !rst && reset_n && !stop_button && !fault_latched;
     wire fault_inject=sw_sync[3];
-    wire [12:0] selected_duty={1'b0,sw_sync[2:1],10'd0};
-    wire [12:0] requested_duty=fault_inject ? (fault_phase ? 13'd3072 : 13'd1024) : selected_duty;
+    // Same 2-bit encoding the fixed-duty build used, now read as a PI speed target.
+    wire [12:0] speed_reference={1'b0,sw_sync[2:1],10'd0};
+    wire measured_encoder_pulse;
+    wire [12:0] measured_speed;
+    reg sample_tick;
+    reg [31:0] tick_count;
+    always @(posedge clk)begin
+        sample_tick<=0;
+        if(rst)tick_count<=0;
+        else if(tick_count==CLK_HZ/100-1)begin tick_count<=0;sample_tick<=1;end
+        else tick_count<=tick_count+1'b1;
+    end
+    wire speed_valid;
+    encoder_speed_hybrid #(.CLK_HZ(CLK_HZ)) encoder(
+        clk,rst,sample_tick,encoder_a,measured_speed,measured_encoder_pulse,speed_valid);
+    wire pid_busy,pid_done;
+    wire [12:0] pid_duty;
+    wire signed [31:0] pid_integral;
+    wire signed [17:0] pid_derivative;
+    reg pid_start;
+    wire controller_reset=rst||!enabled;
+    // Gate on speed_valid, not sample_tick directly: the encoder's sample_tick ->
+    // speed pipeline (added when closing timing on the watchdog-count build) now
+    // takes one extra clock past sample_tick before `measured_speed` holds its new
+    // value, so triggering the PID straight off sample_tick would feed it a
+    // one-sample-stale reading. speed_valid pulses the same cycle measured_speed
+    // is actually current, preserving the original same-cycle guarantee.
+    always @(posedge clk)begin
+        pid_start<=0;
+        if(speed_valid && enabled && !pid_busy)pid_start<=1;
+    end
+    pid_fixed controller(clk,controller_reset,pid_start,speed_reference,measured_speed,
+        pid_busy,pid_done,pid_duty,pid_integral,pid_derivative);
+    // SW3 overrides the loop output so the ripple injection stays a known excitation.
+    wire [12:0] requested_duty=fault_inject ? (fault_phase ? 13'd3072 : 13'd1024) : pid_duty;
     // A second consecutive abnormal window caps the drive at 25%.  A third one
     // takes enabled low through fault_latched and therefore forces PWM to zero.
     wire [12:0] duty=(motor_derated && requested_duty>13'd1024) ? 13'd1024 : requested_duty;
@@ -42,6 +81,10 @@ module fourier_motor_control #(
     assign motor_in2=1'b0;
     assign motor_armed=enabled;
     assign motor_fault=fault_latched;
+    assign motor_speed_reference=speed_reference;
+    assign motor_measured_speed=measured_speed;
+    assign motor_requested_duty=duty;
+    assign motor_pid_integral=pid_integral;
     always @(posedge clk)begin
         if(rst)begin
             sw_meta<=0;sw_sync<=0;warmup<=0;seen_off<=0;armed<=0;

@@ -18,11 +18,19 @@ MPU-6500/9250 -> SPI -> ARM Cortex-A9
                   UART          PL safety supervisor
                                   |       |       |
                                 warn   25% cap  latched stop
+                                                  |
+Encoder C1 -> hybrid 속도추정 -> PI/anti-windup ->+--> 20 kHz PWM -> L298N
+                     ^
+              speed_reference (AXI)
 ```
 
 - PS: 센서 설정, 64개 sample 수집, BRAM 전송, 가속기 시작, 결과 출력
 - PL: radix-2 FFT, 주파수 대역 특징, 2개 MAC PE 기반 MLP 추론
-- 별도 모터 출력: L298N에 20 kHz PWM을 제공하고 SW3로 32 Hz 토크 리플 fault injection
+- 모터 제어: encoder C1 피드백 기반 폐루프 PI/anti-windup이 L298N에 20 kHz PWM을 출력하고,
+  safety supervisor가 2회 연속 이상 판정 시 25% 제한, 3회 연속 시 latch 정지시키며, SW3로
+  32 Hz 토크 리플 fault injection도 가능하다. 원래 `Project07_MotorControl`(Basys3)에서 순수
+  RTL로 개발·검증한 encoder hybrid 속도추정 + PI 제어기를 이 저장소의 Zybo PL로 이식해 한 보드로
+  통합했다 — Basys3 프로젝트는 삭제하지 않고 개발·검증 기준선으로 남겼다.
 - 안전 supervisor RTL: 1회 이상은 warning, 2회 연속은 PWM 25% 제한, 3회 연속은 latch 차단
 - PS heartbeat watchdog: ARM 소프트웨어가 100 ms마다 heartbeat를 쓰며 500 ms 단절 시 PL이 독립 차단
 - 학습: PC에서만 수행하며 FPGA는 inference만 수행
@@ -50,7 +58,6 @@ MPU-6500/9250 -> SPI -> ARM Cortex-A9
 | NPU 구간 | 18 cycle |
 | 가속기 end-to-end | 26.38 us (ARM 소프트웨어 847 us 대비 약 32배) |
 | 최종 MATLAB/Simulink | source digest 일치 PASS |
-| 안전 확장 XSim | 8/8 PASS, supervisor·watchdog·AXI 회귀시험 포함 |
 | 최종 Vitis | safety XSA에 대해 ARM 앱 ELF build PASS. FSBL·BSP는 safety XSA로 재빌드하지 않았고, 실물 기동은 JTAG `ps7_init` + ELF 다운로드 경로라 FSBL을 사용하지 않는다 |
 | PL 안전 정지 실측 | 실제 class 1 연속 3회 후 모터 정지, `LD0 OFF / LD1 ON` |
 | 차단 전후 전류 | 0.13 A -> 0.01 A |
@@ -62,6 +69,12 @@ MPU-6500/9250 -> SPI -> ARM Cortex-A9
 | 지속 이상 차단 경로 | class `1,1,1`: warning → 제한 → latch 정지 PASS |
 | 안전 확장 차단 전후 | 0.13 A → 0.01 A, SW0 clear/rearm 뒤 0.13 A |
 | Watchdog 실물 차단 | ARM 정지 중 모터 차단, `cause=2`, 0.13 A → 0.01 A |
+| PI/encoder 폐루프 실물 추종 | reference 2048에 대해 measured_speed 2040~2045 (오차 0.4% 이내), armed 유지, 진동 분류·안전 supervisor와 한 보드에서 동시 동작 |
+| 외란 시험 12→9→12 V (통합보드, 독립 2회 재현) | duty 64.2%→85.8%, drop 시 속도 최대 -14.6%, restore 시 overshoot +8.0%/+4.2%, 회복시간 약 1.5-2초, 두 회차 모두 safety trip 없음·진동 없음 |
+| Watchdog 근본원인 규명 | AXI로 카운터 직접 노출 후 실측: 참 100 MHz(오차 0.06% 이내), trip 452~508 ms — 설계값 500 ms와 일치. RTL은 처음부터 정상이었고 과거 "1.489~1.6초" 관측은 측정 방법론의 인공물 |
+| 단일보드 통합 최종 post-route | setup +0.138 ns, hold +0.017 ns, DRC Error 0 |
+| 단일보드 통합 최종 자원 | LUT 11,987, register 7,968, BRAM tile 1, DSP 8 |
+| 안전 확장 XSim | 9/9 PASS (PI/encoder 폐루프 통합시험 포함) |
 
 실측 분류의 class 1은 자연 발생 베어링 고장이 아니라 PL이 만든 `25%<->75% @ 32 Hz` 토크 리플이다.
 정상 조건은 50% 고정 duty이며 두 조건 모두 12.0 V와 평균 duty 50%를 사용했다. 보드 측정 전체
@@ -96,6 +109,37 @@ latch 상태에서는 더 이상 주기 신호가 없어 스코프의 duty/frequ
 상세 절차와 표는
 [artifacts/safety_supervisor_hardware_2026-09-15.md](artifacts/safety_supervisor_hardware_2026-09-15.md)의
 "Oscilloscope confirmation of JD1 duty cycle" 절에 있다.
+
+### 단일보드 통합 — Basys3 폐루프 제어기를 Zybo PL로 이식
+
+`Project07_MotorControl`(Basys3)에서 순수 RTL로 개발·검증한 encoder hybrid 속도추정과
+PI/anti-windup을 이 저장소의 Zybo PL로 이식해, 진동 분류 safety supervisor와 한 보드에서 함께
+동작시켰다. PI 출력은 기존 warning/25% 제한/latch 경로 앞단에 그대로 연결되며, 실물에서 폐루프
+속도제어가 reference 대비 0.4% 이내로 추종하는 것을 확인했다(위 표). 이식 과정에서 AXI로
+watchdog 카운터를 새로 노출하는 관측 레지스터를 추가했는데, 이 추가만으로 기존에 여유가 거의
+없던 critical path 두 곳(`pid_fixed.v`의 anti-windup 가산기, `encoder_speed_hybrid.v`의
+DSP48E1 승산 결과 비교/clamp)이 실제 timing 위반으로 넘어갔다. 각각에 한 클록 파이프라인
+레지스터를 추가해 계산 결과는 bit-exact로 유지한 채 해결했고(XSim으로 수정 전후 완료
+타임스탬프가 동일함을 확인), 최종 post-route는 setup +0.138 ns, hold +0.017 ns, DRC Error 0이다.
+
+12 → 9 → 12 V 외란 시험을 통합보드에서 독립적으로 2회 재현해 duty/속도 응답, overshoot, 회복시간을
+정량 확인했다(위 표) — 두 회차 모두 safety trip과 진동 없이 같은 패턴을 재현해 재현성까지
+확보했다. 통합 이후에도 진동 분류는 정상 판정과 fault injection 반응을 모두 유지한다. Basys3
+프로젝트는 삭제하지 않고 "개발·검증 기준선"으로 별도 보존한다. 최종 단일보드 통합 bitstream은
+`artifacts/fourier.bit` SHA-256 `46e6d49b...899cfb`, XSA는 `artifacts/fourier.xsa` SHA-256
+`5ac8408f...bc31b78`, ARM ELF는 `artifacts/fourier_app.elf` SHA-256 `7088a334...87ee0292`이다.
+상세 데이터와 원본 로그는
+[artifacts/single_board_integration_2026-09-16.md](artifacts/single_board_integration_2026-09-16.md)에
+있다.
+
+### Watchdog 지연 미스터리 — 근본원인 규명
+
+이전에는 500 ms로 설계된 PS heartbeat watchdog이 실측에서 1.489~1.6초에 트립하는 현상이
+관측됐었다. `watchdog_count` 레지스터를 AXI로 직접 노출해 재조사한 결과, 카운터는 처음부터 참
+100 MHz로 정확히 동작하고(설계값 대비 오차 0.06% 이내) 452~508 ms에 트립함을 두 차례 독립
+실측으로 확인했다 — RTL은 결함이 없었다. 이전 관측은 레지스터에 직접 접근하지 않고 외부 증상만
+관찰한 측정 방법론이 만든 인공물이었다. RTL 수정은 필요 없었고, 위에서 설명한 두 건의 파이프라인
+추가는 관측 레지스터 자체가 만든 새 타이밍 여유 문제를 해결한 것이지 watchdog 로직과는 무관하다.
 
 ## 실행
 

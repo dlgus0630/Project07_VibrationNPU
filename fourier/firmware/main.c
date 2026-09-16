@@ -15,8 +15,15 @@
 #ifndef STDIN_BASEADDRESS
 #define STDIN_BASEADDRESS XPAR_XUARTPS_0_BASEADDR
 #endif
+#ifndef STDOUT_BASEADDRESS
+#define STDOUT_BASEADDRESS XPAR_XUARTPS_0_BASEADDR
+#endif
+#define TELEMETRY_US 10000U
+static int telemetry_streaming=0;
+static uint16_t telemetry_seq=0;
+static uint64_t telemetry_time;
 static uint64_t ticks(void){XTime t;XTime_GetTime(&t);return (uint64_t)t;}
-static uint32_t micros(uint64_t t){return (uint32_t)(t*1000000U/COUNTS_PER_SECOND);}
+static uint32_t micros(uint64_t t){return (uint32_t)(t*1000000U/(COUNTS_PER_SECOND));}
 static void heartbeat(void){Xil_Out32(CTRL+0x48,1U);}
 static void print_safety(void) {
     uint32_t status=Xil_In32(CTRL+0x04),detail=Xil_In32(CTRL+0x4c);
@@ -25,6 +32,28 @@ static void print_safety(void) {
         (unsigned long)((status>>3)&1U),(unsigned long)((status>>6)&1U),
         (unsigned long)((detail>>10)&3U),(unsigned long)(detail&255U),
         (unsigned long)(detail>>16));
+}
+// Binary loop telemetry, byte-identical to the fixed 16-byte PL frame used on the
+// earlier board, so the existing capture and analysis scripts need no change.
+static void send_telemetry_frame(void) {
+    uint8_t frame[16],checksum=0;unsigned n;
+    uint32_t reference=Xil_In32(CTRL+0x50)&0x1fffU,measured=Xil_In32(CTRL+0x54)&0x1fffU;
+    uint32_t duty=Xil_In32(CTRL+0x58)&0x1fffU;
+    uint32_t integral=Xil_In32(CTRL+0x5c),status=Xil_In32(CTRL+0x04);
+    uint32_t enabled=Xil_In32(CTRL+0x60)&1U,fault=(status>>3)&1U;
+    frame[0]=0xa5;frame[1]=0x5a;
+    frame[2]=(uint8_t)(telemetry_seq&255U);frame[3]=(uint8_t)(telemetry_seq>>8);
+    frame[4]=(uint8_t)(reference&255U);frame[5]=(uint8_t)(reference>>8);
+    frame[6]=(uint8_t)(measured&255U);frame[7]=(uint8_t)(measured>>8);
+    frame[8]=(uint8_t)(duty&255U);frame[9]=(uint8_t)(duty>>8);
+    frame[10]=(uint8_t)(integral&255U);frame[11]=(uint8_t)((integral>>8)&255U);
+    frame[12]=(uint8_t)((integral>>16)&255U);frame[13]=(uint8_t)((integral>>24)&255U);
+    // The PL had a separate arm signal; here the enable bit is the only arm state.
+    frame[14]=(uint8_t)(enabled|(fault<<1)|(enabled<<2));
+    for(n=0;n<15;n++)checksum^=frame[n];
+    frame[15]=checksum;
+    for(n=0;n<16;n++)XUartPs_SendByte(STDOUT_BASEADDRESS,frame[n]);
+    telemetry_seq++;
 }
 static int spi(int read_op,int two,uint8_t addr,uint8_t data,uint16_t *result) {
     uint64_t t=ticks();uint32_t status;
@@ -68,10 +97,10 @@ static int acquire(int16_t x[64],uint32_t dt[64]) {
         deadline=ticks();
         do {
             if(spi(1,0,0x3a,0,&status))return -1;
-            if(micros(ticks()-deadline)>5000U)return -1;
+            if(micros(ticks()-deadline)>8000U)return -1;
         }while(!(status&1));
         now=ticks();dt[n]=n?micros(now-previous):0;previous=now;
-        if(n && (dt[n]<700 || dt[n]>1300)) {
+        if(n && (dt[n]<2800 || dt[n]>5200)) {
             printf("TIMING_ERROR,%u,%lu\r\n",n,(unsigned long)dt[n]);
             return -2; // discarded window, no silent timing gaps
         }
@@ -115,11 +144,15 @@ int main(void) {
     // Simple, explicit BRAM coherency. Benchmark must report that D-cache is disabled.
     Xil_DCacheDisable();
     puts("V4 Fourier SoC, 100 MHz PL, 64 samples, 2 MAC PEs, D-cache OFF");
-    puts("Commands: r=replay pair, x=replay one stored fault, i=init sensor, s=sample+infer, d=dump raw, b=100 replays, f=safety status");
+    puts("Commands: r=replay pair, x=replay one stored fault, i=init sensor, s=sample+infer, d=dump raw, b=100 replays, f=safety status, t=toggle telemetry streaming");
     puts("RESULT columns: source,class,cpu_us,pl_cycles,npu_cycles,e2e_us,match,f0..f3,h0..h3,o0,o1");
     heartbeat();heartbeat_time=ticks();
     for(;;) {
         if(micros(ticks()-heartbeat_time)>=HEARTBEAT_US){heartbeat();heartbeat_time=ticks();}
+        if(telemetry_streaming && micros(ticks()-telemetry_time)>=TELEMETRY_US){
+            send_telemetry_frame();
+            telemetry_time=ticks();
+        }
         if(!XUartPs_IsReceiveData(STDIN_BASEADDRESS)){usleep(1000);continue;}
         command=XUartPs_RecvByte(STDIN_BASEADDRESS);
         if(command=='r'){run_window("replay_normal",demo_samples[0]);run_window("replay_fault",demo_samples[1]);}
@@ -129,6 +162,11 @@ int main(void) {
         }
         else if(command=='i'){sensor_ready=(sensor_init()==0);printf("SENSOR_READY,%d\r\n",sensor_ready);}
         else if(command=='f')print_safety();
+        else if(command=='t') {
+            telemetry_streaming=!telemetry_streaming;
+            if(telemetry_streaming){telemetry_seq=0;telemetry_time=ticks();}
+            printf("TELEMETRY,%d\r\n",telemetry_streaming);
+        }
         else if(command=='s'||command=='d') {
             int result;
             if(!sensor_ready){puts("ERROR,run i first");continue;}

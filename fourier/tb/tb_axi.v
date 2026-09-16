@@ -10,7 +10,8 @@ module tb_axi;
     reg [31:0] value;
     axi_vibration_top dut(clk,resetn,awaddr,3'd0,awvalid,awready,wdata,strb,wvalid,wready,bresp,bvalid,bready,
         araddr,3'd0,arvalid,arready,rdata,rresp,rvalid,rready,bc,br,be,bwe,ba,bwd,brd,sclk,mosi,1'b0,cs,irq,cv,ci,
-        1'b0,1'b1,1'b1,1'b1,2'b10,8'h02,16'h1234,heartbeat);
+        1'b0,1'b1,1'b1,1'b1,2'b10,8'h02,16'h1234,heartbeat,
+        13'd0,13'd0,13'd0,32'sd0,1'b0,32'd0);
     always @(posedge clk)if(be)begin if(bwe==4'hf)mem[ba[11:2]]<=bwd;else brd<=mem[ba[11:2]];end
     always @(posedge clk)if(heartbeat)heartbeat_seen<=heartbeat_seen+1;
     task send_aw;

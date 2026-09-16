@@ -40,7 +40,14 @@ module axi_vibration_top #(
     input wire motor_fault_latched,input wire motor_warning,input wire motor_derated,
     input wire motor_watchdog_fault,input wire [1:0] motor_fault_cause,
     input wire [7:0] motor_fault_consec,input wire [15:0] motor_abnormal_count,
-    output reg ps_heartbeat
+    output reg ps_heartbeat,
+    // Closed-loop speed telemetry, streamed on to the host by the Cortex-A9 application.
+    input wire [12:0] motor_speed_reference,
+    input wire [12:0] motor_measured_speed,
+    input wire [12:0] motor_requested_duty,
+    input wire signed [31:0] motor_pid_integral,
+    input wire motor_armed_status,
+    input wire [31:0] motor_watchdog_count
 );
     reg aw_hold,w_hold;reg [11:0] addr_hold;reg [31:0] data_hold;reg [3:0] strb_hold;
     reg start_pulse,sticky_done,sticky_error;
@@ -114,6 +121,12 @@ module axi_vibration_top #(
                 12'h048:s_axi_rdata<=0;
                 12'h04c:s_axi_rdata<={motor_abnormal_count,4'd0,motor_fault_cause,
                     motor_derated,motor_warning,motor_fault_consec};
+                12'h050:s_axi_rdata<={19'd0,motor_speed_reference};
+                12'h054:s_axi_rdata<={19'd0,motor_measured_speed};
+                12'h058:s_axi_rdata<={19'd0,motor_requested_duty};
+                12'h05c:s_axi_rdata<=motor_pid_integral;
+                12'h060:s_axi_rdata<={31'd0,motor_armed_status};
+                12'h064:s_axi_rdata<=motor_watchdog_count;
                 default:begin s_axi_rdata<=0;s_axi_rresp<=2;end
                 endcase
             end

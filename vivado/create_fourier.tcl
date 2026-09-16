@@ -27,6 +27,8 @@ create_bd_port -dir I -from 3 -to 0 motor_sw
 connect_bd_net [get_bd_ports motor_sw] [get_bd_pins motor/sw]
 create_bd_port -dir I motor_stop
 connect_bd_net [get_bd_ports motor_stop] [get_bd_pins motor/stop_button]
+create_bd_port -dir I encoder_a
+connect_bd_net [get_bd_ports encoder_a] [get_bd_pins motor/encoder_a]
 foreach port {motor_pwm motor_in1 motor_in2 motor_armed motor_fault} {
     create_bd_port -dir O $port
     connect_bd_net [get_bd_ports $port] [get_bd_pins motor/$port]
@@ -43,6 +45,12 @@ net motor/motor_watchdog_fault accelerator/motor_watchdog_fault
 net motor/motor_fault_cause accelerator/motor_fault_cause
 net motor/motor_fault_consec accelerator/motor_fault_consec
 net motor/motor_abnormal_count accelerator/motor_abnormal_count
+net motor/motor_speed_reference accelerator/motor_speed_reference
+net motor/motor_measured_speed accelerator/motor_measured_speed
+net motor/motor_requested_duty accelerator/motor_requested_duty
+net motor/motor_pid_integral accelerator/motor_pid_integral
+net motor/motor_armed accelerator/motor_armed_status
+net motor/motor_watchdog_count accelerator/motor_watchdog_count
 net ps/FCLK_CLK0 ps/M_AXI_GP0_ACLK reset/slowest_sync_clk interconnect/aclk ram_controller/s_axi_aclk accelerator/aclk
 net ps/FCLK_RESET0_N reset/ext_reset_in
 net one/dout reset/dcm_locked reset/aux_reset_in
