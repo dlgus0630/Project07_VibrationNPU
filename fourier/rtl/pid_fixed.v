@@ -1,6 +1,12 @@
 // Q12 per-unit PI, Ts=10 ms. All negative divisions round toward -infinity.
+// kp_gain (Q16 Kp) and ki_gain (Q16 Ki*Ts) are runtime inputs driven from AXI so a
+// system-identified model-based gain set can be A/B compared against the original
+// tuning without a resynthesis; anti_windup_enable similarly lets the caller
+// disable the reject_update clamp to demonstrate naive-PI windup on demand.
 module pid_fixed(input wire clk,input wire rst,input wire start,
     input wire [12:0] reference,input wire [12:0] measured,
+    input wire signed [17:0] kp_gain,input wire signed [17:0] ki_gain,
+    input wire anti_windup_enable,
     output reg busy,output reg done,output reg [12:0] duty,
     output reg signed [31:0] integral,output reg signed [17:0] derivative);
     // The controller runs once per 10 ms.  Split the anti-windup arithmetic
@@ -45,13 +51,15 @@ module pid_fixed(input wire clk,input wire rst,input wire start,
     wire signed [63:0] e64={{46{error[17]}},error};
     wire signed [63:0] df64={{46{derivative[17]}},derivative};
     wire signed [63:0] i64={{32{integral[31]}},integral};
+    wire signed [63:0] kp64={{46{kp_gain[17]}},kp_gain};
+    wire signed [63:0] ki64={{46{ki_gain[17]}},ki_gain};
     wire signed [63:0] filter_value=(64'sd3*df64+$signed({1'b0,y_hold})-$signed({1'b0,y_previous}))>>>2;
     // Same multiply/shift as before; only the final add+compare is now pipelined.
-    wire signed [63:0] shifted_i_term=(64'sd3932*e64)>>>16;
+    wire signed [63:0] shifted_i_term=(ki64*e64)>>>16;
     wire [31:0] i_sum_hi=i64[63:32]+shifted_i_term[63:32]+i_sum_lo[32];
     wire signed [63:0] i_candidate_full={i_sum_hi,i_sum_lo[31:0]};
-    wire reject_update=((proposed_value>4096)&&(error>0))||
-        ((proposed_value<0)&&(error<0));
+    wire reject_update=anti_windup_enable&&(((proposed_value>4096)&&(error>0))||
+        ((proposed_value<0)&&(error<0)));
     wire signed [31:0] chosen_i=reject_update?integral:candidate;
     always @(posedge clk)begin
         done<=0;
@@ -67,7 +75,7 @@ module pid_fixed(input wire clk,input wire rst,input wire start,
         end
         FILTER:begin derivative<=filter_value[17:0];y_previous<=y_hold;state<=PRODUCTS;end
         PRODUCTS:begin
-            p_term<=(64'sd58982*e64)>>>16;d_term<=0;
+            p_term<=(kp64*e64)>>>16;d_term<=0;
             i_sum_lo<={1'b0,i64[31:0]}+{1'b0,shifted_i_term[31:0]};
             state<=PRODUCTS_HI;
         end

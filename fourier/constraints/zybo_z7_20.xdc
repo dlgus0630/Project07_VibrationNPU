@@ -12,12 +12,14 @@ set_false_path -from [get_ports mpu_miso]
 # The enable-driven 1 MHz sensor timing is verified as a protocol, without an external clock.
 set_false_path -to [get_ports {mpu_sclk mpu_mosi mpu_cs_n}]
 
-# Closed-loop L298N drive: JD1 -> ENA, JD2 -> IN1, JD3 -> IN2, JD4 -> encoder channel A.
-# Digilent Zybo-Z7-Master.xdc; sensor remains on JE1..4.
+# Closed-loop L298N drive: JD1 -> ENA, JD2 -> IN1, JD3 -> IN2, JD4 -> encoder
+# channel A, JD5 -> encoder channel B (quadrature). Digilent Zybo-Z7-Master.xdc;
+# sensor remains on JE1..4.
 set_property PACKAGE_PIN T14 [get_ports motor_pwm]
 set_property PACKAGE_PIN T15 [get_ports motor_in1]
 set_property PACKAGE_PIN P14 [get_ports motor_in2]
 set_property PACKAGE_PIN R14 [get_ports encoder_a]
+set_property PACKAGE_PIN U14 [get_ports encoder_b]
 set_property PACKAGE_PIN G15 [get_ports {motor_sw[0]}]
 set_property PACKAGE_PIN P15 [get_ports {motor_sw[1]}]
 set_property PACKAGE_PIN W13 [get_ports {motor_sw[2]}]
@@ -26,10 +28,12 @@ set_property PACKAGE_PIN K18 [get_ports motor_stop]
 set_property PACKAGE_PIN M14 [get_ports motor_armed]
 # LD1 shows the latched fault: three consecutive abnormal windows stopped the motor.
 set_property PACKAGE_PIN M15 [get_ports motor_fault]
-set_property IOSTANDARD LVCMOS33 [get_ports {motor_pwm motor_in1 motor_in2 encoder_a motor_sw[*] motor_stop motor_armed motor_fault}]
+set_property IOSTANDARD LVCMOS33 [get_ports {motor_pwm motor_in1 motor_in2 encoder_a encoder_b motor_sw[*] motor_stop motor_armed motor_fault}]
 set_false_path -from [get_ports {motor_sw[*]}]
 set_false_path -from [get_ports motor_stop]
-# The encoder pulse is asynchronous to FCLK0 and enters through the two ASYNC_REG
-# synchronizer flops inside encoder_speed_hybrid, so it carries no input timing path.
+# The encoder pulses are asynchronous to FCLK0 and enter through ASYNC_REG
+# synchronizer flops (encoder_speed_hybrid for A, encoder_quadrature for both),
+# so they carry no input timing path.
 set_false_path -from [get_ports encoder_a]
+set_false_path -from [get_ports encoder_b]
 set_false_path -to [get_ports {motor_pwm motor_in1 motor_in2 motor_armed motor_fault}]

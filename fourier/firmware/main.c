@@ -25,6 +25,29 @@ static uint64_t telemetry_time;
 static uint64_t ticks(void){XTime t;XTime_GetTime(&t);return (uint64_t)t;}
 static uint32_t micros(uint64_t t){return (uint32_t)(t*1000000U/(COUNTS_PER_SECOND));}
 static void heartbeat(void){Xil_Out32(CTRL+0x48,1U);}
+static void send_telemetry_frame(void);
+// Runtime PI tuning registers (0x068 ctrl2 bit0=open_loop_enable bit1=anti_windup_enable,
+// 0x06c open_loop_duty, 0x070 kp_gain Q16, 0x074 ki_gain*Ts Q16). Reset defaults on the
+// PL side reproduce the original fixed tuning exactly, so these commands are opt-in.
+#define ORIGINAL_KP_Q16 58982U
+#define ORIGINAL_KI_TS_Q16 3932U
+// IMC_Kp_Q16/IMC_KiTs_Q16 from IDENTIFY_MOTOR.m on
+// artifacts/experiments/open_loop_identification.csv (2026-09-17): plant gain
+// 71.36 RPM/duty-pu, tau 0.620 s, dead time 0.060 s, test fit 40.3%.
+#define CANDIDATE_KP_Q16 91486U
+#define CANDIDATE_KI_TS_Q16 1477U
+static int candidate_gains_active=0;
+static void open_loop_dwell(uint32_t ms) {
+    uint64_t start=ticks(),heartbeat_time=start,now;
+    while(micros(ticks()-start)<ms*1000U){
+        now=ticks();
+        if(micros(now-heartbeat_time)>=HEARTBEAT_US){heartbeat();heartbeat_time=now;}
+        if(telemetry_streaming && micros(now-telemetry_time)>=TELEMETRY_US){
+            send_telemetry_frame();telemetry_time=now;
+        }
+        usleep(500);
+    }
+}
 static void print_safety(void) {
     uint32_t status=Xil_In32(CTRL+0x04),detail=Xil_In32(CTRL+0x4c);
     printf("SAFETY,warning,%lu,derated,%lu,latched,%lu,watchdog,%lu,cause,%lu,consecutive,%lu,abnormal_total,%lu\r\n",
@@ -144,7 +167,7 @@ int main(void) {
     // Simple, explicit BRAM coherency. Benchmark must report that D-cache is disabled.
     Xil_DCacheDisable();
     puts("V4 Fourier SoC, 100 MHz PL, 64 samples, 2 MAC PEs, D-cache OFF");
-    puts("Commands: r=replay pair, x=replay one stored fault, i=init sensor, s=sample+infer, d=dump raw, b=100 replays, f=safety status, t=toggle telemetry streaming");
+    puts("Commands: r=replay pair, x=replay one stored fault, i=init sensor, s=sample+infer, d=dump raw, b=100 replays, f=safety status, t/T=telemetry on/off, p=open-loop ID excitation, g/G=original/candidate PI gains, w/W=anti-windup on/off");
     puts("RESULT columns: source,class,cpu_us,pl_cycles,npu_cycles,e2e_us,match,f0..f3,h0..h3,o0,o1");
     heartbeat();heartbeat_time=ticks();
     for(;;) {
@@ -162,10 +185,54 @@ int main(void) {
         }
         else if(command=='i'){sensor_ready=(sensor_init()==0);printf("SENSOR_READY,%d\r\n",sensor_ready);}
         else if(command=='f')print_safety();
-        else if(command=='t') {
-            telemetry_streaming=!telemetry_streaming;
+        // t/T are absolute (see the g/G, w/W comment below) so a scripted capture
+        // that always sends 't' first lands in a known streaming state regardless
+        // of whatever a previous session left it in.
+        else if(command=='t'||command=='T') {
+            telemetry_streaming=(command=='t');
             if(telemetry_streaming){telemetry_seq=0;telemetry_time=ticks();}
             printf("TELEMETRY,%d\r\n",telemetry_streaming);
+        }
+        else if(command=='p') {
+            // Open-loop duty staircase for system identification: 25/37.5/50/37.5/25%,
+            // 5 s dwell each, AXI-timed instead of manual switch flips. This command
+            // temporarily owns telemetry so one host process can send 'p' and capture
+            // the entire response through the same serial connection.
+            static const uint16_t steps[5]={1024,1536,2048,1536,1024};
+            unsigned step_index;uint32_t ctrl2=Xil_In32(CTRL+0x068);
+            int telemetry_was_streaming=telemetry_streaming;
+            if(!telemetry_streaming){telemetry_streaming=1;telemetry_seq=0;telemetry_time=ticks();}
+            Xil_Out32(CTRL+0x068,ctrl2|1U);
+            puts("OPEN_LOOP_START");
+            for(step_index=0;step_index<5;step_index++) {
+                Xil_Out32(CTRL+0x06c,(uint32_t)steps[step_index]);
+                printf("OPEN_LOOP_STEP,%u,%u\r\n",step_index,(unsigned)steps[step_index]);
+                open_loop_dwell(5000U);
+            }
+            Xil_Out32(CTRL+0x06c,0U);
+            ctrl2=Xil_In32(CTRL+0x068);
+            Xil_Out32(CTRL+0x068,ctrl2&~1U);
+            if(!telemetry_was_streaming)telemetry_streaming=0;
+            puts("OPEN_LOOP_DONE");
+        }
+        // g/G and w/W are absolute, not toggles: a scripted A/B comparison run
+        // (capture tool sends one of these via --send-command) must land in a known
+        // state without first reading back the previous one.
+        else if(command=='g'||command=='G') {
+            candidate_gains_active=(command=='G');
+            Xil_Out32(CTRL+0x070,candidate_gains_active?CANDIDATE_KP_Q16:ORIGINAL_KP_Q16);
+            Xil_Out32(CTRL+0x074,candidate_gains_active?CANDIDATE_KI_TS_Q16:ORIGINAL_KI_TS_Q16);
+            printf("GAINS,%s,kp_q16,%u,ki_ts_q16,%u\r\n",
+                candidate_gains_active?"candidate":"original",
+                (unsigned)(candidate_gains_active?CANDIDATE_KP_Q16:ORIGINAL_KP_Q16),
+                (unsigned)(candidate_gains_active?CANDIDATE_KI_TS_Q16:ORIGINAL_KI_TS_Q16));
+        }
+        else if(command=='w'||command=='W') {
+            uint32_t ctrl2=Xil_In32(CTRL+0x068);
+            uint32_t enabled_now=(command=='w');
+            ctrl2=enabled_now?(ctrl2|2U):(ctrl2&~2U);
+            Xil_Out32(CTRL+0x068,ctrl2);
+            printf("ANTI_WINDUP,%u\r\n",(unsigned)enabled_now);
         }
         else if(command=='s'||command=='d') {
             int result;

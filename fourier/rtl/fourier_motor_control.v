@@ -1,6 +1,9 @@
-// Independent motor drive for vibration experiments; closed-loop speed, no AXI command path.
+// Independent motor drive for vibration experiments; closed-loop speed by default.
 // SW0 arms after OFF -> ON. SW2..1 select 0/25/50/75% of full-scale speed. BTN0 stops.
 // SW3 injects a controlled 32 Hz torque ripple by alternating 25/75% duty.
+// AXI (via axi_vibration_top) can override the PI gains, disable anti-windup, or
+// drive an open-loop duty directly for system identification -- see kp_gain/
+// ki_gain/anti_windup_enable/open_loop_enable/open_loop_duty above.
 module fourier_motor_control #(
     parameter integer CLK_HZ=100000000,
     parameter integer FAULT_HZ=32,
@@ -13,12 +16,20 @@ module fourier_motor_control #(
     output wire motor_fault,output wire motor_warning,output wire motor_derated,
     output wire motor_watchdog_fault,output wire [1:0] motor_fault_cause,
     output wire [7:0] motor_fault_consec,output wire [15:0] motor_abnormal_count,
-    input wire encoder_a,
+    input wire encoder_a,input wire encoder_b,
+    output wire quad_direction,output wire signed [31:0] quad_position,
+    output wire quad_illegal_fault,output wire [15:0] quad_illegal_count,
+    output wire quad_timeout_fault,output wire quad_overflow_fault,
     output wire [12:0] motor_speed_reference,
     output wire [12:0] motor_measured_speed,
     output wire [12:0] motor_requested_duty,
     output wire signed [31:0] motor_pid_integral,
-    output wire [31:0] motor_watchdog_count);
+    output wire [31:0] motor_watchdog_count,
+    // Runtime PI tuning and an open-loop duty override for system identification;
+    // driven from AXI, default-wired at reset to match the original fixed tuning.
+    input wire signed [17:0] kp_gain,input wire signed [17:0] ki_gain,
+    input wire anti_windup_enable,
+    input wire open_loop_enable,input wire [12:0] open_loop_duty);
     wire rst;
     reset_sync resetter(clk,!reset_n||stop_button,rst);
     (* ASYNC_REG="TRUE" *) reg [3:0] sw_meta,sw_sync;
@@ -69,12 +80,24 @@ module fourier_motor_control #(
         if(speed_valid && enabled && !pid_busy)pid_start<=1;
     end
     pid_fixed controller(clk,controller_reset,pid_start,speed_reference,measured_speed,
+        kp_gain,ki_gain,anti_windup_enable,
         pid_busy,pid_done,pid_duty,pid_integral,pid_derivative);
-    // SW3 overrides the loop output so the ripple injection stays a known excitation.
-    wire [12:0] requested_duty=fault_inject ? (fault_phase ? 13'd3072 : 13'd1024) : pid_duty;
+    // Open-loop override (system identification) wins over everything else; SW3
+    // otherwise overrides the loop output so the ripple injection stays a known
+    // excitation.
+    wire [12:0] requested_duty=open_loop_enable ? open_loop_duty :
+        (fault_inject ? (fault_phase ? 13'd3072 : 13'd1024) : pid_duty);
     // A second consecutive abnormal window caps the drive at 25%.  A third one
     // takes enabled low through fault_latched and therefore forces PWM to zero.
     wire [12:0] duty=(motor_derated && requested_duty>13'd1024) ? 13'd1024 : requested_duty;
+    // Direction and reliability check from the second channel; purely
+    // observational, does not feed the PI loop or the safety supervisor. Placed
+    // after `duty` is declared above so this positional instantiation doesn't
+    // implicitly (and wrongly, 1-bit) declare it first.
+    encoder_quadrature #(.CLK_HZ(CLK_HZ)) quadrature(
+        clk,rst,!sw_sync[0],enabled,duty,encoder_a,encoder_b,
+        quad_direction,quad_position,quad_illegal_fault,quad_illegal_count,
+        quad_timeout_fault,quad_overflow_fault);
     wire [12:0] active_duty;
     pwm_period #(.PERIOD(CLK_HZ/20000)) pwm_unit(clk,rst,enabled,duty,motor_pwm,active_duty);
     assign motor_in1=enabled;
@@ -85,6 +108,9 @@ module fourier_motor_control #(
     assign motor_measured_speed=measured_speed;
     assign motor_requested_duty=duty;
     assign motor_pid_integral=pid_integral;
+    // quad_* outputs are already top-level ports driven directly by the
+    // quadrature instance above (no motor_ prefix; there is no naming clash
+    // with the vibration classifier's own motor_* status signals).
     always @(posedge clk)begin
         if(rst)begin
             sw_meta<=0;sw_sync<=0;warmup<=0;seen_off<=0;armed<=0;

@@ -141,34 +141,34 @@ FFT 최대 오차는 부동소수점 FFT/64 대비 6 LSB였다.
 
 ## gate와 artifact의 정확한 현재 상태
 
-PL 안전정지 latch·PI/encoder 폐루프·watchdog 관측 레지스터를 모두 포함한 **최종(공식 gate 통과)**
-실행 artifact는 다음과 같다. `main.c`의 `micros()`/`acquire()` 타이밍 버그 수정, `watchdog_count`
-AXI 노출에 따른 `pid_fixed.v`/`encoder_speed_hybrid.v` 파이프라이닝을 모두 반영한 소스에서,
-MATLAB Online 재검증 → 공식 XSim → 공식 `tools/run.py build`(내부 타이밍 게이트에서 1회 실패 후
-같은 checkpoint에 확립된 AggressiveExplore phys_opt+route 복구를 적용해 완료) → 이 XSA로 Vitis
-platform/FSBL/ARM app 재빌드까지 전부 이 세션에서 끝냈다.
+PL 안전정지 latch·PI/encoder 폐루프·watchdog 관측 레지스터·PI 런타임 튜닝(Kp/Ki/anti-windup/
+open-loop)·encoder C2 quadrature를 모두 포함한 **최종(2026-09-17, 공식 gate 통과)** 실행
+artifact는 다음과 같다. MATLAB Online 재검증 → 공식 XSim(9/9) → 공식 `tools/run.py build`
+(이번엔 AggressiveExplore 복구 없이 기본 route로 바로 타이밍 통과) → 이 XSA로 Vitis
+platform/FSBL/ARM app 재빌드까지 전부 이 세션에서 끝냈고, 실물 보드에도 이 정확한 bit/ELF로
+재프로그램해 정상 부팅과 레지스터 리셋 기본값을 확인했다.
 
-- `artifacts/fourier.bit`: SHA-256 `46e6d49b854fee1bfe92de875c33f60f628caf6e10a4ce2d73ae2759d3899cfb`
-- `artifacts/fourier.xsa`: SHA-256 `5ac8408fb440dd83fd1165882110c2ce0a0e02bb45938e9a0f8207509bc31b78`
-- `artifacts/fourier_app.elf`: SHA-256 `7088a3348056b7a850a3119694237d9c0c20372f67185887657a623d87ee0292`
+- `artifacts/fourier.bit`: SHA-256 `ebe87d48af22a58534ad7f7e6eb0b68600525c957e6f8c9f44000e0e4a7aa248`
+- `artifacts/fourier.xsa`: SHA-256 `6224ce7be974d1a81dae8cb78bbbff6b29dc1dde85e87f119c267307c45d1f53`
+- `artifacts/fourier_app.elf`: SHA-256 `f4aaa13d134101259ad8307ba9253c73db749f45a6c60a1b44236b1841eb7044`
 - `artifacts/fsbl.elf`: SHA-256 `528b43028ed835d5cd386b1e73dfed40dab6c1d788f506db55afba72bb4393e9`
-  (PS7 설정이 그대로라 이전 XSA 기준 FSBL과 바이트 단위로 동일)
+  (PS7 설정이 그대로라 계속 바이트 단위로 동일)
 - 이전 실측 모델 artifact는 `*_pre_latch.*` 이름으로 보존
 
 검증 결과(위 최종 artifact 기준):
 
-- MATLAB/Simulink: PASS (source digest `e6ec4ab63ba4b75cc5ab567707841f861a6a53b5db29beab79377109670e2b0d`)
-- XSim: 9/9 PASS (`tb_speed_pi_integration`, `tb_fourier_motor` 갱신 포함 — 아래 "2026-09-16"
-  절 참고)
-- Vivado post-route: setup `+0.138 ns`, hold `+0.017 ns`, DRC Error 0
-- resource: LUT 11,987, register 7,968, BRAM tile 1, DSP 8
+- MATLAB/Simulink: PASS (source digest `16437f3e1b508433403bd304207f331f5668ba9c2bfedea4cb68aa4656dd4337`)
+- XSim: 9/9 PASS (`tb_axi`/`tb_fourier_motor` 갱신 포함 — 아래 "2026-09-17" 절 참고)
+- Vivado post-route: setup `+0.119 ns`, hold `+0.030 ns`, DRC Error 0
 - 새 XSA 기반 Vitis platform/BSP/FSBL/ARM app: PASS
-- ARM-PL replay: `match=1`
-- MPU-6500 재초기화: `WHO_AM_I=0x70`, `SENSOR_READY=1`
+- 실물 재프로그램 후 UART `f` 응답 정상, PI 튜닝 레지스터 리셋 기본값(`0x070=58982`,
+  `0x074=3932`, `0x068=2`) 확인
 
-이 최종 artifact는 이번 세션에서 실물 보드로 재플래시·재검증하지는 않았다 — 배선/실물 시험은
-이 정확한 route가 아니라(동일 RTL을 이전에 별도로 route한) 직전 ad-hoc 빌드로 수행됐고, 동작은
-XSim 9/9 일치로 동등성을 확인했다. 다음에 보드를 켤 때는 이 최종 bit/ELF로 재프로그램한다.
+2026-09-16 이전 항목(watchdog 근본원인 규명 등)은 이 artifact에도 그대로 포함돼 있다 — 아래는
+그 시점 최종 artifact였던 이전 해시로, 참고용으로 남겨둔다: bit
+`46e6d49b854fee1bfe92de875c33f60f628caf6e10a4ce2d73ae2759d3899cfb`, xsa
+`5ac8408fb440dd83fd1165882110c2ce0a0e02bb45938e9a0f8207509bc31b78`, app.elf
+`7088a3348056b7a850a3119694237d9c0c20372f67185887657a623d87ee0292`.
 
 최종 실물 시험은 정상 운전 class 0 `3/3`, CPU-PL `3/3` 일치로 시작했다. SW3 토크 리플을
 인가한 뒤 판정열 `0,1,1,1,0,0`에서 세 번째 연속 class 1에 latch가 설정됐다. AXI status는
@@ -470,6 +470,81 @@ abnormal). 다만 이 버그가 원본 `1,1,0` 패턴의 정확한 원인이었�
 메커니즘은 완전히 규명되지 않았다** — 상세는 위 "2026-09-16 분류 패턴 재현 시도" 절과
 `artifacts/single_board_integration_2026-09-16.md` 참고.
 
+## 2026-09-17 PI 런타임 확장 · 시스템 식별 · encoder C2 quadrature (완료)
+
+2026-09-15 결정("석사급 최종판")에 남아 있던 세 확장 묶음 중 두 개를 이 세션에서 끝냈다:
+MotorControl 제어 성능 확장(시스템 식별, 모델기반 PI 비교, anti-windup 수치화)과 encoder 신뢰성
+확장(C2 quadrature, 방향 판별, illegal/timeout fault 검출). 세 번째 묶음(VibrationNPU 통합 안전
+확장)은 2026-09-15/16에 이미 완료됐다.
+
+**RTL/펌웨어 확장**:
+- `pid_fixed.v`: Kp/Ki가 하드코딩 리터럴에서 AXI 런타임 입력(`kp_gain`/`ki_gain`, 둘 다 Q16)으로
+  바뀌었고, anti-windup의 `reject_update` 클램프를 끌 수 있는 `anti_windup_enable` 입력이
+  추가됐다. 리셋 기본값(58982/3932/enabled=1)은 기존 하드코딩 동작과 완전히 동일하다.
+- `fourier_motor_control.v`: `open_loop_enable`/`open_loop_duty`로 PI 출력을 우회해 duty를 직접
+  명령하는 경로(시스템 식별용)가 추가됐다. 신규 `encoder_quadrature` 인스턴스(아래)도 여기서
+  붙는다.
+- `axi_vibration_top.v`: 새 레지스터 `0x068`(제어 비트: bit0 open_loop_enable, bit1
+  anti_windup_enable), `0x06c`(open_loop_duty), `0x070`(kp_gain), `0x074`(ki_gain),
+  `0x078`(quad 상태: bit0 direction, bit1 illegal_fault, bit2 timeout_fault, bit3
+  overflow_fault), `0x07c`(quad_position, signed 32-bit), `0x080`(illegal_transition_count).
+- `fourier/rtl/encoder_quadrature.v`(신규): channel A/B로 방향(Gray code 정방향/역방향 walk)을
+  판별하고, 2비트 동시 변화(물리적으로 불가능한 quadrature 전이)를 illegal fault로, armed+duty
+  구동 중 인코더가 오래 안 움직이면 timeout fault로, 32비트 position 카운터가 넘칠 것 같으면
+  overflow fault로 잡는다. 순수 관측용이며 PI 루프나 safety supervisor에는 피드백하지 않는다.
+- `fourier/firmware/main.c`: UART 명령 3개 추가. `p`(open-loop 25/37.5/50/37.5/25% duty 계단
+  자동 시퀀스, 5초씩, 텔레메트리 자동 관리), `g`/`G`(원래/candidate 게인, 절대 지정), `w`/`W`
+  (anti-windup 켜기/끄기, 절대 지정), `t`/`T`(텔레메트리 켜기/끄기, 절대 지정 — 기존 토글
+  `t`에서 바뀜, 스크립트 재현성을 위해 전부 토글 대신 절대 지정으로 통일했다).
+- `fourier/constraints/zybo_z7_20.xdc`: encoder_b를 JD07(U14)에 배정.
+- Zybo 자체에 `tools/capture_telemetry.py`(MotorControl 원본에 `--send-command` 옵션 추가 —
+  한 프로세스가 명령 전송과 텔레메트리 캡처를 동시에 하도록 해 포트 동시 접속 문제를 없앴다),
+  `tools/analyze_step.py`, `matlab/IDENTIFY_MOTOR.m`을 복사해 자체 보유하게 했다(MotorControl
+  의존 없이 이 저장소만으로 실험 재현 가능). 절차는 `docs/CONTROL_EXTENSION_EXPERIMENT.md`.
+
+**XSim**: 9/9 PASS. `tb_axi`에 PI 튜닝 레지스터 write/read-back 테스트, `tb_fourier_motor`에
+open-loop override 테스트와 anti-windup on/off 비교 테스트(같은 포화 조건에서 정수 적분값이
+다르게 수렴하는지 직접 검증), quadrature forward/backward/illegal/timeout 테스트를 추가했다.
+
+**실물 검증**:
+- **Open-loop 시스템 식별**: `p` 명령으로 25초 자동 계단 캡처(2495 frame, drop 0). 5단계 전환이
+  전부 ~4.93초 간격으로 깨끗하게 잡혔다. `IDENTIFY_MOTOR.m` 결과: plant gain 71.36 RPM/duty-pu,
+  tau 0.620 s, dead time 0.060 s, **test fit 40.3%**(1차 FOPDT/ARX 모델이 실제 모터의
+  비선형성 — 정지마찰, 인코더 양자화 노이즈 등 — 을 완전히 못 잡는 것으로 보이며, 이 낮은 fit은
+  정직하게 기록한다). IMC 튜닝 결과 `IMC_Kp_Q16=91486`(Kp=1.396), `IMC_KiTs_Q16=1477`
+  (Ki=2.25/s) — `CANDIDATE_KP_Q16`/`CANDIDATE_KI_TS_Q16`에 반영, ELF만 재빌드.
+- **원래 게인 vs candidate 게인 step 비교**(0→75% 목표, 둘 다 SW2+SW1): 원래 게인(Kp=0.9,
+  Ki=6/s) overshoot **11.10%**(초기 전이 구간의 인코더 추정 노이즈 스파이크 1개 샘플을 제외하고
+  재계산한 값 — 이 11.10%는 같은 조건의 어제 anti-windup 실험 결과와 정확히 일치해 교차검증
+  됨). candidate 게인(Kp=1.396, Ki=2.25/s) overshoot **3.68%**, rise time은 더 느림(~1.5 s).
+  Ki가 원래의 약 40%로 줄어든 결과, IMC 튜닝 특유의 "오버슈트는 줄지만 응답은 느려지는" 트레이드
+  오프가 정성적으로 그대로 나타났다.
+- **Anti-windup ON/OFF 비교**(0→75% 목표, 원래 게인): 이번 step 크기에서는 duty가 최대
+  ~85%까지만 올라가고 100%(출력 포화 한계)에는 도달하지 않아, `reject_update`의 트리거 조건
+  (`proposed_value>4096`) 자체가 거의 발동하지 않았다 — peak integral(3399 vs 3389)과 정상상태
+  평균(3317 vs 3297)이 사실상 동일했다. **정직한 결론**: 이 시스템/게인/step 크기에서는
+  anti-windup의 실질적 차이가 미미하다 — 이는 게인이 과도하게 공격적이지 않게 튜닝돼 있다는
+  방증이기도 하다. 더 강한 포화를 보려면 물리적 부하나 더 큰 reference가 필요하지만, 이번
+  세션에서는 손으로 부하를 주는 비정량적 방법을 피하고 여기서 멈췄다.
+- **Encoder C2 quadrature 실물 배선**: C1(A상, 기존)과 C2(B상, 신규)를 각각 JD04/JD07에 연결.
+  배선 직후 B상이 아직 뜬 상태였을 때 illegal_transition_count가 1로 노이즈에 의해 올라간 것을
+  확인해 illegal-jump 검출기가 실제로 동작함을 증명했다. 배선 완료 후에는 더 이상 증가하지
+  않았다(신호 무결성 확인). 실제 모터를 정방향(reference>0)으로 구동했을 때 처음에는
+  `direction=1`(RTL이 처음에 backward로 정의한 쪽)로 나와, 실측 배선 극성에 맞춰
+  `encoder_quadrature.v`의 forward/backward Gray-code 매핑을 스왑했다(재빌드 1회). 스왑 후
+  재검증: `direction=0`(정방향과 정확히 일치), position이 매끄럽게 증가(551454까지 확인),
+  illegal fault 없음, measured_speed가 reference에 정상 추종(1834~2042 vs 2048 목표).
+
+**gate**: 소스가 두 번 바뀌었다(RTL/펌웨어 확장 1차, candidate 게인 반영 2차) — 매번 MATLAB
+Online 재검증(공식 gate)을 다시 통과시켰다. 최종 공식 XSim·`tools/run.py build`(이번엔
+AggressiveExplore 복구 없이 기본 route로 바로 타이밍 통과, WNS +0.119 ns, WHS +0.030 ns, DRC 0)
+까지 전부 재통과했고, 실물 보드에도 이 최종 bit/ELF로 재프로그램해 확인했다 — 최종 해시는 위
+"gate와 artifact의 정확한 현재 상태" 절 참고.
+
+원본 데이터(캡처 CSV, 식별 모델 표, 원인 분석 등)는
+`artifacts/experiments/`(캡처 CSV)와 `artifacts/single_board_integration_2026-09-17.md`에
+있다.
+
 ## 저장소 상태
 
 이 문서 작성 시점까지의 모든 실측 결과(재학습 모델, latch RTL, safety supervisor, 오실로스코프
@@ -487,5 +562,11 @@ abnormal). 다만 이 버그가 원본 `1,1,0` 패턴의 정확한 원인이었�
 게이트 1회 실패 후 확립된 AggressiveExplore 복구로 완료)를 이 세션 안에서 전부 재통과시켰고, 그
 XSA로 Vitis platform/FSBL/ARM app도 재빌드했다 — 최종 해시는 위 "gate와 artifact의 정확한 현재
 상태" 절 참고. 이 절 및 위의 모든 2026-09-16 작업(PI/encoder 이식, 단일보드 실물 시험, watchdog
-근본원인 규명, 분류 패턴 조사, gate 재검증)은 이 문서 작성 시점 기준 아직 커밋되지 않았다 —
-커밋은 사용자 확인 후 별도로 진행한다.
+근본원인 규명, 분류 패턴 조사, gate 재검증)은 커밋 `bb07aa1`로 커밋 완료됐다(작성자
+`dlgus0630 <dlgus0630@naver.com>` 단독). 2026-09-17에 이어진 PI 확장·encoder C2 작업(위
+"2026-09-17 PI 런타임 확장 · 시스템 식별 · encoder C2 quadrature (완료)" 절)은 이 문서 작성
+시점 기준 아직 커밋되지 않았다 — 커밋은 사용자 확인 후 별도로 진행한다. 이로써 2026-09-15
+결정의 세 확장 묶음 중 남은 것은 encoder C2의 "정역방향 판별"은 완료됐지만, quadrature 자체가
+아닌 원래 계획에 있던 항목은 다 끝났다 — 남은 미착수 항목은 없다(단, `overflow_fault`는 XSim
+검증만 했고 실물에서 실제로 32비트 카운터를 오버플로우시키는 시험은 하지 않았다 — 현실적으로
+일어나기 매우 어려운 조건이라 의도적으로 생략했다).

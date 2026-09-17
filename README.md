@@ -20,6 +20,7 @@ MPU-6500/9250 -> SPI -> ARM Cortex-A9
                                 warn   25% cap  latched stop
                                                   |
 Encoder C1 -> hybrid 속도추정 -> PI/anti-windup ->+--> 20 kHz PWM -> L298N
+Encoder C2 -> quadrature 방향/fault 검출 (관측용, 루프에 피드백 없음)
                      ^
               speed_reference (AXI)
 ```
@@ -31,6 +32,9 @@ Encoder C1 -> hybrid 속도추정 -> PI/anti-windup ->+--> 20 kHz PWM -> L298N
   32 Hz 토크 리플 fault injection도 가능하다. 원래 `Project07_MotorControl`(Basys3)에서 순수
   RTL로 개발·검증한 encoder hybrid 속도추정 + PI 제어기를 이 저장소의 Zybo PL로 이식해 한 보드로
   통합했다 — Basys3 프로젝트는 삭제하지 않고 개발·검증 기준선으로 남겼다.
+- 제어 확장: Kp/Ki/anti-windup을 AXI로 런타임 튜닝할 수 있고(재합성 없이 A/B 비교), open-loop
+  duty override로 시스템 식별용 excitation을 만들 수 있다. Encoder C2로 quadrature 방향과
+  illegal transition/stall/overflow fault를 검출한다(순수 관측, PI 루프에는 관여하지 않음).
 - 안전 supervisor RTL: 1회 이상은 warning, 2회 연속은 PWM 25% 제한, 3회 연속은 latch 차단
 - PS heartbeat watchdog: ARM 소프트웨어가 100 ms마다 heartbeat를 쓰며 500 ms 단절 시 PL이 독립 차단
 - 학습: PC에서만 수행하며 FPGA는 inference만 수행
@@ -72,9 +76,12 @@ Encoder C1 -> hybrid 속도추정 -> PI/anti-windup ->+--> 20 kHz PWM -> L298N
 | PI/encoder 폐루프 실물 추종 | reference 2048에 대해 measured_speed 2040~2045 (오차 0.4% 이내), armed 유지, 진동 분류·안전 supervisor와 한 보드에서 동시 동작 |
 | 외란 시험 12→9→12 V (통합보드, 독립 2회 재현) | duty 64.2%→85.8%, drop 시 속도 최대 -14.6%, restore 시 overshoot +8.0%/+4.2%, 회복시간 약 1.5-2초, 두 회차 모두 safety trip 없음·진동 없음 |
 | Watchdog 근본원인 규명 | AXI로 카운터 직접 노출 후 실측: 참 100 MHz(오차 0.06% 이내), trip 452~508 ms — 설계값 500 ms와 일치. RTL은 처음부터 정상이었고 과거 "1.489~1.6초" 관측은 측정 방법론의 인공물 |
-| 단일보드 통합 최종 post-route | setup +0.138 ns, hold +0.017 ns, DRC Error 0 |
-| 단일보드 통합 최종 자원 | LUT 11,987, register 7,968, BRAM tile 1, DSP 8 |
-| 안전 확장 XSim | 9/9 PASS (PI/encoder 폐루프 통합시험 포함) |
+| 최종 post-route (PI 런타임 튜닝 + encoder C2 포함) | setup +0.119 ns, hold +0.030 ns, DRC Error 0 |
+| 최종 자원 | LUT 12,228, register 8,119, BRAM tile 1, DSP 8 |
+| 최종 XSim | 9/9 PASS (PI 런타임 튜닝·open-loop override·anti-windup 비교·encoder C2 quadrature 포함) |
+| 시스템 식별 (open-loop, IDENTIFY_MOTOR.m) | plant gain 71.36 RPM/duty-pu, tau 0.620 s, dead time 0.060 s, test fit 40.3%(1차 선형모델의 한계, 정직하게 기록) |
+| 게인 비교 (원래 Kp=0.9,Ki=6/s vs 식별기반 Kp=1.40,Ki=2.25/s, 0→75% step) | overshoot 11.10% → 3.68%, 응답은 느려짐(IMC 튜닝 특유의 트레이드오프) |
+| Encoder C2 quadrature 실물 검증 | 방향(정방향 측 극성 실측 기준 확정), illegal transition 0건(회전 중), position 매끄럽게 누적 |
 
 실측 분류의 class 1은 자연 발생 베어링 고장이 아니라 PL이 만든 `25%<->75% @ 32 Hz` 토크 리플이다.
 정상 조건은 50% 고정 duty이며 두 조건 모두 12.0 V와 평균 duty 50%를 사용했다. 보드 측정 전체
@@ -140,6 +147,35 @@ DSP48E1 승산 결과 비교/clamp)이 실제 timing 위반으로 넘어갔다. 
 실측으로 확인했다 — RTL은 결함이 없었다. 이전 관측은 레지스터에 직접 접근하지 않고 외부 증상만
 관찰한 측정 방법론이 만든 인공물이었다. RTL 수정은 필요 없었고, 위에서 설명한 두 건의 파이프라인
 추가는 관측 레지스터 자체가 만든 새 타이밍 여유 문제를 해결한 것이지 watchdog 로직과는 무관하다.
+
+### PI 런타임 튜닝 · 시스템 식별 · encoder C2 quadrature
+
+Kp/Ki/anti-windup을 AXI 레지스터로 런타임 변경할 수 있게 확장해, 재합성 없이 서로 다른 튜닝을
+A/B 비교할 수 있다. Open-loop duty override(UART `p`)로 25/37.5/50/37.5/25% duty 계단을 자동
+생성해 시스템 식별용 excitation을 얻고, `IDENTIFY_MOTOR.m`(FOPDT/ARX, 60/20/20 split)으로 모델을
+식별했다 — plant gain 71.36 RPM/duty-pu, tau 0.620 s, dead time 0.060 s. 1차 선형 모델의
+test fit은 40.3%로 높지 않다(실제 모터의 정지마찰·인코더 양자화 노이즈 등 비선형성을 완전히
+설명하지 못하기 때문으로 보이며, 이 낮은 fit을 그대로 기록한다). IMC 튜닝 공식으로 얻은 게인
+(Kp=1.40, Ki=2.25/s)을 원래 손튜닝 게인(Kp=0.9, Ki=6/s)과 동일한 0→75% step으로 비교하면
+overshoot가 11.10%에서 3.68%로 줄고 응답은 느려진다 — IMC 튜닝의 전형적인 트레이드오프가
+그대로 나타났다.
+
+Anti-windup은 XSim에서(encoder 피드백을 차단한 포화 조건) 켰을 때와 껐을 때 적분값이 확실히
+다르게 수렴함을 확인했지만, 실물에서 이번 step 크기(duty 최대 ~85%)로는 duty 100% 포화 자체가
+거의 발생하지 않아 실질적인 차이가 미미했다 — 게인이 과도하게 공격적이지 않다는 방증으로 정직하게
+기록한다.
+
+Encoder 두 번째 채널(C2, B상)을 새로 배선해 quadrature 방향 판별과 illegal transition/stall/
+overflow fault 검출을 추가했다(`encoder_quadrature.v`, 순수 관측용 — PI 루프나 safety
+supervisor에는 관여하지 않는다). 배선 직후 B상이 플로팅 상태였을 때 노이즈로 illegal transition이
+1건 검출돼 검출기 자체의 동작을 실물로 증명했고, 배선 완료 후에는 더 이상 발생하지 않았다. 실측
+회전 방향에 맞춰 RTL의 forward/backward 정의를 한 번 맞바꿨고, 최종적으로 `direction=0`이
+실제 정방향과 정확히 일치함을 확인했다.
+
+상세 원본 데이터는
+[artifacts/single_board_integration_2026-09-17.md](artifacts/single_board_integration_2026-09-17.md),
+실험 재현 절차는 [docs/CONTROL_EXTENSION_EXPERIMENT.md](docs/CONTROL_EXTENSION_EXPERIMENT.md)에
+있다.
 
 ## 실행
 

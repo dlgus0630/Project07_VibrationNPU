@@ -29,6 +29,8 @@ create_bd_port -dir I motor_stop
 connect_bd_net [get_bd_ports motor_stop] [get_bd_pins motor/stop_button]
 create_bd_port -dir I encoder_a
 connect_bd_net [get_bd_ports encoder_a] [get_bd_pins motor/encoder_a]
+create_bd_port -dir I encoder_b
+connect_bd_net [get_bd_ports encoder_b] [get_bd_pins motor/encoder_b]
 foreach port {motor_pwm motor_in1 motor_in2 motor_armed motor_fault} {
     create_bd_port -dir O $port
     connect_bd_net [get_bd_ports $port] [get_bd_pins motor/$port]
@@ -51,6 +53,20 @@ net motor/motor_requested_duty accelerator/motor_requested_duty
 net motor/motor_pid_integral accelerator/motor_pid_integral
 net motor/motor_armed accelerator/motor_armed_status
 net motor/motor_watchdog_count accelerator/motor_watchdog_count
+# Runtime PI tuning / open-loop override registers live in accelerator (AXI); wire
+# them out to the motor block's new inputs, same pattern as the status ports above.
+net accelerator/kp_gain motor/kp_gain
+net accelerator/ki_gain motor/ki_gain
+net accelerator/anti_windup_enable motor/anti_windup_enable
+net accelerator/open_loop_enable motor/open_loop_enable
+net accelerator/open_loop_duty motor/open_loop_duty
+# Encoder channel-B direction/fault status, read-only on AXI.
+net motor/quad_direction accelerator/quad_direction
+net motor/quad_position accelerator/quad_position
+net motor/quad_illegal_fault accelerator/quad_illegal_fault
+net motor/quad_illegal_count accelerator/quad_illegal_count
+net motor/quad_timeout_fault accelerator/quad_timeout_fault
+net motor/quad_overflow_fault accelerator/quad_overflow_fault
 net ps/FCLK_CLK0 ps/M_AXI_GP0_ACLK reset/slowest_sync_clk interconnect/aclk ram_controller/s_axi_aclk accelerator/aclk
 net ps/FCLK_RESET0_N reset/ext_reset_in
 net one/dout reset/dcm_locked reset/aux_reset_in

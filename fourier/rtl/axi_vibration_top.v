@@ -47,7 +47,17 @@ module axi_vibration_top #(
     input wire [12:0] motor_requested_duty,
     input wire signed [31:0] motor_pid_integral,
     input wire motor_armed_status,
-    input wire [31:0] motor_watchdog_count
+    input wire [31:0] motor_watchdog_count,
+    // Runtime PI tuning / open-loop override for system identification (0x068,
+    // 0x06c, 0x070, 0x074). Reset defaults reproduce the original fixed tuning
+    // exactly, so leaving these unwritten is behaviorally identical to before.
+    output reg open_loop_enable,output reg anti_windup_enable,
+    output reg [12:0] open_loop_duty,
+    output reg signed [17:0] kp_gain,output reg signed [17:0] ki_gain,
+    // Encoder channel-B direction/fault status, read-only (0x078/0x07c/0x080).
+    input wire quad_direction,input wire signed [31:0] quad_position,
+    input wire quad_illegal_fault,input wire [15:0] quad_illegal_count,
+    input wire quad_timeout_fault,input wire quad_overflow_fault
 );
     reg aw_hold,w_hold;reg [11:0] addr_hold;reg [31:0] data_hold;reg [3:0] strb_hold;
     reg start_pulse,sticky_done,sticky_error;
@@ -76,6 +86,8 @@ module axi_vibration_top #(
             s_axi_bvalid<=0;s_axi_bresp<=0;s_axi_rvalid<=0;s_axi_rresp<=0;s_axi_rdata<=0;
             sticky_done<=0;sticky_error<=0;spi_rd<=0;spi_two<=0;spi_addr<=0;spi_wdata<=0;spi_done_sticky<=0;
             ps_heartbeat<=0;
+            open_loop_enable<=0;anti_windup_enable<=1;open_loop_duty<=0;
+            kp_gain<=18'sd58982;ki_gain<=18'sd3932;
         end else begin
             if(core_done)sticky_done<=1;
             if(spi_done)spi_done_sticky<=1;
@@ -99,6 +111,12 @@ module axi_vibration_top #(
                         spi_wdata<=data_hold[23:16];spi_start<=1;spi_done_sticky<=0;end
                 end else if(strb_hold!=0)s_axi_bresp<=2;
                 12'h048:if(strb_hold[0] && data_hold[0])ps_heartbeat<=1;
+                12'h068:if(strb_hold[0])begin
+                    open_loop_enable<=data_hold[0];anti_windup_enable<=data_hold[1];
+                end
+                12'h06c:if(strb_hold[0]||strb_hold[1])open_loop_duty<=data_hold[12:0];
+                12'h070:if(strb_hold==4'hf)kp_gain<=data_hold[17:0];
+                12'h074:if(strb_hold==4'hf)ki_gain<=data_hold[17:0];
                 default:s_axi_bresp<=2;
                 endcase
             end
@@ -127,6 +145,14 @@ module axi_vibration_top #(
                 12'h05c:s_axi_rdata<=motor_pid_integral;
                 12'h060:s_axi_rdata<={31'd0,motor_armed_status};
                 12'h064:s_axi_rdata<=motor_watchdog_count;
+                12'h068:s_axi_rdata<={30'd0,anti_windup_enable,open_loop_enable};
+                12'h06c:s_axi_rdata<={19'd0,open_loop_duty};
+                12'h070:s_axi_rdata<={{14{kp_gain[17]}},kp_gain};
+                12'h074:s_axi_rdata<={{14{ki_gain[17]}},ki_gain};
+                12'h078:s_axi_rdata<={28'd0,quad_overflow_fault,quad_timeout_fault,
+                    quad_illegal_fault,quad_direction};
+                12'h07c:s_axi_rdata<=quad_position;
+                12'h080:s_axi_rdata<={16'd0,quad_illegal_count};
                 default:begin s_axi_rdata<=0;s_axi_rresp<=2;end
                 endcase
             end
