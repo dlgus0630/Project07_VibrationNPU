@@ -4,7 +4,7 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-EXCLUDED = {'artifacts', 'reports', 'build', 'measurements', '__pycache__', '.git'}
+EXCLUDED = {'artifacts', 'reports', 'build', 'measurements', '__pycache__', '.git', 'docs'}
 
 
 def digest():

@@ -11,12 +11,14 @@ module tb_axi;
     wire open_loop_enable_probe,anti_windup_enable_probe;
     wire [12:0] open_loop_duty_probe;
     wire signed [17:0] kp_gain_probe,ki_gain_probe;
+    wire quad_position_wr_en_probe;wire signed [31:0] quad_position_wr_value_probe;
     axi_vibration_top dut(clk,resetn,awaddr,3'd0,awvalid,awready,wdata,strb,wvalid,wready,bresp,bvalid,bready,
         araddr,3'd0,arvalid,arready,rdata,rresp,rvalid,rready,bc,br,be,bwe,ba,bwd,brd,sclk,mosi,1'b0,cs,irq,cv,ci,
         1'b0,1'b1,1'b1,1'b1,2'b10,8'h02,16'h1234,heartbeat,
         13'd0,13'd0,13'd0,32'sd0,1'b0,32'd0,
         open_loop_enable_probe,anti_windup_enable_probe,open_loop_duty_probe,kp_gain_probe,ki_gain_probe,
-        1'b1,32'sd12345,1'b1,16'd7,1'b1,1'b1);
+        1'b1,32'sd12345,1'b1,16'd7,1'b1,1'b1,
+        quad_position_wr_en_probe,quad_position_wr_value_probe);
     always @(posedge clk)if(be)begin if(bwe==4'hf)mem[ba[11:2]]<=bwd;else brd<=mem[ba[11:2]];end
     always @(posedge clk)if(heartbeat)heartbeat_seen<=heartbeat_seen+1;
     task send_aw;
@@ -83,6 +85,15 @@ module tb_axi;
         rd(12'h078,0,value);if(value!==32'hf)begin $display("TEST FAIL quad status");$finish;end
         rd(12'h07c,0,value);if(value!==32'sd12345)begin $display("TEST FAIL quad position");$finish;end
         rd(12'h080,0,value);if(value!==32'd7)begin $display("TEST FAIL quad illegal count");$finish;end
+        // 0x07c is read-write: a write pulses quad_position_wr_en for one
+        // cycle (encoder_quadrature.v's homing/overflow-test preset) and
+        // latches the value; by the time the B response settles the pulse
+        // must already have cleared.
+        wr(12'h07c,32'sd2147483646,15,0,0);
+        if(quad_position_wr_value_probe!==32'sd2147483646)begin
+            $display("TEST FAIL quad position write value");$finish;end
+        if(quad_position_wr_en_probe!==0)begin
+            $display("TEST FAIL quad position write pulse did not clear");$finish;end
         $display("TEST PASS tb_axi AW/W skew, backpressure, byte strobes, busy reject, SPI status, PI tuning regs, quad status");$finish;
     end
     initial begin #2000000;$display("TEST FAIL timeout tb_axi");$finish;end

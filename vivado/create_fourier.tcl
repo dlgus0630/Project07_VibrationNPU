@@ -67,6 +67,8 @@ net motor/quad_illegal_fault accelerator/quad_illegal_fault
 net motor/quad_illegal_count accelerator/quad_illegal_count
 net motor/quad_timeout_fault accelerator/quad_timeout_fault
 net motor/quad_overflow_fault accelerator/quad_overflow_fault
+net accelerator/quad_position_wr_en motor/quad_position_wr_en
+net accelerator/quad_position_wr_value motor/quad_position_wr_value
 net ps/FCLK_CLK0 ps/M_AXI_GP0_ACLK reset/slowest_sync_clk interconnect/aclk ram_controller/s_axi_aclk accelerator/aclk
 net ps/FCLK_RESET0_N reset/ext_reset_in
 net one/dout reset/dcm_locked reset/aux_reset_in

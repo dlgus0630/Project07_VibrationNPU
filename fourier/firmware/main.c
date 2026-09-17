@@ -167,7 +167,7 @@ int main(void) {
     // Simple, explicit BRAM coherency. Benchmark must report that D-cache is disabled.
     Xil_DCacheDisable();
     puts("V4 Fourier SoC, 100 MHz PL, 64 samples, 2 MAC PEs, D-cache OFF");
-    puts("Commands: r=replay pair, x=replay one stored fault, i=init sensor, s=sample+infer, d=dump raw, b=100 replays, f=safety status, t/T=telemetry on/off, p=open-loop ID excitation, g/G=original/candidate PI gains, w/W=anti-windup on/off");
+    puts("Commands: r=replay pair, x=replay one stored fault, i=init sensor, s=sample+infer, d=dump raw, b=100 replays, f=safety status, t/T=telemetry on/off, p=open-loop ID excitation, g/G=original/candidate PI gains, w/W=anti-windup on/off, o=preset quad position near overflow boundary");
     puts("RESULT columns: source,class,cpu_us,pl_cycles,npu_cycles,e2e_us,match,f0..f3,h0..h3,o0,o1");
     heartbeat();heartbeat_time=ticks();
     for(;;) {
@@ -233,6 +233,15 @@ int main(void) {
             ctrl2=enabled_now?(ctrl2|2U):(ctrl2&~2U);
             Xil_Out32(CTRL+0x068,ctrl2);
             printf("ANTI_WINDUP,%u\r\n",(unsigned)enabled_now);
+        }
+        else if(command=='o') {
+            // Overflow-fault diagnostic: preset the quadrature position
+            // register to one step short of the +-2^31 boundary (0x07c is
+            // read-write for exactly this -- see encoder_quadrature.v). Two
+            // real forward encoder edges from here latch overflow_fault
+            // without needing billions of genuine pulses.
+            Xil_Out32(CTRL+0x07c,0x7ffffffeU);
+            printf("QUAD_POSITION_PRESET,0x7ffffffe\r\n");
         }
         else if(command=='s'||command=='d') {
             int result;

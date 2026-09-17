@@ -5,7 +5,7 @@ for k=1:numel(d)
     if d(k).isdir,continue;end
     full=fullfile(d(k).folder,d(k).name);rel=strrep(full(numel(root)+2:end),'\','/');
     parts=strsplit(rel,'/');
-    if any(ismember(parts,{'artifacts','reports','build','measurements','__pycache__','.git'})),continue;end
+    if any(ismember(parts,{'artifacts','reports','build','measurements','__pycache__','.git','docs'})),continue;end
     [~,~,ext]=fileparts(rel);
     if strcmpi(ext,'.md'),continue;end
     paths{end+1}=rel;

@@ -1,4 +1,6 @@
 source [file join [file dirname [info script]] common.tcl]
+unset -nocomplain ::env(PYTHONHOME)
+unset -nocomplain ::env(PYTHONPATH)
 gate check matlab
 gate check sim
 source [file join $root vivado create_fourier.tcl]

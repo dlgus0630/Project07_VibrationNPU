@@ -54,10 +54,14 @@ module axi_vibration_top #(
     output reg open_loop_enable,output reg anti_windup_enable,
     output reg [12:0] open_loop_duty,
     output reg signed [17:0] kp_gain,output reg signed [17:0] ki_gain,
-    // Encoder channel-B direction/fault status, read-only (0x078/0x07c/0x080).
+    // Encoder channel-B direction/fault status (0x078 read-only, 0x080
+    // read-only). 0x07c (position) is read-write: writing it pulses
+    // quad_position_wr_en for one cycle so encoder_quadrature.v can preset
+    // position (homing, or seeding an overflow test near the +-2^31 edge).
     input wire quad_direction,input wire signed [31:0] quad_position,
     input wire quad_illegal_fault,input wire [15:0] quad_illegal_count,
-    input wire quad_timeout_fault,input wire quad_overflow_fault
+    input wire quad_timeout_fault,input wire quad_overflow_fault,
+    output reg quad_position_wr_en,output reg signed [31:0] quad_position_wr_value
 );
     reg aw_hold,w_hold;reg [11:0] addr_hold;reg [31:0] data_hold;reg [3:0] strb_hold;
     reg start_pulse,sticky_done,sticky_error;
@@ -80,7 +84,7 @@ module axi_vibration_top #(
     mpu_reg_spi #(.CLK_HZ(CLK_HZ)) spi(aclk,!aresetn,spi_start,spi_rd,spi_two,spi_addr,spi_wdata,
         spi_r8,spi_r16,spi_busy,spi_done,mpu_sclk,mpu_mosi,miso_sync[1],mpu_cs_n);
     always @(posedge aclk)begin
-        start_pulse<=0;spi_start<=0;ps_heartbeat<=0;
+        start_pulse<=0;spi_start<=0;ps_heartbeat<=0;quad_position_wr_en<=0;
         if(!aresetn)begin
             aw_hold<=0;w_hold<=0;addr_hold<=0;data_hold<=0;strb_hold<=0;
             s_axi_bvalid<=0;s_axi_bresp<=0;s_axi_rvalid<=0;s_axi_rresp<=0;s_axi_rdata<=0;
@@ -88,6 +92,7 @@ module axi_vibration_top #(
             ps_heartbeat<=0;
             open_loop_enable<=0;anti_windup_enable<=1;open_loop_duty<=0;
             kp_gain<=18'sd58982;ki_gain<=18'sd3932;
+            quad_position_wr_en<=0;quad_position_wr_value<=0;
         end else begin
             if(core_done)sticky_done<=1;
             if(spi_done)spi_done_sticky<=1;
@@ -117,6 +122,9 @@ module axi_vibration_top #(
                 12'h06c:if(strb_hold[0]||strb_hold[1])open_loop_duty<=data_hold[12:0];
                 12'h070:if(strb_hold==4'hf)kp_gain<=data_hold[17:0];
                 12'h074:if(strb_hold==4'hf)ki_gain<=data_hold[17:0];
+                12'h07c:if(strb_hold==4'hf)begin
+                    quad_position_wr_en<=1;quad_position_wr_value<=data_hold;
+                end
                 default:s_axi_bresp<=2;
                 endcase
             end

@@ -17,6 +17,7 @@ module tb_fourier_motor;
     reg signed [17:0] kp_gain=18'sd58982,ki_gain=18'sd3932;
     reg anti_windup_enable=1,open_loop_enable=0;
     reg [12:0] open_loop_duty=13'd0;
+    reg quad_position_wr_en=0;reg signed [31:0] quad_position_wr_value=0;
     integer j,n;
     fourier_motor_control #(.CLK_HZ(320000),.FAULT_HZ(1000),.FAULT_CONSEC(3)) dut(
         .clk(clk),.reset_n(reset_n),.stop_button(stop_button),.sw(sw),
@@ -26,6 +27,7 @@ module tb_fourier_motor;
         .motor_watchdog_fault(motor_watchdog_fault),.motor_fault_cause(motor_fault_cause),
         .motor_fault_consec(motor_fault_consec),.motor_abnormal_count(motor_abnormal_count),
         .encoder_a(encoder_a),.encoder_b(encoder_b),
+        .quad_position_wr_en(quad_position_wr_en),.quad_position_wr_value(quad_position_wr_value),
         .quad_direction(quad_direction),.quad_position(quad_position),
         .quad_illegal_fault(quad_illegal_fault),.quad_illegal_count(quad_illegal_count),
         .quad_timeout_fault(quad_timeout_fault),.quad_overflow_fault(quad_overflow_fault),
@@ -222,6 +224,33 @@ module tb_fourier_motor;
         if(quad_timeout_fault!==1)begin $display("TEST FAIL quad timeout not latched");$finish;end
         sw[2:1]=0;sw[0]=0;repeat(12)@(negedge clk);
         if(quad_timeout_fault!==0)begin $display("TEST FAIL quad timeout not cleared");$finish;end
+        sw[0]=1;repeat(12)@(negedge clk);
+        // Overflow: preset position to 0x7FFFFFFE via the AXI-style write
+        // path (quad_position_wr_en pulse), then two genuine forward
+        // transitions push it past +2^31-1 -- the same arithmetic real
+        // hardware uses, just seeded near the boundary instead of requiring
+        // billions of real encoder pulses to reach it. state is still 00
+        // here (unchanged since the illegal-jump step above forced it back
+        // to 00 when this testbench zeroed encoder_a/b for the timeout test).
+        @(negedge clk);
+        quad_position_wr_value=32'sd2147483646;quad_position_wr_en=1;
+        @(negedge clk);quad_position_wr_en=0;
+        repeat(4)@(negedge clk);
+        if(quad_position!==32'sd2147483646 || quad_overflow_fault!==0)begin
+            $display("TEST FAIL quad position preset pos=%0d overflow=%d",
+                quad_position,quad_overflow_fault);$finish;
+        end
+        quad_step(1,0); // 00->10 forward: position -> 2147483647, no overflow yet
+        if(quad_overflow_fault!==0)begin
+            $display("TEST FAIL quad overflow fired early, pos=%0d",quad_position);$finish;
+        end
+        quad_step(1,1); // 10->11 forward: position wraps to -2147483648
+        if(quad_overflow_fault!==1 || quad_position!==-32'sd2147483648)begin
+            $display("TEST FAIL quad overflow not latched, overflow=%d pos=%0d",
+                quad_overflow_fault,quad_position);$finish;
+        end
+        sw[0]=0;repeat(12)@(negedge clk);
+        if(quad_overflow_fault!==0)begin $display("TEST FAIL quad overflow not cleared");$finish;end
         sw[0]=1;repeat(12)@(negedge clk);
         encoder_run=1;sw[2:1]=2;
         repeat(40)@(negedge clk);

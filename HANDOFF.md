@@ -142,27 +142,34 @@ FFT 최대 오차는 부동소수점 FFT/64 대비 6 LSB였다.
 ## gate와 artifact의 정확한 현재 상태
 
 PL 안전정지 latch·PI/encoder 폐루프·watchdog 관측 레지스터·PI 런타임 튜닝(Kp/Ki/anti-windup/
-open-loop)·encoder C2 quadrature를 모두 포함한 **최종(2026-09-17, 공식 gate 통과)** 실행
-artifact는 다음과 같다. MATLAB Online 재검증 → 공식 XSim(9/9) → 공식 `tools/run.py build`
-(이번엔 AggressiveExplore 복구 없이 기본 route로 바로 타이밍 통과) → 이 XSA로 Vitis
-platform/FSBL/ARM app 재빌드까지 전부 이 세션에서 끝냈고, 실물 보드에도 이 정확한 bit/ELF로
-재프로그램해 정상 부팅과 레지스터 리셋 기본값을 확인했다.
+open-loop)·encoder C2 quadrature(overflow_fault 포함)를 모두 포함한
+**최종(2026-09-17, 공식 gate 통과)** 실행 artifact는 다음과 같다. MATLAB Online 재검증 → 공식
+XSim(9/9) → 공식 `tools/run.py build` → 이 XSA로 Vitis platform/FSBL/ARM app 재빌드까지 전부
+이 세션에서 끝냈고, 실물 보드에도 이 정확한 bit/ELF로 재프로그램해 `r` 명령으로 정상 부팅과
+CPU-PL 결과 일치(match=1)를 확인했다.
 
-- `artifacts/fourier.bit`: SHA-256 `ebe87d48af22a58534ad7f7e6eb0b68600525c957e6f8c9f44000e0e4a7aa248`
-- `artifacts/fourier.xsa`: SHA-256 `6224ce7be974d1a81dae8cb78bbbff6b29dc1dde85e87f119c267307c45d1f53`
-- `artifacts/fourier_app.elf`: SHA-256 `f4aaa13d134101259ad8307ba9253c73db749f45a6c60a1b44236b1841eb7044`
+빌드 과정에서 `vivado/build_bitstream.tcl`에 `run_simulations.tcl`에는 있던
+`unset -nocomplain ::env(PYTHONHOME)`/`PYTHONPATH` 두 줄이 빠져 있던 것을 발견해 추가했다
+(Vivado 배치 실행 시 내부 `exec $py ...` 게이트 호출이 Vivado 자체 번들 Python과 충돌해
+`Fatal Python error: init_fs_encoding`로 죽는 문제 — 순수 빌드 스크립트 버그였고 RTL/로직과는
+무관하다). 이 수정으로 소스 digest가 바뀌어 MATLAB Online 재검증을 한 번 더 거쳤다
+(source digest `ee3afdf9d5068a2cb192feb5193601d15e72ea3093173fb9d48f5b292b73cc0f`가 최종).
+
+- `artifacts/fourier.bit`: SHA-256 `96ab94c7ae845546146a015df6eda44db279baa734a3c3b6011eb45e0768d017`
+- `artifacts/fourier.xsa`: SHA-256 `3f52e11f1d3c3c2cfe66fb7d9cbfbff081394c688919cb0abd7fa1950f90dbd5`
+- `artifacts/fourier_app.elf`: SHA-256 `768d9acf5979e7f43301f266b7a067ee98926bbadb7eccac2cc8a7882aec2829`
 - `artifacts/fsbl.elf`: SHA-256 `528b43028ed835d5cd386b1e73dfed40dab6c1d788f506db55afba72bb4393e9`
-  (PS7 설정이 그대로라 계속 바이트 단위로 동일)
+  (PS7 설정이 그대로라 계속 바이트 단위로 동일 — 여러 재빌드에 걸쳐 반복 확인됨)
 - 이전 실측 모델 artifact는 `*_pre_latch.*` 이름으로 보존
 
 검증 결과(위 최종 artifact 기준):
 
-- MATLAB/Simulink: PASS (source digest `16437f3e1b508433403bd304207f331f5668ba9c2bfedea4cb68aa4656dd4337`)
+- MATLAB/Simulink: PASS (source digest `ee3afdf9d5068a2cb192feb5193601d15e72ea3093173fb9d48f5b292b73cc0f`)
 - XSim: 9/9 PASS (`tb_axi`/`tb_fourier_motor` 갱신 포함 — 아래 "2026-09-17" 절 참고)
-- Vivado post-route: setup `+0.119 ns`, hold `+0.030 ns`, DRC Error 0
+- Vivado post-route: setup `+0.091 ns`, hold `+0.020 ns`, DRC Error 0
 - 새 XSA 기반 Vitis platform/BSP/FSBL/ARM app: PASS
-- 실물 재프로그램 후 UART `f` 응답 정상, PI 튜닝 레지스터 리셋 기본값(`0x070=58982`,
-  `0x074=3932`, `0x068=2`) 확인
+- 실물 재프로그램 후 UART `r` 응답 정상(`replay_normal`/`replay_fault` 둘 다 `match=1`,
+  CPU golden model과 PL 하드웨어 결과 bit-exact 일치)
 
 2026-09-16 이전 항목(watchdog 근본원인 규명 등)은 이 artifact에도 그대로 포함돼 있다 — 아래는
 그 시점 최종 artifact였던 이전 해시로, 참고용으로 남겨둔다: bit
@@ -481,15 +488,18 @@ MotorControl 제어 성능 확장(시스템 식별, 모델기반 PI 비교, anti
 - `axi_vibration_top.v`: 새 레지스터 `0x068`(제어 비트: bit0 open_loop_enable, bit1
   anti_windup_enable), `0x06c`(open_loop_duty), `0x070`(kp_gain), `0x074`(ki_gain),
   `0x078`(quad 상태: bit0 direction, bit1 illegal_fault, bit2 timeout_fault, bit3
-  overflow_fault), `0x07c`(quad_position, signed 32-bit), `0x080`(illegal_transition_count).
+  overflow_fault, read-only), `0x07c`(quad_position, signed 32-bit, **read-write** — 쓰면
+  `encoder_quadrature.v`에 프리셋 pulse 전달, homing/overflow 시험용), `0x080`
+  (illegal_transition_count, read-only).
 - `fourier/rtl/encoder_quadrature.v`(신규): channel A/B로 방향(Gray code 정방향/역방향 walk)을
   판별하고, 2비트 동시 변화(물리적으로 불가능한 quadrature 전이)를 illegal fault로, armed+duty
   구동 중 인코더가 오래 안 움직이면 timeout fault로, 32비트 position 카운터가 넘칠 것 같으면
   overflow fault로 잡는다. 순수 관측용이며 PI 루프나 safety supervisor에는 피드백하지 않는다.
-- `fourier/firmware/main.c`: UART 명령 3개 추가. `p`(open-loop 25/37.5/50/37.5/25% duty 계단
+- `fourier/firmware/main.c`: UART 명령 4개 추가. `p`(open-loop 25/37.5/50/37.5/25% duty 계단
   자동 시퀀스, 5초씩, 텔레메트리 자동 관리), `g`/`G`(원래/candidate 게인, 절대 지정), `w`/`W`
   (anti-windup 켜기/끄기, 절대 지정), `t`/`T`(텔레메트리 켜기/끄기, 절대 지정 — 기존 토글
-  `t`에서 바뀜, 스크립트 재현성을 위해 전부 토글 대신 절대 지정으로 통일했다).
+  `t`에서 바뀜, 스크립트 재현성을 위해 전부 토글 대신 절대 지정으로 통일했다), `o`(quad_position을
+  `0x7ffffffe`로 프리셋 — overflow fault 실물 시험용 진단 명령).
 - `fourier/constraints/zybo_z7_20.xdc`: encoder_b를 JD07(U14)에 배정.
 - Zybo 자체에 `tools/capture_telemetry.py`(MotorControl 원본에 `--send-command` 옵션 추가 —
   한 프로세스가 명령 전송과 텔레메트리 캡처를 동시에 하도록 해 포트 동시 접속 문제를 없앴다),
@@ -557,8 +567,34 @@ XSA로 Vitis platform/FSBL/ARM app도 재빌드했다 — 최종 해시는 위 "
 근본원인 규명, 분류 패턴 조사, gate 재검증)은 커밋 `bb07aa1`로 커밋 완료됐다(작성자
 `dlgus0630 <dlgus0630@naver.com>` 단독). 2026-09-17에 이어진 PI 확장·encoder C2 작업(위
 "2026-09-17 PI 런타임 확장 · 시스템 식별 · encoder C2 quadrature (완료)" 절)은 이 문서 작성
-시점 기준 아직 커밋되지 않았다 — 커밋은 사용자 확인 후 별도로 진행한다. 이로써 2026-09-15
-결정의 세 확장 묶음 중 남은 것은 encoder C2의 "정역방향 판별"은 완료됐지만, quadrature 자체가
-아닌 원래 계획에 있던 항목은 다 끝났다 — 남은 미착수 항목은 없다(단, `overflow_fault`는 XSim
-검증만 했고 실물에서 실제로 32비트 카운터를 오버플로우시키는 시험은 하지 않았다 — 현실적으로
-일어나기 매우 어려운 조건이라 의도적으로 생략했다).
+시점 기준 아직 커밋되지 않았다 — 커밋은 사용자 확인 후 별도로 진행한다.
+
+**overflow_fault 실물 검증(같은 세션 후속, 완료)**: 32비트 카운터를 실제로 넘치려면 수십억
+pulse가 필요해 처음엔 XSim 검증만 하고 실물 시험은 생략했었다. 이를 현실적으로 검증하기 위해
+`0x07c`(quad_position)를 read-only에서 read-write로 바꿔, AXI로 `+-2^31` 경계 바로 앞
+(`0x7ffffffe`)까지 프리셋한 뒤 실제 인코더 전이 몇 개만으로 진짜 오버플로우를 유발하는 방식을
+추가했다(`encoder_quadrature.v`의 position 업데이트 로직 재구성, 새 UART 명령 `o`). 시뮬레이션이
+아니라 실물의 32비트 부호 검사 arithmetic을 실제 전이로 검증하는 방식이며, 많은 실제 인코더
+IC가 제공하는 "위치 프리셋/homing" 기능과 같은 종류라 테스트 전용 코드가 아니라 정당한 기능
+추가이기도 하다. 실물에서 **3회 독립 시행 모두 재현**: 매번 `o`로 프리셋 → SW0 arm → SW2를
+짧게 켰다 끔(모터를 아주 잠깐만 회전) → `position`이 `+-2^31` 경계를 넘어 정확히 wrap되고
+`overflow_fault=1`이 확인됨(raw 레지스터 값을 32비트 부호 있는 정수로 재해석하면 매번 음수로
+정확히 넘어감). XSim에도 같은 프리셋+전이 시나리오를 테스트로 추가해 9/9 유지.
+
+**12→9→12 V 전원 외란 시험 — 3차 재현(같은 세션 후속, 완료)**: "다음 작업 순서" 5번은
+2026-09-16에 Run 1, Run 2로 이미 정밀 재시험 완결됐다(위 참고). 이번 세션에서 같은 PI 게인
+조건으로 세 번째 독립 시행을 추가해 교차검증했다(overflow_fault를 3회 반복 검증했던 것과 같은
+이유). 동기화 없는 방법론(watchdog latency 실험과 동일 — 준비되는 대로 조작 후 CSV에서 실제
+전환 시점을 사후 확인)으로 60초 캡처를 3회 시도, 처음 두 번(조작이 캡처 윈도우 밖/두 조작이
+섞임)은 폐기하고 세 번째에 깨끗한 단일 사이클을 확보했다(`artifacts/experiments/
+disturbance_2026-09-17_v3.csv`). 결과: 전압 강하(12→9V, ~0.8초 전이) 동안 PI가 duty를
+65%→81%로 끌어올려 RPM을 target(54.63 RPM) 대비 오차 <1%로 유지했고, 전압이 12V로 복귀하는
+순간 강하 구간에서 쌓인 큰 적분값이 아직 덜 풀린 채로 과도한 duty를 계속 명령해 **+12.9%
+overshoot**(피크 61.70 RPM, t=8.69s)이 발생한 뒤 **약 1.46초 만에 ±2% 밴드로 재정착**했다 —
+"외란은 잘 거부하지만 외란이 사라지는 순간엔 적분누적값이 못 따라와 반대 방향으로 overshoot이
+생긴다"는 PI 제어의 전형적 특성을 재확인했고, Run 1/Run 2와 정성적으로 일관된 결과다. 상세
+타임라인은 `artifacts/single_board_integration_2026-09-17.md`의 "전원 외란(disturbance) 시험"
+절 참고.
+
+이로써 2026-09-15 결정의 세 확장 묶음(MotorControl 제어 성능 확장, encoder 신뢰성 확장,
+VibrationNPU 통합 안전 확장)에 남은 미착수 항목은 없다.

@@ -17,6 +17,7 @@ module fourier_motor_control #(
     output wire motor_watchdog_fault,output wire [1:0] motor_fault_cause,
     output wire [7:0] motor_fault_consec,output wire [15:0] motor_abnormal_count,
     input wire encoder_a,input wire encoder_b,
+    input wire quad_position_wr_en,input wire signed [31:0] quad_position_wr_value,
     output wire quad_direction,output wire signed [31:0] quad_position,
     output wire quad_illegal_fault,output wire [15:0] quad_illegal_count,
     output wire quad_timeout_fault,output wire quad_overflow_fault,
@@ -96,6 +97,7 @@ module fourier_motor_control #(
     // implicitly (and wrongly, 1-bit) declare it first.
     encoder_quadrature #(.CLK_HZ(CLK_HZ)) quadrature(
         clk,rst,!sw_sync[0],enabled,duty,encoder_a,encoder_b,
+        quad_position_wr_en,quad_position_wr_value,
         quad_direction,quad_position,quad_illegal_fault,quad_illegal_count,
         quad_timeout_fault,quad_overflow_fault);
     wire [12:0] active_duty;

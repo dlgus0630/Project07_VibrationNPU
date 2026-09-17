@@ -12,6 +12,11 @@ module encoder_quadrature #(
 )(input wire clk,input wire rst,input wire clear,
     input wire enabled,input wire [12:0] duty,
     input wire encoder_a,input wire encoder_b,
+    // Software preset (AXI-driven, one-cycle pulse): lets the host seed
+    // position near the +-2^31 boundary so a couple of real encoder edges
+    // exercise the genuine overflow arithmetic below without needing billions
+    // of real pulses. Doubles as an ordinary homing/zero feature.
+    input wire position_wr_en,input wire signed [31:0] position_wr_value,
     output reg direction,
     output reg signed [31:0] position,
     output reg illegal_transition_fault,output reg [15:0] illegal_transition_count,
@@ -59,10 +64,10 @@ module encoder_quadrature #(
             if(moved)begin
                 state<=state_now;timeout_count<=0;
                 if(valid_forward)begin
-                    direction<=0;position<=position_fwd;
+                    direction<=0;
                     if(overflow_fwd)overflow_fault<=1;
                 end else if(valid_backward)begin
-                    direction<=1;position<=position_bwd;
+                    direction<=1;
                     if(overflow_bwd)overflow_fault<=1;
                 end else begin
                     illegal_transition_fault<=1;
@@ -73,6 +78,15 @@ module encoder_quadrature #(
                 if(timeout_count>=TIMEOUT_CLOCKS-1)timeout_fault<=1;
                 else timeout_count<=timeout_count+1'b1;
             end else timeout_count<=0;
+            // Position update is independent of the state-tracking above so a
+            // software preset never desyncs `state` from the real encoder
+            // phase: a write this cycle simply wins over a move this same
+            // cycle (the rare case), and the overflow checks above still ran
+            // against the pre-write value, which is what a genuine move
+            // arriving in the same cycle as a preset should do.
+            if(position_wr_en)position<=position_wr_value;
+            else if(moved && valid_forward)position<=position_fwd;
+            else if(moved && valid_backward)position<=position_bwd;
         end
     end
 endmodule

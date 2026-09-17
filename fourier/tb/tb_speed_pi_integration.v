@@ -30,6 +30,7 @@ module tb_speed_pi_integration;
         .motor_watchdog_fault(motor_watchdog_fault),.motor_fault_cause(motor_fault_cause),
         .motor_fault_consec(motor_fault_consec),.motor_abnormal_count(motor_abnormal_count),
         .encoder_a(encoder_a),.encoder_b(encoder_b),
+        .quad_position_wr_en(1'b0),.quad_position_wr_value(32'sd0),
         .quad_direction(quad_direction),.quad_position(quad_position),
         .quad_illegal_fault(quad_illegal_fault),.quad_illegal_count(quad_illegal_count),
         .quad_timeout_fault(quad_timeout_fault),.quad_overflow_fault(quad_overflow_fault),

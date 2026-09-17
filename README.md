@@ -82,6 +82,7 @@ Encoder C2 -> quadrature 방향/fault 검출 (관측용, 루프에 피드백 없
 | 시스템 식별 (open-loop, IDENTIFY_MOTOR.m) | plant gain 71.36 RPM/duty-pu, tau 0.620 s, dead time 0.060 s, test fit 40.3%(1차 선형모델의 한계, 정직하게 기록) |
 | 게인 비교 (원래 Kp=0.9,Ki=6/s vs 식별기반 Kp=1.40,Ki=2.25/s, 0→75% step) | overshoot 11.10% → 3.68%, 응답은 느려짐(IMC 튜닝 특유의 트레이드오프) |
 | Encoder C2 quadrature 실물 검증 | 방향(정방향 측 극성 실측 기준 확정), illegal transition 0건(회전 중), position 매끄럽게 누적 |
+| overflow_fault 실물 검증 | AXI 프리셋(`+-2^31` 경계 직전)+실제 전이로 3회 독립 재현, 매회 32비트 부호 wrap과 overflow_fault=1 확인 |
 
 실측 분류의 class 1은 자연 발생 베어링 고장이 아니라 PL이 만든 `25%<->75% @ 32 Hz` 토크 리플이다.
 정상 조건은 50% 고정 duty이며 두 조건 모두 12.0 V와 평균 duty 50%를 사용했다. 보드 측정 전체
@@ -132,10 +133,10 @@ DSP48E1 승산 결과 비교/clamp)이 실제 timing 위반으로 넘어갔다. 
 12 → 9 → 12 V 외란 시험을 통합보드에서 독립적으로 2회 재현해 duty/속도 응답, overshoot, 회복시간을
 정량 확인했다(위 표) — 두 회차 모두 safety trip과 진동 없이 같은 패턴을 재현해 재현성까지
 확보했다. 통합 이후에도 진동 분류는 정상 판정과 fault injection 반응을 모두 유지한다. Basys3
-프로젝트는 삭제하지 않고 "개발·검증 기준선"으로 별도 보존한다. 최종 단일보드 통합 bitstream은
-`artifacts/fourier.bit` SHA-256 `46e6d49b...899cfb`, XSA는 `artifacts/fourier.xsa` SHA-256
-`5ac8408f...bc31b78`, ARM ELF는 `artifacts/fourier_app.elf` SHA-256 `7088a334...87ee0292`이다.
-상세 데이터와 원본 로그는
+프로젝트는 삭제하지 않고 "개발·검증 기준선"으로 별도 보존한다. 이 단계의 bitstream 해시는
+`artifacts/single_board_integration_2026-09-16.md`에 있다(이후 PI 런타임 튜닝·encoder C2·
+overflow_fault까지 반영된 최종 bitstream 해시는 `HANDOFF.md`의 "gate와 artifact의 정확한 현재
+상태" 절 참고). 상세 데이터와 원본 로그는
 [artifacts/single_board_integration_2026-09-16.md](artifacts/single_board_integration_2026-09-16.md)에
 있다.
 
@@ -170,7 +171,11 @@ overflow fault 검출을 추가했다(`encoder_quadrature.v`, 순수 관측용 �
 supervisor에는 관여하지 않는다). 배선 직후 B상이 플로팅 상태였을 때 노이즈로 illegal transition이
 1건 검출돼 검출기 자체의 동작을 실물로 증명했고, 배선 완료 후에는 더 이상 발생하지 않았다. 실측
 회전 방향에 맞춰 RTL의 forward/backward 정의를 한 번 맞바꿨고, 최종적으로 `direction=0`이
-실제 정방향과 정확히 일치함을 확인했다.
+실제 정방향과 정확히 일치함을 확인했다. overflow_fault는 32비트 카운터를 실제로 넘치게 하려면
+수십억 pulse가 필요해 처음엔 시뮬레이션으로만 검증했지만, `quad_position` 레지스터를 read-write로
+바꿔 `+-2^31` 경계 직전까지 AXI로 프리셋한 뒤 실제 전이 몇 개로 진짜 오버플로우를 유발하는
+방식으로 실물에서도 3회 독립 재현했다 — 매회 32비트 부호가 정확히 wrap되고 `overflow_fault=1`이
+확인됐다.
 
 상세 원본 데이터는
 [artifacts/single_board_integration_2026-09-17.md](artifacts/single_board_integration_2026-09-17.md),
