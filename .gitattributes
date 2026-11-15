@@ -1,0 +1,15 @@
+# Current FPGA implementation and native VHDL testbenches.
+*.vhd  linguist-language=VHDL linguist-detectable=true
+*.vhdl linguist-language=VHDL linguist-detectable=true
+
+# Documentation, study copies and archived validation snapshots.
+docs/** linguist-documentation=true
+
+# Original Verilog is preserved as the equivalence-test reference.
+# These attributes affect GitHub statistics only; files remain available.
+common/reset_sync.v linguist-detectable=false
+fourier/rtl/**      linguist-detectable=false
+fourier/tb/**       linguist-detectable=false
+
+# Vivado-generated PS initialization script.
+artifacts/ps7_init.tcl linguist-generated=true
