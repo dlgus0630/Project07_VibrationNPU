@@ -1,11 +1,11 @@
 # 현재 HDL 검증 코드
 
 현재 회귀 검사는 이 폴더의 VHDL/SV TB를 사용한다.
-변환 전 Verilog 회로와 이전 TB는 각각 `fourier/rtl`, `fourier/tb`의 기준 소스로 보관한다.
+동등성 비교에 사용하는 Verilog 참조 회로와 TB는 `fourier/rtl`, `fourier/tb`에 보관한다.
 
 TB는 확인 항목 → 입력/출력 신호 → 이름 기반 DUT 포트 연결 → 클럭/주변장치 모델 →
 자극과 자동 판정 → timeout 순서로 읽는다.
-비교 TB의 `_v`는 VHDL, `_r`는 원본 Verilog 출력이다.
+비교 TB의 `_v`는 VHDL, `_r`는 참조 Verilog 출력이다.
 `output_check_proc`는 `check_signal()`로 한 신호씩 비교해 실패한 신호 이름을 출력한다.
 
 | TB | 확인 항목 |

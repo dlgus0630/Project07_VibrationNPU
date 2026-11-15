@@ -2,7 +2,8 @@
 
 먼저 최상위 `*_struct.vhd`에서 `U_*` 연결을 보고, 해당 기능 파일의 이름 있는
 `PROCESS`를 읽는다. 상태 레지스터, 다음 상태, 데이터 계산, 카운터를 나누었으며
-한 레지스터는 한 프로세스에서만 기록한다. 정수 연산·상태 순서·출력 클럭은 기존 회로를 따른다.
+한 레지스터의 기록 책임은 한 프로세스가 소유한다. 정수 연산·상태 순서·출력 클럭은
+[설계 계약](../../DESIGN.md)을 따른다.
 
 ## 모듈 연결
 
@@ -36,7 +37,7 @@ fourier_motor_control.vhd             Vivado 연결용 VHDL-93 포트
 `vibration_regs.vhd`는 AXI 주소·응답·초기 게인을 정의한다.
 
 파일 이름의 `struct`는 연결, `fsm`은 순서 제어, `rtl`은 개별 회로를 뜻한다.
-기존 포트·entity 이름을 유지하므로 `pid_controller_fsm.vhd`의 entity 이름은 `pid_fixed`다.
+`pid_controller_fsm.vhd`의 entity 이름은 `pid_fixed`다.
 설계 파일에서는 `ENTITY work.이름(rtl)`로 연결 대상을 직접 지정하고,
 학습용 VHDL TB에서는 `COMPONENT` 선언과 명시적 binding을 함께 보여 준다.
 
@@ -67,7 +68,7 @@ fourier_motor_control.vhd             Vivado 연결용 VHDL-93 포트
 ### PI 계산과 저장
 
 `*_comb_proc`는 입력이 바뀌면 계산하는 조합 회로다. `VARIABLE`은 한 계산을 단계별로
-풀어 쓰기 위한 중간값이며, 클럭을 기다리는 레지스터를 추가하지 않는다.
+풀어 쓰기 위한 중간값이며 조합 경로에서 계산된다.
 클럭 프로세스는 FSM의 정해진 상태에서 계산 결과를 저장한다.
 
 | 조합 프로세스 | 계산 | 저장하는 프로세스 |
@@ -80,12 +81,12 @@ fourier_motor_control.vhd             Vivado 연결용 VHDL-93 포트
 
 나머지 클럭/상태 프로세스는 `clocked_proc`, `nextstate_proc`, `sample_input_proc`,
 `proposed_output_proc`, `output_pipeline_proc`, `duty_output_proc`다.
-적분 계산은 기존 `PRODUCTS` → `PRODUCTS_HI` 두 상태를 유지한다.
-`derivative`는 필터 진단 출력이고, 실제 제어 계산의 D항은 기존처럼 0이다.
+적분 계산은 `PRODUCTS` → `PRODUCTS_HI` 두 상태에서 처리한다.
+`derivative`는 필터 진단 출력이고, PI 제어의 `d_term`은 0이다.
 
 표기에 쓰인 `signed`는 부호 있는 수로 해석, `resize`는 값의 비트 폭 맞춤,
 `shift_right`는 산술 우측 이동, `&`는 비트 연결을 뜻한다. 게인 곱에 대한 16비트 우측 이동은
-Q16 소수점 조정이며, 음수에서도 원본의 내림 방향을 유지한다.
+Q16 소수점 조정이며, 음수에서는 내림 방향으로 계산한다.
 
 ## 먼저 열어 볼 파일
 
@@ -95,9 +96,9 @@ Q16 소수점 조정이며, 음수에서도 원본의 내림 방향을 유지한
 4. [axi_vibration_struct.vhd](axi_vibration_struct.vhd): AXI·FFT/NPU·SPI 전체 연결.
 5. [vibration_core_fsm.vhd](vibration_core_fsm.vhd): FFT 시작부터 BRAM 결과 기록까지.
 
-프로세스들은 같은 클럭에서 동시에 동작한다. 파일 위에서 아래로 차례대로 실행되는 것이 아니다.
-클럭 프로세스의 `<=`는 해당 클럭의 이전 값을 읽고 값을 예약한다. 이 때문에 프로세스를 나눌 때
-레지스터를 새로 넣지 않았고, 동시에 발생하는 clear/start/done의 우선순위도 유지했다.
+프로세스들은 같은 클럭에서 동시에 동작한다. 클럭 프로세스의 `<=`는 해당 클럭의
+이전 값을 읽고 갱신할 값을 예약한다. clear/start/done이 같은 클럭에 발생하면
+각 프로세스에 명시한 우선순위를 따른다.
 
 ## 학습용 단독 TB
 
@@ -111,5 +112,5 @@ Q16 소수점 조정이며, 음수에서도 원본의 내림 방향을 유지한
 클럭 생성 → TC 자극/ASSERT 순서로 작성했다. 결과 메시지는 영어, 학습 주석은 한국어다.
 입력과 기대값은 기존 `data/*.mem`을 읽는다.
 
-전체 검증 명령과 검증 범위는 [VHDL 전환 기록](../../docs/VHDL_MIGRATION.md)에 정리한다.
+전체 검증 명령과 검증 범위는 [VHDL RTL 설계·검증](../../docs/VHDL_DESIGN.md)에 정리한다.
 현재 사용하는 비교 TB와 TC 구성은 [TB 안내](../tb_vhdl/README.md)를 따른다.
