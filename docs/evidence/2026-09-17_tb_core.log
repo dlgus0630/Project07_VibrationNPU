@@ -1,0 +1,3 @@
+Time resolution is 1 ps
+TEST PASS tb_core 20 windows, BRAM ownership, continuous busy, reset abort
+$finish called at time : 167480 ns : File "/home/dlgus0630/Downloads/fpga_fourier_pid_v4/Project07_VibrationNPU/fourier/tb/tb_core.v" Line 36

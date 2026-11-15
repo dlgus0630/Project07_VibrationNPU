@@ -1,0 +1,38 @@
+digraph G {
+graph [fontname="Noto Sans CJK KR", fontsize=24, rankdir=TB, bgcolor="white", pad=0.45, nodesep=0.5, ranksep=0.65, compound=true, dpi=150, labelloc=t, labeljust=l, label="07 · 연속 이상 감시 · PS watchdog · 정지 latch\n병렬 counter / flag에서 도출한 관측 상태 · TRIP_CONSEC=3 / DERATE_CONSEC=2 기준"];
+node [fontname="Noto Sans CJK KR", fontsize=17, shape=box, style="rounded,filled", fillcolor="#edf5fc", color="#476681", penwidth=1.6, margin="0.22,0.14"];
+edge [fontname="Noto Sans CJK KR", fontsize=14, color="#405b70", fontcolor="#263e50", penwidth=1.5, arrowsize=0.8];
+subgraph cluster_class { label="safety_supervisor · classification_count_proc / fault_latch_proc"; fontsize=20; color="#b3c5d2"; style="rounded"; margin=22;
+"c0" [label="연속 이상 0 · latched=0\nwarning=0 / derated=0", shape=box, fillcolor="#edf5fc"];
+"c1" [label="연속 이상 1 · latched=0\nwarning=1 / derated=0", shape=box, fillcolor="#edf5fc"];
+"c2" [label="연속 이상 2 · latched=0\nwarning=1 / derated=1", shape=box, fillcolor="#edf5fc"];
+"latched" [label="latched=1\nwarning=0 / derated=0\n정상 분류만으로 latch 해제 안 됨", shape=box, fillcolor="#fcebec"];
+"c0" -> "c1" [label="class_valid=1 AND class_id=1"];
+"c1" -> "c2" [label="class_valid=1 AND class_id=1"];
+"c2" -> "latched" [label="class_valid=1 AND class_id=1\n이전 consec_count>=TRIP_CONSEC-1\nfault_cause(0)=1"];
+"c0" -> "c0" [label="class_valid=0"];
+"c1" -> "c1" [label="class_valid=0"];
+"c2" -> "c2" [label="class_valid=0"];
+"c1" -> "c0" [label="class_valid=1 AND class_id=0"];
+"c2" -> "c0" [label="class_valid=1 AND class_id=0"];
+"latched" -> "latched" [label="정상: consec_count=0, latch 유지\n이상: 연속/누적 계수, latch 유지"];
+"latched" -> "c0" [label="rst=1 OR clear=1\nlatch / fault_cause / 연속 계수 초기화", style="dashed", color="#987290"];
+}
+subgraph cluster_watchdog { label="watchdog_count_proc · 위 분류 경로와 동시에 동작"; fontsize=20; color="#b3c5d2"; style="rounded"; margin=22;
+"wd0" [label="watchdog_count=0\nrst OR clear OR NOT armed OR heartbeat", shape=box, fillcolor="#eff7f0"];
+"wdcount" [label="watchdog 계수\narmed=1 / heartbeat=0 / latched=0", shape=box, fillcolor="#eff7f0"];
+"wdtrip" [label="watchdog trip\n이전 watchdog_count>=WATCHDOG_CYCLES-1\narmed=1 AND heartbeat=0 AND latched=0", shape=diamond, fillcolor="#fff7e9"];
+"wd0" -> "wdcount" [label="감시 조건 성립"];
+"wdcount" -> "wdcount" [label="임계값 전까지 count++"];
+"wdcount" -> "wd0" [label="NOT armed OR heartbeat OR rst OR clear"];
+"wdcount" -> "wdtrip" [label="임계값 도달"];
+"wdtrip" -> "latched" [label="latched=1 / fault_cause(1)=1", constraint="false"];
+}
+subgraph cluster_standalone { label="독립 fault_latch entity · 현재 상위 RTL에서 인스턴스되지 않음"; fontsize=20; color="#b3c5d2"; style="rounded"; margin=22;
+"simple" [label="fault_count_proc\nrst OR clear: latch=0 / count=0\nvalid 정상: count=0 / latch 유지\nvalid 이상: count 증가, 이전 count>=CONSEC-1이면 latch=1", shape=box, fillcolor="#eff7f0"];
+}
+"notes" [label="읽는 기준 / 코드 근거\nNORMAL/WARNING/DERATE/FAULT는 설명용 관측 구분이며 RTL에 이 이름의 state 레지스터는 없다.\nDERATE 구간에서는 warning도 1이다. 정상 분류는 연속 횟수만 초기화한다.\nabnormal_count는 rst에서만 0: clear는 누적 횟수를 보존.\n어느 관측 상태에서나 rst/clear → latch=0 / 연속 계수=0 / 원인=0.\nsafety_supervisor의 rst/clear는 새 fault보다 우선한다.\n분류/heartbeat fault는 같은 클럭에 둘 다 기록될 수 있다.\n아래 독립 fault_latch를 위 supervisor 안에 연결한 도면은 아니다.", shape=box, fillcolor="#f5f5f4"];
+"latched" -> "wd0" [label="", style="invis", weight="20"];
+"wdtrip" -> "simple" [label="", style="invis", weight="20"];
+"simple" -> "notes" [label="", style="invis", weight="20"];
+}

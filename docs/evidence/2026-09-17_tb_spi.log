@@ -1,0 +1,3 @@
+Time resolution is 1 ps
+TEST PASS tb_spi read/write, atomic signed sample, reset abort
+$finish called at time : 11490 ns : File "/home/dlgus0630/Downloads/fpga_fourier_pid_v4/Project07_VibrationNPU/fourier/tb/tb_spi.v" Line 29

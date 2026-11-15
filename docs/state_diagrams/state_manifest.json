@@ -1,0 +1,463 @@
+{
+  "source_sha256": {
+    "common/reset_sync.vhd": "c90f52860844976d6fe91231b6246f34422f2cf08be39ab26f4ab66b7ac22c17",
+    "fourier/vhdl/axi_registers_rtl.vhd": "0a92616ceab43c26f7a5cd4ef9db93f29d9c67ba08c06d85578c72737a02bd49",
+    "fourier/vhdl/axi_vibration_struct.vhd": "9ba7964ce376b7b4a4dcc722bb7b4b8837e8da0d0a20fe284cdf44cd0ae617d7",
+    "fourier/vhdl/axi_vibration_top.vhd": "046a6def8030c11df77af35148ef11e23fb40b44f531b349c4f54da97a94eb23",
+    "fourier/vhdl/encoder_quadrature_rtl.vhd": "d27cb1d6ad90239a90db2d96f28107f192c8b0f6a015408d94fd0fae8f4551df",
+    "fourier/vhdl/encoder_speed_rtl.vhd": "fcc62a85c09a95b319d8c6681bd4a960f8be37616e34fc1f5d18bf92bb1b05f0",
+    "fourier/vhdl/fault_latch_rtl.vhd": "7bdb4c45f1450d91ce65ca9162cbd26a477bb9153a2ee4e99020be34029a6cd0",
+    "fourier/vhdl/fft64_features_fsm.vhd": "26af0bb5b263dc031d6cfeb3aebc5819457802168a2ffba81dc242b695ae7692",
+    "fourier/vhdl/fourier_motor_control.vhd": "e74da6a7d51a12b6cb3b765578db7f8ff4ba2f318b6f7d5c3d8218daac9e5181",
+    "fourier/vhdl/fourier_motor_struct.vhd": "cd3006a07c19495da152fe57ac1c6a71399393cf8cbc44acbff437801575f8f4",
+    "fourier/vhdl/input_sync_rtl.vhd": "bbeafe141934bb5c67a96daa9a0005fdc6f6756596dd360447912bdc923c7617",
+    "fourier/vhdl/mac_pe_rtl.vhd": "5cc3e6c6ad0496ce0d32ad73d81c7077e2138b584b51f6f5958a5f527f28d9bc",
+    "fourier/vhdl/motor_run_control_rtl.vhd": "744e7330e8af515e50f388a8fd7e3c888be1b93960feeca2dc322db7701c1ad3",
+    "fourier/vhdl/mpu_spi_fsm.vhd": "d5b6c288d048bf090a0416198e97aec1666c8e0e360ed5f92a8193db082e91fd",
+    "fourier/vhdl/npu_2pe_fsm.vhd": "8ae43cd7ef62a48edaf4441cb4c9e24c9dd18b3c985733378c5be546bf3b09c2",
+    "fourier/vhdl/pid_controller_fsm.vhd": "a05e33cb18c3f0999df95fa1bf56e49defc3b3b6d251a95dc6b5ad3509470efc",
+    "fourier/vhdl/pwm_period_rtl.vhd": "dc7eeed4826fa1c5c6f805ea80486b6d75f7c238beb394eaf41f5dc3328150e0",
+    "fourier/vhdl/safety_supervisor_rtl.vhd": "a91cd48da5596bb251422bee4491e5b689449e04f50118c6c601ac325ae6ba9a",
+    "fourier/vhdl/unsigned_divider_rtl.vhd": "81fdc269e6275ecc4cc9426f86b6d1c198eb04acbe4cebeec39c3ce38695ed19",
+    "fourier/vhdl/vibration_core_fsm.vhd": "5489e590fab26fdf123a707c05759e374a66d6cae85c9a1af7fe32bb6a8eaca7",
+    "fourier/vhdl/vibration_regs.vhd": "83eec323743326157e7d6754fd4a7ffd4d7c2f19fd7df66911de6512795efa4c",
+    "fourier/vhdl/vibration_types.vhd": "d3823f7a0aa07eef9de048d818a90a1ac6e8095ba4a8fc7130f929dae2555d20",
+    "tools/render_state_diagrams.py": "6cd132bad7b53f2207b1abbfd8d6e860776bd6296af60fb357afca6de2b12627"
+  },
+  "fsm_count": 4,
+  "state_count": 30,
+  "sheet_count": 11,
+  "sheets": [
+    {
+      "stem": "01_core_fsm",
+      "kind": "RTL FSM",
+      "entities": [
+        "vibration_core"
+      ]
+    },
+    {
+      "stem": "02_fft_fsm",
+      "kind": "RTL FSM",
+      "entities": [
+        "fft64_features"
+      ]
+    },
+    {
+      "stem": "03_npu_fsm",
+      "kind": "RTL FSM",
+      "entities": [
+        "npu_2pe",
+        "mac_pe"
+      ]
+    },
+    {
+      "stem": "04_pi_fsm",
+      "kind": "RTL FSM",
+      "entities": [
+        "pid_fixed"
+      ]
+    },
+    {
+      "stem": "05_spi_behavior",
+      "kind": "동작도",
+      "entities": [
+        "mpu_reg_spi",
+        "input_sync"
+      ]
+    },
+    {
+      "stem": "06_motor_run_behavior",
+      "kind": "동작도",
+      "entities": [
+        "motor_run_control",
+        "fourier_motor_impl",
+        "fourier_motor_control"
+      ]
+    },
+    {
+      "stem": "07_safety_behavior",
+      "kind": "동작도",
+      "entities": [
+        "safety_supervisor",
+        "fault_latch"
+      ]
+    },
+    {
+      "stem": "08_axi_behavior",
+      "kind": "동작도",
+      "entities": [
+        "axi_registers",
+        "axi_vibration_impl",
+        "axi_vibration_top"
+      ]
+    },
+    {
+      "stem": "09_speed_divider_behavior",
+      "kind": "동작도",
+      "entities": [
+        "encoder_speed_hybrid",
+        "unsigned_divider"
+      ]
+    },
+    {
+      "stem": "10_quadrature_behavior",
+      "kind": "동작도",
+      "entities": [
+        "encoder_quadrature"
+      ]
+    },
+    {
+      "stem": "11_reset_pwm_behavior",
+      "kind": "동작도",
+      "entities": [
+        "reset_sync",
+        "pwm_period"
+      ]
+    }
+  ],
+  "coverage": {
+    "reset_sync": [
+      "11_reset_pwm_behavior"
+    ],
+    "axi_registers": [
+      "08_axi_behavior"
+    ],
+    "axi_vibration_impl": [
+      "08_axi_behavior"
+    ],
+    "axi_vibration_top": [
+      "08_axi_behavior"
+    ],
+    "encoder_quadrature": [
+      "10_quadrature_behavior"
+    ],
+    "encoder_speed_hybrid": [
+      "09_speed_divider_behavior"
+    ],
+    "fault_latch": [
+      "07_safety_behavior"
+    ],
+    "fft64_features": [
+      "02_fft_fsm"
+    ],
+    "fourier_motor_control": [
+      "06_motor_run_behavior"
+    ],
+    "fourier_motor_impl": [
+      "06_motor_run_behavior"
+    ],
+    "input_sync": [
+      "05_spi_behavior"
+    ],
+    "mac_pe": [
+      "03_npu_fsm"
+    ],
+    "motor_run_control": [
+      "06_motor_run_behavior"
+    ],
+    "mpu_reg_spi": [
+      "05_spi_behavior"
+    ],
+    "npu_2pe": [
+      "03_npu_fsm"
+    ],
+    "pid_fixed": [
+      "04_pi_fsm"
+    ],
+    "pwm_period": [
+      "11_reset_pwm_behavior"
+    ],
+    "safety_supervisor": [
+      "07_safety_behavior"
+    ],
+    "unsigned_divider": [
+      "09_speed_divider_behavior"
+    ],
+    "vibration_core": [
+      "01_core_fsm"
+    ]
+  },
+  "fsms": {
+    "vibration_core": {
+      "source": "fourier/vhdl/vibration_core_fsm.vhd",
+      "states": {
+        "IDLE": 0,
+        "FSTART": 1,
+        "FWAIT": 2,
+        "NSTART": 3,
+        "NWAIT": 4,
+        "STORE": 5
+      },
+      "edges": [
+        [
+          "IDLE",
+          "FSTART",
+          "(start = '1')"
+        ],
+        [
+          "IDLE",
+          "IDLE",
+          "NOT ((start = '1'))"
+        ],
+        [
+          "FSTART",
+          "FWAIT",
+          "다음 clk"
+        ],
+        [
+          "FWAIT",
+          "NSTART",
+          "(fft_done = '1')"
+        ],
+        [
+          "FWAIT",
+          "FWAIT",
+          "NOT ((fft_done = '1'))"
+        ],
+        [
+          "NSTART",
+          "NWAIT",
+          "다음 clk"
+        ],
+        [
+          "NWAIT",
+          "STORE",
+          "(npu_done = '1')"
+        ],
+        [
+          "NWAIT",
+          "NWAIT",
+          "NOT ((npu_done = '1'))"
+        ],
+        [
+          "STORE",
+          "IDLE",
+          "(result_index = 10)"
+        ],
+        [
+          "STORE",
+          "STORE",
+          "NOT ((result_index = 10))"
+        ]
+      ],
+      "reset": "rst=1 -> IDLE",
+      "others": "IDLE"
+    },
+    "fft64_features": {
+      "source": "fourier/vhdl/fft64_features_fsm.vhd",
+      "states": {
+        "IDLE": 0,
+        "LREQ": 1,
+        "LWAIT": 2,
+        "LSTORE": 3,
+        "READ_STATE": 4,
+        "MULT": 5,
+        "WRITE_STATE": 6,
+        "FACC": 7,
+        "FINISH": 8
+      },
+      "edges": [
+        [
+          "IDLE",
+          "LREQ",
+          "(start = '1')"
+        ],
+        [
+          "IDLE",
+          "IDLE",
+          "NOT ((start = '1'))"
+        ],
+        [
+          "LREQ",
+          "LWAIT",
+          "다음 clk"
+        ],
+        [
+          "LWAIT",
+          "LSTORE",
+          "다음 clk"
+        ],
+        [
+          "LSTORE",
+          "READ_STATE",
+          "(load_index = 63)"
+        ],
+        [
+          "LSTORE",
+          "LREQ",
+          "NOT ((load_index = 63))"
+        ],
+        [
+          "READ_STATE",
+          "MULT",
+          "다음 clk"
+        ],
+        [
+          "MULT",
+          "WRITE_STATE",
+          "다음 clk"
+        ],
+        [
+          "WRITE_STATE",
+          "FACC",
+          "last_pair AND last_group AND last_stage"
+        ],
+        [
+          "WRITE_STATE",
+          "READ_STATE",
+          "NOT (last_pair AND last_group AND last_stage)"
+        ],
+        [
+          "FACC",
+          "FINISH",
+          "(frequency_bin = 31)"
+        ],
+        [
+          "FACC",
+          "FACC",
+          "NOT ((frequency_bin = 31))"
+        ],
+        [
+          "FINISH",
+          "IDLE",
+          "다음 clk"
+        ]
+      ],
+      "reset": "rst=1 -> IDLE",
+      "others": "IDLE"
+    },
+    "npu_2pe": {
+      "source": "fourier/vhdl/npu_2pe_fsm.vhd",
+      "states": {
+        "IDLE": 0,
+        "INIT": 1,
+        "MAC": 2,
+        "PACK": 3
+      },
+      "edges": [
+        [
+          "IDLE",
+          "INIT",
+          "(start = '1')"
+        ],
+        [
+          "IDLE",
+          "IDLE",
+          "NOT ((start = '1'))"
+        ],
+        [
+          "INIT",
+          "MAC",
+          "다음 clk"
+        ],
+        [
+          "MAC",
+          "PACK",
+          "(input_index = 3)"
+        ],
+        [
+          "MAC",
+          "MAC",
+          "NOT ((input_index = 3))"
+        ],
+        [
+          "PACK",
+          "IDLE",
+          "(neuron_pair = 2)"
+        ],
+        [
+          "PACK",
+          "INIT",
+          "NOT ((neuron_pair = 2))"
+        ]
+      ],
+      "reset": "rst=1 -> IDLE",
+      "others": "IDLE"
+    },
+    "pid_fixed": {
+      "source": "fourier/vhdl/pid_controller_fsm.vhd",
+      "states": {
+        "IDLE": 0,
+        "FILTER": 1,
+        "PRODUCTS": 2,
+        "PRODUCTS_HI": 3,
+        "PROPOSE_ADD": 4,
+        "PROPOSE_SUB": 5,
+        "SELECT_STATE": 6,
+        "OUTPUT_ADD": 7,
+        "OUTPUT_SUB": 8,
+        "CLAMP": 9,
+        "FINISH": 10
+      },
+      "edges": [
+        [
+          "IDLE",
+          "FILTER",
+          "(start = '1')"
+        ],
+        [
+          "IDLE",
+          "IDLE",
+          "NOT ((start = '1'))"
+        ],
+        [
+          "FILTER",
+          "PRODUCTS",
+          "다음 clk"
+        ],
+        [
+          "PRODUCTS",
+          "PRODUCTS_HI",
+          "다음 clk"
+        ],
+        [
+          "PRODUCTS_HI",
+          "PROPOSE_ADD",
+          "다음 clk"
+        ],
+        [
+          "PROPOSE_ADD",
+          "PROPOSE_SUB",
+          "다음 clk"
+        ],
+        [
+          "PROPOSE_SUB",
+          "SELECT_STATE",
+          "다음 clk"
+        ],
+        [
+          "SELECT_STATE",
+          "OUTPUT_ADD",
+          "다음 clk"
+        ],
+        [
+          "OUTPUT_ADD",
+          "OUTPUT_SUB",
+          "다음 clk"
+        ],
+        [
+          "OUTPUT_SUB",
+          "CLAMP",
+          "다음 clk"
+        ],
+        [
+          "CLAMP",
+          "FINISH",
+          "다음 clk"
+        ],
+        [
+          "FINISH",
+          "IDLE",
+          "다음 clk"
+        ]
+      ],
+      "reset": "rst=1 -> IDLE",
+      "others": "IDLE"
+    }
+  },
+  "packages_without_fsm": [
+    "fourier/vhdl/vibration_regs.vhd",
+    "fourier/vhdl/vibration_types.vhd"
+  ],
+  "note": "FSM edges extracted from nextstate_proc; behavior sheets manually traced to concurrent RTL processes."
+}

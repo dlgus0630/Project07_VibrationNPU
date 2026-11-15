@@ -1,0 +1,25 @@
+digraph G {
+graph [fontname="Noto Sans CJK KR", fontsize=24, rankdir=TB, bgcolor="white", pad=0.45, nodesep=0.5, ranksep=0.65, compound=true, dpi=150, labelloc=t, labeljust=l, label="01 · 가속기 전체 실행 FSM · 6 states\nRTL 상태천이도 · 실선: nextstate_proc에서 추출 · 파선: 공통 reset / 복구"];
+node [fontname="Noto Sans CJK KR", fontsize=17, shape=box, style="rounded,filled", fillcolor="#edf5fc", color="#476681", penwidth=1.6, margin="0.22,0.14"];
+edge [fontname="Noto Sans CJK KR", fontsize=14, color="#405b70", fontcolor="#263e50", penwidth=1.5, arrowsize=0.8];
+"IDLE" [label="IDLE  [0]\nstart 수락: busy=1 / cycles=0", shape=box, fillcolor="#edf5fc"];
+"FSTART" [label="FSTART  [1]\nfft_start=1 (이 상태 한 클럭)", shape=box, fillcolor="#edf5fc"];
+"FWAIT" [label="FWAIT  [2]\nfft_done 관측 시 features 저장", shape=box, fillcolor="#edf5fc"];
+"NSTART" [label="NSTART  [3]\nnpu_start=1 (이 상태 한 클럭)", shape=box, fillcolor="#edf5fc"];
+"NWAIT" [label="NWAIT  [4]\nnpu_done 관측 시 hidden/logits/class 저장\nresult_index=0", shape=box, fillcolor="#edf5fc"];
+"STORE" [label="STORE  [5]\nword 256 + result_index에 기록\nfeatures 4 + hidden 4 + logits 2 + class 1", shape=box, fillcolor="#edf5fc"];
+"IDLE" -> "FSTART" [label="(start = '1')"];
+"IDLE" -> "IDLE" [label="NOT ((start = '1'))"];
+"FSTART" -> "FWAIT" [label="다음 clk"];
+"FWAIT" -> "NSTART" [label="(fft_done = '1')"];
+"FWAIT" -> "FWAIT" [label="NOT ((fft_done = '1'))"];
+"NSTART" -> "NWAIT" [label="다음 clk"];
+"NWAIT" -> "STORE" [label="(npu_done = '1')"];
+"NWAIT" -> "NWAIT" [label="NOT ((npu_done = '1'))"];
+"STORE" -> "IDLE" [label="(result_index = 10)"];
+"STORE" -> "STORE" [label="NOT ((result_index = 10))"];
+"reset" [label="모든 상태 / 미사용 인코딩\nrst=1: 다음 상승 에지에 IDLE\nOTHERS: 다음 상태 IDLE", shape=box, fillcolor="#f5f5f4"];
+"reset" -> "IDLE" [label="우선 reset / 예외 복구", style="dashed", color="#987290"];
+"notes" [label="읽는 기준 / 코드 근거\nclocked_proc / nextstate_proc\nresult_capture_proc / result_index_proc / result_write_proc\nhandshake_proc: STORE의 index=10 처리 에지에서 busy=0, done=1\n기본 done=0이므로 완료 펄스는 한 클럭. STORE 반복에서 index 증가.\n노드 동작: 해당 현재 상태에서 처리하는 클럭 기준.\n조건 불충족 self-loop는 next_state 기본값=state에서 추출.", shape=box, fillcolor="#f5f5f4"];
+"STORE" -> "notes" [label="", style="invis", color="#987290"];
+}

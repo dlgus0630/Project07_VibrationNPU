@@ -1,0 +1,45 @@
+digraph G {
+graph [fontname="Noto Sans CJK KR", fontsize=24, rankdir=TB, bgcolor="white", pad=0.45, nodesep=0.5, ranksep=0.65, compound=true, dpi=150, labelloc=t, labeljust=l, label="09 · 인코더 하이브리드 속도 추정 · 정수 나눗셈\n모드 flag / snapshot / busy 기반 동작 · HIGH=14 / LOW=10 기본값"];
+node [fontname="Noto Sans CJK KR", fontsize=17, shape=box, style="rounded,filled", fillcolor="#edf5fc", color="#476681", penwidth=1.6, margin="0.22,0.14"];
+edge [fontname="Noto Sans CJK KR", fontsize=14, color="#405b70", fontcolor="#263e50", penwidth=1.5, arrowsize=0.8];
+subgraph cluster_speed { label="encoder_speed_hybrid · 동시에 동작하는 두 추정 경로"; fontsize=20; color="#b3c5d2"; style="rounded"; margin=22;
+"a" [label="encoder_a → 2 FF → pulse\n상승 에지 검출", shape=box, fillcolor="#eff7f0"];
+"period" [label="저속 주기 추정\n두 번째 펄스부터, divider_busy=0일 때 역수 요청\nperiod_divisor=period_count+1\ndone 시 제한·1/4 필터 / timeout 시 valid=0", shape=box, fillcolor="#eff7f0"];
+"window" [label="고속 창 추정\nwindow_count + 이번 pulse\n범위 제한 후 정규화 곱셈", shape=box, fillcolor="#eff7f0"];
+"a" -> "period" [label=""];
+"a" -> "window" [label=""];
+"snap" [label="sample_tick: 조건과 값을 스냅샷\nspeed_snapshot_proc → speed_calc_pending=1", shape=box, fillcolor="#fff3dd"];
+"period" -> "snap" [label="period_speed / valid / timeout"];
+"window" -> "snap" [label="window_total / product / 이전 mode"];
+"invalid" [label="period_valid_snap=0 OR\nperiod_timeout_snap=1?", shape=diamond, fillcolor="#fff7e9"];
+"zero" [label="speed=0 / high_speed_mode=0", shape=box, fillcolor="#fff3dd"];
+"hi" [label="window_total_snap>=14?", shape=diamond, fillcolor="#fff7e9"];
+"hs" [label="창 방식 / high_speed_mode=1", shape=box, fillcolor="#fff3dd"];
+"lo" [label="window_total_snap<=10?", shape=diamond, fillcolor="#fff7e9"];
+"ls" [label="주기 방식 / high_speed_mode=0", shape=box, fillcolor="#fff3dd"];
+"hold" [label="11..13: 이전 모드 선택\nhigh_speed_mode_snap=1이면 창 방식\n그 외 주기 방식", shape=box, fillcolor="#fff3dd"];
+"valid" [label="speed_valid=1 한 클럭\nspeed_output_proc: pending을 보는 다음 처리 에지", shape=box, fillcolor="#eff7f0"];
+"snap" -> "invalid" [label="다음 clk / pending=1"];
+"invalid" -> "zero" [label="예"];
+"invalid" -> "hi" [label="아니오"];
+"hi" -> "hs" [label="예"];
+"hi" -> "lo" [label="아니오"];
+"lo" -> "ls" [label="예"];
+"lo" -> "hold" [label="아니오"];
+"zero" -> "valid" [label=""];
+"hs" -> "valid" [label=""];
+"ls" -> "valid" [label=""];
+"hold" -> "valid" [label=""];
+}
+subgraph cluster_divider { label="unsigned_divider · divide_proc · 별도 busy/done 경로"; fontsize=20; color="#b3c5d2"; style="rounded"; margin=22;
+"di" [label="busy=0\nstart 대기", shape=box, fillcolor="#edf5fc"];
+"run" [label="busy=1 / count=0..WIDTH-1\nshift → compare/subtract → quotient 비트 추가", shape=box, fillcolor="#edf5fc"];
+"di" -> "di" [label="start=1 AND divisor=0\nquotient=all ones / done=1"];
+"di" -> "run" [label="start=1 AND divisor/=0\n피연산자 저장 / 작업값=0 / count=0"];
+"run" -> "run" [label="count<WIDTH-1 / count++"];
+"run" -> "di" [label="count=WIDTH-1\nquotient=next_quotient / busy=0 / done=1"];
+}
+"notes" [label="읽는 기준 / 코드 근거\nrst=1: 추정값·모드·카운터·divider 초기화. 출력 speed는 0..4096.\n고속/저속 결정 전에 period_valid/timeout 조건을 먼저 평가한다.\nsample_tick과 같은 클럭의 pulse도 window_total에 포함한다.\nLOW/HIGH 문구는 실제 high_speed_mode flag의 설명이며 새 state 인코딩을 가정하지 않는다.\ndivider start는 busy=0에서만 수락하고 done은 기본 0인 한 클럭 펄스다.", shape=box, fillcolor="#f5f5f4"];
+"valid" -> "di" [label="", style="invis", weight="20"];
+"run" -> "notes" [label="", style="invis", weight="20"];
+}

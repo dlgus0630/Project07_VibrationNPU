@@ -1,0 +1,36 @@
+{
+  "workspace": "/home/dlgus0630/workspace/Project07_VibrationNPU_vitis/fourier_app/src",
+  "backup": "/home/dlgus0630/Downloads/fpga_fourier_pid_v4/Project07_VibrationNPU/build/vitis_sources_before_readability",
+  "application_sources": [
+    "main.c",
+    "app_platform.c",
+    "app_telemetry.c",
+    "sensor_spi.c",
+    "app_inference.c",
+    "motor_commands.c",
+    "golden.c"
+  ],
+  "files_sha256": {
+    "main.c": "b9ebd5bd491cc45666aa8d958480d9dcf30b40da4259dcd6939ce310729524cb",
+    "app_platform.c": "dbda0f90d773252cfc4e7ab5e1bbadb76fbafa561e42b1390e7b31f2f63de985",
+    "app_telemetry.c": "290c2a62472b8b2b50b4ec6b466510a79c49b4c1dd23f87991f845eb3337ed4e",
+    "sensor_spi.c": "435d5e34099005787f12b6c44827b583203f38481ab624988b2c583c0c254548",
+    "app_inference.c": "2fedc63e8a8d16785f84a763aa5e398c8bb145f389c901b34cd34852dbb7568a",
+    "motor_commands.c": "378d0159f5894a4c1a61026bc45e373eca44b34693b49db5fa5ef1e1d267dc99",
+    "golden.c": "73dc07eaa45348f027268009197fe037ade9a8231f3d83622e7a866e394f9925",
+    "app_registers.h": "0e831d45cad89c3579c95146498b0535b9da97042b06ab85a8760ac975631124",
+    "app_platform.h": "e89584a4b8d1a7db2701dc830722166ac15b1805ead90ccf0082469452400b0e",
+    "golden.h": "d13a13f394a03aa2fbdaf03254c41fc0405179c3aa65aa085afde0da7d6d0bba",
+    "motor_commands.h": "708dae0141bcf7777a4698bf40403d31959262630bdee980f896e66c80ba9abc",
+    "model_data.h": "a1832fe7dea905b0fbac2c0bae890ccdb98efda55b752aeba6440d8e40ec2771",
+    "app_telemetry.h": "e2ddd3c744eb4892a1d91334a8dc5d63780d41592756d203cc5c666f7cb66a19",
+    "app_inference.h": "efa534d76162d592b7ffe62cf224ed641ad4a4bca39598d541fc0f507818ecf4",
+    "sensor_spi.h": "0cb78eb2193bc765a0042b5c5793640954218d1c58a8404f9bf9b3da8126b2b3"
+  },
+  "build": {
+    "status": "PASS",
+    "elf_sha256": "e4f37ce58e8167c45bc3725e3c025b6b2d9db62c1594778b8240090430051f0d",
+    "elf_path": "/home/dlgus0630/workspace/Project07_VibrationNPU_vitis/fourier_app/build/fourier_app.elf",
+    "user_config_sha256": "1fb365a1aa13f501fd636de1a2490a35c7cc54b3d65793f0099df2c4a94b1b6a"
+  }
+}

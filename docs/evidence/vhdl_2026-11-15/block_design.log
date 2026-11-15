@@ -1,0 +1,238 @@
+#-----------------------------------------------------------
+# Vivado v2024.2 (64-bit)
+# SW Build 5239630 on Fri Nov 08 22:34:34 MST 2024
+# IP Build 5239520 on Sun Nov 10 16:12:51 MST 2024
+# SharedData Build 5239561 on Fri Nov 08 14:39:27 MST 2024
+# Start of session at: Sun Nov 15 16:13:06 2026
+# Process ID         : 44931
+# Current directory  : /home/dlgus0630/Downloads/fpga_fourier_pid_v4/Project07_VibrationNPU
+# Command line       : vivado -mode batch -nojournal -log build/vhdl_bd_verified.log -source vivado/create_fourier.tcl
+# Log file           : /home/dlgus0630/Downloads/fpga_fourier_pid_v4/Project07_VibrationNPU/build/vhdl_bd_verified.log
+# Journal file       : 
+# Running On         : dlgus0630-850XAC
+# Platform           : Ubuntu
+# Operating System   : Ubuntu 24.04.4 LTS
+# Processor Detail   : Intel(R) Core(TM) i7-8750H CPU @ 2.20GHz
+# CPU Frequency      : 3225.381 MHz
+# CPU Physical cores : 6
+# CPU Logical cores  : 12
+# Host memory        : 16693 MB
+# Swap memory        : 32000 MB
+# Total Virtual      : 48694 MB
+# Available Virtual  : 42341 MB
+#-----------------------------------------------------------
+source vivado/create_fourier.tcl
+# source [file join [file dirname [info script]] common.tcl]
+## set root [file normalize [file join [file dirname [info script]] ..]]
+## if {![string match "2024.2*" [version -short]]} { error "Use Vivado 2024.2, matching this package target." }
+## set py python3
+## if {[info exists ::env(FPGA_PYTHON)]} {
+##     set py $::env(FPGA_PYTHON)
+## } elseif {[file executable /usr/bin/python3]} {
+##     set py /usr/bin/python3
+## }
+## proc gate {action stage} {
+##     global py root
+##     if {[catch {exec $py [file join $root tools gates.py] $action $stage} result]} {error $result}
+## }
+## proc add_rtl {project} {
+##     global root
+##     if {$project ne "fourier"} {error "VHDL source list is defined only for fourier"}
+##     # Package first, followed by entities and their dependants. The original
+##     # Verilog is retained separately as the simulation comparison baseline.
+##     set source_paths {
+##         fourier/vhdl/vibration_types.vhd common/reset_sync.vhd
+##         fourier/vhdl/mac_pe.vhd fourier/vhdl/fault_latch.vhd
+##         fourier/vhdl/safety_supervisor.vhd fourier/vhdl/unsigned_divider.vhd
+##         fourier/vhdl/pwm_period.vhd fourier/vhdl/mpu_reg_spi.vhd
+##         fourier/vhdl/fft64_features.vhd fourier/vhdl/npu_2pe.vhd
+##         fourier/vhdl/vibration_core.vhd fourier/vhdl/pid_fixed.vhd
+##         fourier/vhdl/encoder_quadrature.vhd fourier/vhdl/encoder_speed_hybrid.vhd
+##         fourier/vhdl/fourier_motor_impl.vhd fourier/vhdl/fourier_motor_control.vhd
+##         fourier/vhdl/axi_vibration_impl.vhd fourier/vhdl/axi_vibration_top.vhd
+##     }
+##     foreach path $source_paths {add_files -norecurse [file join $root $path]}
+##     set_property file_type {VHDL 2008} [get_files *.vhd]
+##     # Vivado 2024.2 IP Integrator requires the referenced top file to be
+##     # VHDL-93. These shells only connect ports to the VHDL-2008 implementations.
+##     set_property file_type VHDL [get_files [file join $root fourier vhdl axi_vibration_top.vhd]]
+##     set_property file_type VHDL [get_files [file join $root fourier vhdl fourier_motor_control.vhd]]
+##     add_files [glob [file join $root data *.mem]]
+##     set_property file_type {Memory File} [get_files *.mem]
+##     set_property target_language VHDL [current_project]
+##     set_property simulator_language Mixed [current_project]
+## }
+## proc ip {name vlnv} {return [create_bd_cell -type ip -vlnv $vlnv $name]}
+## proc net {args} {set pins {};foreach name $args {lappend pins [get_bd_pins $name]};connect_bd_net {*}$pins}
+# if {[info exists ::env(DIGILENT_BOARD_REPO)]} {set_param board.repoPaths [list $::env(DIGILENT_BOARD_REPO)]}
+# set project_dir [file join $root build fourier]
+# if {[info exists ::env(VHDL_CHECK_PROJECT_DIR)]} {
+#     set project_dir [file normalize $::env(VHDL_CHECK_PROJECT_DIR)]
+# }
+# create_project -force fourier $project_dir -part xc7z020clg400-1
+# set boards [lsort -dictionary [get_board_parts -quiet *:zybo-z7-20:part0:*]]
+# if {[llength $boards]==0} {error "Install Digilent Zybo Z7-20 board files (2024.2 Board Store), or set DIGILENT_BOARD_REPO to new/board_files. Do not substitute guessed DDR settings."}
+# set_property board_part [lindex $boards end] [current_project]
+# add_rtl fourier
+# create_bd_design system
+Wrote  : </home/dlgus0630/Downloads/fpga_fourier_pid_v4/Project07_VibrationNPU/build/vhdl_bd_verified/fourier/fourier.srcs/sources_1/bd/system/system.bd> 
+# ip ps xilinx.com:ip:processing_system7:5.5
+# apply_bd_automation -rule xilinx.com:bd_rule:processing_system7 -config {make_external "FIXED_IO, DDR" apply_board_preset "1" Master "Disable" Slave "Disable"} [get_bd_cells ps]
+# set_property -dict [list CONFIG.PCW_USE_M_AXI_GP0 {1} CONFIG.PCW_FPGA0_PERIPHERAL_FREQMHZ {100} CONFIG.PCW_EN_CLK0_PORT {1} CONFIG.PCW_USE_FABRIC_INTERRUPT {1} CONFIG.PCW_IRQ_F2P_INTR {1}] [get_bd_cells ps]
+CRITICAL WARNING: [PSU-1]  Parameter : PCW_UIPARAM_DDR_DQS_TO_CLK_DELAY_0 has negative value -0.050 . PS DDR interfaces might fail when entering negative DQS skew values. 
+CRITICAL WARNING: [PSU-2]  Parameter : PCW_UIPARAM_DDR_DQS_TO_CLK_DELAY_1 has negative value -0.044 . PS DDR interfaces might fail when entering negative DQS skew values. 
+CRITICAL WARNING: [PSU-3]  Parameter : PCW_UIPARAM_DDR_DQS_TO_CLK_DELAY_2 has negative value -0.035 . PS DDR interfaces might fail when entering negative DQS skew values. 
+CRITICAL WARNING: [PSU-4]  Parameter : PCW_UIPARAM_DDR_DQS_TO_CLK_DELAY_3 has negative value -0.100 . PS DDR interfaces might fail when entering negative DQS skew values. 
+# ip reset xilinx.com:ip:proc_sys_reset:5.0
+INFO: [Ipptcl 7-1463] No Compatible Board Interface found. Board Tab not created in customize GUI
+# ip one xilinx.com:ip:xlconstant:1.1
+INFO: [BD 5-1043] It is recommended to use inline hdl version xilinx.com:inline_hdl:ilconstant:1.0 for the IP type xilinx.com:ip:xlconstant:1.1 for improved performance and reduced disk space. IPs with VLNV xilinx.com:ip:xlconstant:1.1 may be deprecated in future releases. More information on inline hdl IP is available in UG994 
+# ip zero xilinx.com:ip:xlconstant:1.1
+INFO: [BD 5-1043] It is recommended to use inline hdl version xilinx.com:inline_hdl:ilconstant:1.0 for the IP type xilinx.com:ip:xlconstant:1.1 for improved performance and reduced disk space. IPs with VLNV xilinx.com:ip:xlconstant:1.1 may be deprecated in future releases. More information on inline hdl IP is available in UG994 
+# set_property CONFIG.CONST_VAL 0 [get_bd_cells zero]
+# ip interconnect xilinx.com:ip:smartconnect:1.0
+# set_property -dict [list CONFIG.NUM_SI 1 CONFIG.NUM_MI 2] [get_bd_cells interconnect]
+# ip ram_controller xilinx.com:ip:axi_bram_ctrl:4.1
+INFO: [xilinx.com:ip:axi_bram_ctrl:4.1-2] system_ram_controller_0: In IP Integrator, please note that memory depth value gets calculated based on the Data Width of the IP and Address range selected in the Address Editor.Incase a validation error occured on the range of this parameter, please check if the selected Data width and the Address Range are valid. For valid Data width and memory depth values, please refer to the AXI BRAM Controller Product Guide.
+INFO: [xilinx.com:ip:axi_bram_ctrl:4.1-1] system_ram_controller_0: In IP Integrator, The Maximum address range supported is 2G. Selecting the address range more than 2G in the address editor may resets the value of Memory depth to default value (1024). please refer to the AXI BRAM Controller Product Guide.
+# set_property -dict [list CONFIG.DATA_WIDTH 32 CONFIG.SINGLE_PORT_BRAM 1] [get_bd_cells ram_controller]
+# ip memory xilinx.com:ip:blk_mem_gen:8.4
+# set_property -dict [list CONFIG.Memory_Type {True_Dual_Port_RAM} CONFIG.Use_BRAM_Block {BRAM_Controller} CONFIG.Write_Width_A 32 CONFIG.Read_Width_A 32 CONFIG.Write_Depth_A 1024 CONFIG.Write_Width_B 32 CONFIG.Read_Width_B 32 CONFIG.Register_PortB_Output_of_Memory_Primitives false] [get_bd_cells memory]
+# create_bd_cell -type module -reference axi_vibration_top accelerator
+INFO: [IP_Flow 19-5107] Inferred bus interface 'ACLK' of definition 'xilinx.com:signal:clock:1.0' (from X_INTERFACE_INFO parameter from HDL file).
+INFO: [IP_Flow 19-5107] Inferred bus interface 'ACLK' of definition 'xilinx.com:signal:clock:1.0' (from 'X_INTERFACE_INFO' attribute).
+INFO: [IP_Flow 19-5107] Inferred bus interface 'ARESETN' of definition 'xilinx.com:signal:reset:1.0' (from X_INTERFACE_INFO parameter from HDL file).
+INFO: [IP_Flow 19-5107] Inferred bus interface 'ARESETN' of definition 'xilinx.com:signal:reset:1.0' (from 'X_INTERFACE_INFO' attribute).
+INFO: [IP_Flow 19-5107] Inferred bus interface 'S_AXI' of definition 'xilinx.com:interface:aximm:1.0' (from X_INTERFACE_INFO parameter from HDL file).
+INFO: [IP_Flow 19-5107] Inferred bus interface 'S_AXI' of definition 'xilinx.com:interface:aximm:1.0' (from 'X_INTERFACE_INFO' attribute).
+INFO: [IP_Flow 19-5107] Inferred bus interface 'M_BRAM' of definition 'xilinx.com:interface:bram:1.0' (from X_INTERFACE_INFO parameter from HDL file).
+INFO: [IP_Flow 19-5107] Inferred bus interface 'M_BRAM' of definition 'xilinx.com:interface:bram:1.0' (from 'X_INTERFACE_INFO' attribute).
+INFO: [IP_Flow 19-5107] Inferred bus interface 'irq' of definition 'xilinx.com:signal:interrupt:1.0' (from Xilinx Repository).
+INFO: [IP_Flow 19-4728] Bus Interface 'irq': Added interface parameter 'SENSITIVITY' with value 'LEVEL_HIGH'.
+INFO: [IP_Flow 19-4728] Bus Interface 'ACLK': Added interface parameter 'ASSOCIATED_BUSIF' with value 'S_AXI'.
+INFO: [IP_Flow 19-4728] Bus Interface 'ACLK': Added interface parameter 'ASSOCIATED_RESET' with value 'ARESETN'.
+INFO: [IP_Flow 19-4728] Bus Interface 'ACLK': Added interface parameter 'FREQ_HZ' with value '100000000'.
+INFO: [IP_Flow 19-4728] Bus Interface 'ARESETN': Added interface parameter 'POLARITY' with value 'ACTIVE_LOW'.
+INFO: [IP_Flow 19-4728] Bus Interface 'S_AXI': Added interface parameter 'PROTOCOL' with value 'AXI4LITE'.
+INFO: [IP_Flow 19-4728] Bus Interface 'S_AXI': Added interface parameter 'DATA_WIDTH' with value '32'.
+INFO: [IP_Flow 19-4728] Bus Interface 'S_AXI': Added interface parameter 'ADDR_WIDTH' with value '12'.
+INFO: [IP_Flow 19-4728] Bus Interface 'M_BRAM': Added interface parameter 'MEM_SIZE' with value '4096'.
+INFO: [IP_Flow 19-4728] Bus Interface 'M_BRAM': Added interface parameter 'MEM_WIDTH' with value '32'.
+INFO: [IP_Flow 19-4728] Bus Interface 'M_BRAM': Added interface parameter 'MASTER_TYPE' with value 'BRAM_CTRL'.
+INFO: [IP_Flow 19-7067] Note that bus interface 'ACLK' has a fixed FREQ_HZ of '100000000'. This value will be respected whenever this IP is instantiated in IP Integrator.
+# create_bd_cell -type module -reference fourier_motor_control motor
+INFO: [IP_Flow 19-5107] Inferred bus interface 'reset_n' of definition 'xilinx.com:signal:reset:1.0' (from Xilinx Repository).
+INFO: [IP_Flow 19-5107] Inferred bus interface 'clk' of definition 'xilinx.com:signal:clock:1.0' (from Xilinx Repository).
+WARNING: [IP_Flow 19-5661] Bus Interface 'clk' does not have any bus interfaces associated with it.
+WARNING: [IP_Flow 19-11770] Clock interface 'clk' has no FREQ_HZ parameter.
+# net ps/FCLK_CLK0 motor/clk
+# net reset/peripheral_aresetn motor/reset_n
+# create_bd_port -dir I -from 3 -to 0 motor_sw
+# connect_bd_net [get_bd_ports motor_sw] [get_bd_pins motor/sw]
+# create_bd_port -dir I motor_stop
+# connect_bd_net [get_bd_ports motor_stop] [get_bd_pins motor/stop_button]
+# create_bd_port -dir I encoder_a
+# connect_bd_net [get_bd_ports encoder_a] [get_bd_pins motor/encoder_a]
+# create_bd_port -dir I encoder_b
+# connect_bd_net [get_bd_ports encoder_b] [get_bd_pins motor/encoder_b]
+# foreach port {motor_pwm motor_in1 motor_in2 motor_armed motor_fault} {
+#     create_bd_port -dir O $port
+#     connect_bd_net [get_bd_ports $port] [get_bd_pins motor/$port]
+# }
+# net accelerator/class_valid motor/class_valid
+# net accelerator/class_id motor/class_id
+# net motor/motor_fault accelerator/motor_fault_latched
+# net accelerator/ps_heartbeat motor/ps_heartbeat
+# net motor/motor_warning accelerator/motor_warning
+# net motor/motor_derated accelerator/motor_derated
+# net motor/motor_watchdog_fault accelerator/motor_watchdog_fault
+# net motor/motor_fault_cause accelerator/motor_fault_cause
+# net motor/motor_fault_consec accelerator/motor_fault_consec
+# net motor/motor_abnormal_count accelerator/motor_abnormal_count
+# net motor/motor_speed_reference accelerator/motor_speed_reference
+# net motor/motor_measured_speed accelerator/motor_measured_speed
+# net motor/motor_requested_duty accelerator/motor_requested_duty
+# net motor/motor_pid_integral accelerator/motor_pid_integral
+# net motor/motor_armed accelerator/motor_armed_status
+# net motor/motor_watchdog_count accelerator/motor_watchdog_count
+# net accelerator/kp_gain motor/kp_gain
+# net accelerator/ki_gain motor/ki_gain
+# net accelerator/anti_windup_enable motor/anti_windup_enable
+# net accelerator/open_loop_enable motor/open_loop_enable
+# net accelerator/open_loop_duty motor/open_loop_duty
+# net motor/quad_direction accelerator/quad_direction
+# net motor/quad_position accelerator/quad_position
+# net motor/quad_illegal_fault accelerator/quad_illegal_fault
+# net motor/quad_illegal_count accelerator/quad_illegal_count
+# net motor/quad_timeout_fault accelerator/quad_timeout_fault
+# net motor/quad_overflow_fault accelerator/quad_overflow_fault
+# net accelerator/quad_position_wr_en motor/quad_position_wr_en
+# net accelerator/quad_position_wr_value motor/quad_position_wr_value
+# net ps/FCLK_CLK0 ps/M_AXI_GP0_ACLK reset/slowest_sync_clk interconnect/aclk ram_controller/s_axi_aclk accelerator/aclk
+# net ps/FCLK_RESET0_N reset/ext_reset_in
+# net one/dout reset/dcm_locked reset/aux_reset_in
+# net zero/dout reset/mb_debug_sys_rst
+# net reset/interconnect_aresetn interconnect/aresetn
+# net reset/peripheral_aresetn ram_controller/s_axi_aresetn accelerator/aresetn
+# connect_bd_intf_net [get_bd_intf_pins ps/M_AXI_GP0] [get_bd_intf_pins interconnect/S00_AXI]
+# connect_bd_intf_net [get_bd_intf_pins interconnect/M00_AXI] [get_bd_intf_pins accelerator/S_AXI]
+# connect_bd_intf_net [get_bd_intf_pins interconnect/M01_AXI] [get_bd_intf_pins ram_controller/S_AXI]
+# connect_bd_intf_net [get_bd_intf_pins ram_controller/BRAM_PORTA] [get_bd_intf_pins memory/BRAM_PORTA]
+# connect_bd_intf_net [get_bd_intf_pins accelerator/M_BRAM] [get_bd_intf_pins memory/BRAM_PORTB]
+# net accelerator/irq ps/IRQ_F2P
+# foreach port {mpu_sclk mpu_mosi mpu_cs_n} {create_bd_port -dir O $port;connect_bd_net [get_bd_ports $port] [get_bd_pins accelerator/$port]}
+# create_bd_port -dir I mpu_miso
+# connect_bd_net [get_bd_ports mpu_miso] [get_bd_pins accelerator/mpu_miso]
+# set ctrl_seg [get_bd_addr_segs -of_objects [get_bd_intf_pins accelerator/S_AXI]]
+# set ram_seg [get_bd_addr_segs -of_objects [get_bd_intf_pins ram_controller/S_AXI]]
+# if {[llength $ctrl_seg]!=1 || [llength $ram_seg]!=1} {error "Unexpected AXI address segment count"}
+# assign_bd_address -offset 0x43C00000 -range 0x1000 -target_address_space [get_bd_addr_spaces ps/Data] $ctrl_seg
+Slave segment '/accelerator/S_AXI/reg0' is being assigned into address space '/ps/Data' at <0x43C0_0000 [ 4K ]>.
+# assign_bd_address -offset 0x40000000 -range 0x1000 -target_address_space [get_bd_addr_spaces ps/Data] $ram_seg
+Slave segment '/ram_controller/S_AXI/Mem0' is being assigned into address space '/ps/Data' at <0x4000_0000 [ 4K ]>.
+# validate_bd_design
+CRITICAL WARNING: [PSU-1]  Parameter : PCW_UIPARAM_DDR_DQS_TO_CLK_DELAY_0 has negative value -0.050 . PS DDR interfaces might fail when entering negative DQS skew values. 
+CRITICAL WARNING: [PSU-2]  Parameter : PCW_UIPARAM_DDR_DQS_TO_CLK_DELAY_1 has negative value -0.044 . PS DDR interfaces might fail when entering negative DQS skew values. 
+CRITICAL WARNING: [PSU-3]  Parameter : PCW_UIPARAM_DDR_DQS_TO_CLK_DELAY_2 has negative value -0.035 . PS DDR interfaces might fail when entering negative DQS skew values. 
+CRITICAL WARNING: [PSU-4]  Parameter : PCW_UIPARAM_DDR_DQS_TO_CLK_DELAY_3 has negative value -0.100 . PS DDR interfaces might fail when entering negative DQS skew values. 
+INFO: [BD 5-943] Reserving offset range <0x43C0_0000 [ 4K ]> from slave interface '/interconnect/S00_AXI' to master interface '/interconnect/M00_AXI'. This will be used by smartconnect on path for routing.
+INFO: [BD 5-943] Reserving offset range <0x4000_0000 [ 4K ]> from slave interface '/interconnect/S00_AXI' to master interface '/interconnect/M01_AXI'. This will be used by smartconnect on path for routing.
+INFO: [xilinx.com:ip:smartconnect:1.0-1] system_interconnect_0: SmartConnect system_interconnect_0 is in High-performance Mode.
+INFO: [Ipptcl 7-1463] No Compatible Board Interface found. Board Tab not created in customize GUI
+WARNING: [BD 41-2180] Resetting the memory initialization file of </memory> to default.
+WARNING: [filemgmt 56-443] The ECC Algorithm string is empty. Setting the Memory Map to default ECC value to ECC_NONE.
+# save_bd_design
+Wrote  : </home/dlgus0630/Downloads/fpga_fourier_pid_v4/Project07_VibrationNPU/build/vhdl_bd_verified/fourier/fourier.srcs/sources_1/bd/system/system.bd> 
+# generate_target all [get_files system.bd]
+INFO: [BD 41-1662] The design 'system.bd' is already validated. Therefore parameter propagation will not be re-run.
+WARNING: [filemgmt 56-443] The ECC Algorithm string is empty. Setting the Memory Map to default ECC value to ECC_NONE.
+WARNING: [filemgmt 56-443] The ECC Algorithm string is empty. Setting the Memory Map to default ECC value to ECC_NONE.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/memory/addra'(32) to pin: '/ram_controller/bram_addr_a'(12) - Only lower order bits will be connected.
+VHDL Output written to : /home/dlgus0630/Downloads/fpga_fourier_pid_v4/Project07_VibrationNPU/build/vhdl_bd_verified/fourier/fourier.gen/sources_1/bd/system/synth/system.vhd
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/memory/addra'(32) to pin: '/ram_controller/bram_addr_a'(12) - Only lower order bits will be connected.
+VHDL Output written to : /home/dlgus0630/Downloads/fpga_fourier_pid_v4/Project07_VibrationNPU/build/vhdl_bd_verified/fourier/fourier.gen/sources_1/bd/system/sim/system.vhd
+VHDL Output written to : /home/dlgus0630/Downloads/fpga_fourier_pid_v4/Project07_VibrationNPU/build/vhdl_bd_verified/fourier/fourier.gen/sources_1/bd/system/hdl/system_wrapper.vhd
+INFO: [IP_Flow 19-5611] Unable to find an associated reset port for the interface 'M_AXI_GP0'. A default connection has been created.
+INFO: [BD 41-1029] Generation completed for the IP Integrator block ps .
+INFO: [BD 41-1029] Generation completed for the IP Integrator block reset .
+INFO: [BD 41-1029] Generation completed for the IP Integrator block one .
+INFO: [BD 41-1029] Generation completed for the IP Integrator block zero .
+Exporting to file /home/dlgus0630/Downloads/fpga_fourier_pid_v4/Project07_VibrationNPU/build/vhdl_bd_verified/fourier/fourier.gen/sources_1/bd/system/ip/system_interconnect_0/bd_0/hw_handoff/system_interconnect_0.hwh
+Generated Hardware Definition File /home/dlgus0630/Downloads/fpga_fourier_pid_v4/Project07_VibrationNPU/build/vhdl_bd_verified/fourier/fourier.gen/sources_1/bd/system/ip/system_interconnect_0/bd_0/synth/system_interconnect_0.hwdef
+INFO: [BD 41-1029] Generation completed for the IP Integrator block interconnect .
+INFO: [BD 41-1029] Generation completed for the IP Integrator block ram_controller .
+INFO: [BD 41-1029] Generation completed for the IP Integrator block memory .
+INFO: [BD 41-1029] Generation completed for the IP Integrator block accelerator .
+INFO: [BD 41-1029] Generation completed for the IP Integrator block motor .
+Exporting to file /home/dlgus0630/Downloads/fpga_fourier_pid_v4/Project07_VibrationNPU/build/vhdl_bd_verified/fourier/fourier.gen/sources_1/bd/system/hw_handoff/system.hwh
+Generated Hardware Definition File /home/dlgus0630/Downloads/fpga_fourier_pid_v4/Project07_VibrationNPU/build/vhdl_bd_verified/fourier/fourier.gen/sources_1/bd/system/synth/system.hwdef
+generate_target: Time (s): cpu = 00:00:17 ; elapsed = 00:00:18 . Memory (MB): peak = 1631.547 ; gain = 18.211 ; free physical = 4815 ; free virtual = 39942
+# set wrapper [make_wrapper -files [get_files system.bd] -top]
+# add_files -norecurse $wrapper
+# set_property top system_wrapper [current_fileset]
+# add_files -fileset constrs_1 [file join $root fourier constraints zybo_z7_20.xdc]
+# update_compile_order -fileset sources_1
+update_compile_order: Time (s): cpu = 00:00:08 ; elapsed = 00:00:07 . Memory (MB): peak = 1855.660 ; gain = 224.113 ; free physical = 4474 ; free virtual = 39672
+# puts "PROJECT CREATED: no synthesis has run."
+PROJECT CREATED: no synthesis has run.
+INFO: [Common 17-206] Exiting Vivado at Sun Nov 15 16:13:48 2026...

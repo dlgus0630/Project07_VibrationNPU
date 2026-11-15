@@ -1,0 +1,308 @@
+{
+  "source_sha256": {
+    "common/reset_sync.vhd": "c90f52860844976d6fe91231b6246f34422f2cf08be39ab26f4ab66b7ac22c17",
+    "fourier/vhdl/axi_registers_rtl.vhd": "0a92616ceab43c26f7a5cd4ef9db93f29d9c67ba08c06d85578c72737a02bd49",
+    "fourier/vhdl/axi_vibration_struct.vhd": "9ba7964ce376b7b4a4dcc722bb7b4b8837e8da0d0a20fe284cdf44cd0ae617d7",
+    "fourier/vhdl/axi_vibration_top.vhd": "046a6def8030c11df77af35148ef11e23fb40b44f531b349c4f54da97a94eb23",
+    "fourier/vhdl/encoder_quadrature_rtl.vhd": "d27cb1d6ad90239a90db2d96f28107f192c8b0f6a015408d94fd0fae8f4551df",
+    "fourier/vhdl/encoder_speed_rtl.vhd": "fcc62a85c09a95b319d8c6681bd4a960f8be37616e34fc1f5d18bf92bb1b05f0",
+    "fourier/vhdl/fault_latch_rtl.vhd": "7bdb4c45f1450d91ce65ca9162cbd26a477bb9153a2ee4e99020be34029a6cd0",
+    "fourier/vhdl/fft64_features_fsm.vhd": "26af0bb5b263dc031d6cfeb3aebc5819457802168a2ffba81dc242b695ae7692",
+    "fourier/vhdl/fourier_motor_control.vhd": "e74da6a7d51a12b6cb3b765578db7f8ff4ba2f318b6f7d5c3d8218daac9e5181",
+    "fourier/vhdl/fourier_motor_struct.vhd": "cd3006a07c19495da152fe57ac1c6a71399393cf8cbc44acbff437801575f8f4",
+    "fourier/vhdl/input_sync_rtl.vhd": "bbeafe141934bb5c67a96daa9a0005fdc6f6756596dd360447912bdc923c7617",
+    "fourier/vhdl/mac_pe_rtl.vhd": "5cc3e6c6ad0496ce0d32ad73d81c7077e2138b584b51f6f5958a5f527f28d9bc",
+    "fourier/vhdl/motor_run_control_rtl.vhd": "744e7330e8af515e50f388a8fd7e3c888be1b93960feeca2dc322db7701c1ad3",
+    "fourier/vhdl/mpu_spi_fsm.vhd": "d5b6c288d048bf090a0416198e97aec1666c8e0e360ed5f92a8193db082e91fd",
+    "fourier/vhdl/npu_2pe_fsm.vhd": "8ae43cd7ef62a48edaf4441cb4c9e24c9dd18b3c985733378c5be546bf3b09c2",
+    "fourier/vhdl/pid_controller_fsm.vhd": "a05e33cb18c3f0999df95fa1bf56e49defc3b3b6d251a95dc6b5ad3509470efc",
+    "fourier/vhdl/pwm_period_rtl.vhd": "dc7eeed4826fa1c5c6f805ea80486b6d75f7c238beb394eaf41f5dc3328150e0",
+    "fourier/vhdl/safety_supervisor_rtl.vhd": "a91cd48da5596bb251422bee4491e5b689449e04f50118c6c601ac325ae6ba9a",
+    "fourier/vhdl/unsigned_divider_rtl.vhd": "81fdc269e6275ecc4cc9426f86b6d1c198eb04acbe4cebeec39c3ce38695ed19",
+    "fourier/vhdl/vibration_core_fsm.vhd": "5489e590fab26fdf123a707c05759e374a66d6cae85c9a1af7fe32bb6a8eaca7",
+    "fourier/vhdl/vibration_regs.vhd": "83eec323743326157e7d6754fd4a7ffd4d7c2f19fd7df66911de6512795efa4c",
+    "fourier/vhdl/vibration_types.vhd": "d3823f7a0aa07eef9de048d818a90a1ac6e8095ba4a8fc7130f929dae2555d20",
+    "tools/render_signal_architecture.py": "d468a92df5342574381f23a4b555be59fa598c8331fe8367e466360070fbd568",
+    "vivado/create_fourier.tcl": "90f6f507d03ee35b35e750689c8fb1d30e788f546a52f7109fb5c91ed1e549d0",
+    "fourier/constraints/zybo_z7_20.xdc": "6737db01dde8bb711c5983a928f945c12370bb9342dd2df59823f80e24b14e47"
+  },
+  "entities": 20,
+  "port_rows": 419,
+  "port_map_rows": 320,
+  "board_port_groups": 13,
+  "bd_nets": [
+    {
+      "endpoints": [
+        "ps/FCLK_CLK0",
+        "motor/clk"
+      ],
+      "custom_rtl_bits": 1
+    },
+    {
+      "endpoints": [
+        "reset/peripheral_aresetn",
+        "motor/reset_n"
+      ],
+      "custom_rtl_bits": 1
+    },
+    {
+      "endpoints": [
+        "accelerator/class_valid",
+        "motor/class_valid"
+      ],
+      "custom_rtl_bits": 1
+    },
+    {
+      "endpoints": [
+        "accelerator/class_id",
+        "motor/class_id"
+      ],
+      "custom_rtl_bits": 1
+    },
+    {
+      "endpoints": [
+        "motor/motor_fault",
+        "accelerator/motor_fault_latched"
+      ],
+      "custom_rtl_bits": 1
+    },
+    {
+      "endpoints": [
+        "accelerator/ps_heartbeat",
+        "motor/ps_heartbeat"
+      ],
+      "custom_rtl_bits": 1
+    },
+    {
+      "endpoints": [
+        "motor/motor_warning",
+        "accelerator/motor_warning"
+      ],
+      "custom_rtl_bits": 1
+    },
+    {
+      "endpoints": [
+        "motor/motor_derated",
+        "accelerator/motor_derated"
+      ],
+      "custom_rtl_bits": 1
+    },
+    {
+      "endpoints": [
+        "motor/motor_watchdog_fault",
+        "accelerator/motor_watchdog_fault"
+      ],
+      "custom_rtl_bits": 1
+    },
+    {
+      "endpoints": [
+        "motor/motor_fault_cause",
+        "accelerator/motor_fault_cause"
+      ],
+      "custom_rtl_bits": 2
+    },
+    {
+      "endpoints": [
+        "motor/motor_fault_consec",
+        "accelerator/motor_fault_consec"
+      ],
+      "custom_rtl_bits": 8
+    },
+    {
+      "endpoints": [
+        "motor/motor_abnormal_count",
+        "accelerator/motor_abnormal_count"
+      ],
+      "custom_rtl_bits": 16
+    },
+    {
+      "endpoints": [
+        "motor/motor_speed_reference",
+        "accelerator/motor_speed_reference"
+      ],
+      "custom_rtl_bits": 13
+    },
+    {
+      "endpoints": [
+        "motor/motor_measured_speed",
+        "accelerator/motor_measured_speed"
+      ],
+      "custom_rtl_bits": 13
+    },
+    {
+      "endpoints": [
+        "motor/motor_requested_duty",
+        "accelerator/motor_requested_duty"
+      ],
+      "custom_rtl_bits": 13
+    },
+    {
+      "endpoints": [
+        "motor/motor_pid_integral",
+        "accelerator/motor_pid_integral"
+      ],
+      "custom_rtl_bits": 32
+    },
+    {
+      "endpoints": [
+        "motor/motor_armed",
+        "accelerator/motor_armed_status"
+      ],
+      "custom_rtl_bits": 1
+    },
+    {
+      "endpoints": [
+        "motor/motor_watchdog_count",
+        "accelerator/motor_watchdog_count"
+      ],
+      "custom_rtl_bits": 32
+    },
+    {
+      "endpoints": [
+        "accelerator/kp_gain",
+        "motor/kp_gain"
+      ],
+      "custom_rtl_bits": 18
+    },
+    {
+      "endpoints": [
+        "accelerator/ki_gain",
+        "motor/ki_gain"
+      ],
+      "custom_rtl_bits": 18
+    },
+    {
+      "endpoints": [
+        "accelerator/anti_windup_enable",
+        "motor/anti_windup_enable"
+      ],
+      "custom_rtl_bits": 1
+    },
+    {
+      "endpoints": [
+        "accelerator/open_loop_enable",
+        "motor/open_loop_enable"
+      ],
+      "custom_rtl_bits": 1
+    },
+    {
+      "endpoints": [
+        "accelerator/open_loop_duty",
+        "motor/open_loop_duty"
+      ],
+      "custom_rtl_bits": 13
+    },
+    {
+      "endpoints": [
+        "motor/quad_direction",
+        "accelerator/quad_direction"
+      ],
+      "custom_rtl_bits": 1
+    },
+    {
+      "endpoints": [
+        "motor/quad_position",
+        "accelerator/quad_position"
+      ],
+      "custom_rtl_bits": 32
+    },
+    {
+      "endpoints": [
+        "motor/quad_illegal_fault",
+        "accelerator/quad_illegal_fault"
+      ],
+      "custom_rtl_bits": 1
+    },
+    {
+      "endpoints": [
+        "motor/quad_illegal_count",
+        "accelerator/quad_illegal_count"
+      ],
+      "custom_rtl_bits": 16
+    },
+    {
+      "endpoints": [
+        "motor/quad_timeout_fault",
+        "accelerator/quad_timeout_fault"
+      ],
+      "custom_rtl_bits": 1
+    },
+    {
+      "endpoints": [
+        "motor/quad_overflow_fault",
+        "accelerator/quad_overflow_fault"
+      ],
+      "custom_rtl_bits": 1
+    },
+    {
+      "endpoints": [
+        "accelerator/quad_position_wr_en",
+        "motor/quad_position_wr_en"
+      ],
+      "custom_rtl_bits": 1
+    },
+    {
+      "endpoints": [
+        "accelerator/quad_position_wr_value",
+        "motor/quad_position_wr_value"
+      ],
+      "custom_rtl_bits": 32
+    },
+    {
+      "endpoints": [
+        "ps/FCLK_CLK0",
+        "ps/M_AXI_GP0_ACLK",
+        "reset/slowest_sync_clk",
+        "interconnect/aclk",
+        "ram_controller/s_axi_aclk",
+        "accelerator/aclk"
+      ],
+      "custom_rtl_bits": 1
+    },
+    {
+      "endpoints": [
+        "ps/FCLK_RESET0_N",
+        "reset/ext_reset_in"
+      ],
+      "custom_rtl_bits": null
+    },
+    {
+      "endpoints": [
+        "one/dout",
+        "reset/dcm_locked",
+        "reset/aux_reset_in"
+      ],
+      "custom_rtl_bits": null
+    },
+    {
+      "endpoints": [
+        "zero/dout",
+        "reset/mb_debug_sys_rst"
+      ],
+      "custom_rtl_bits": null
+    },
+    {
+      "endpoints": [
+        "reset/interconnect_aresetn",
+        "interconnect/aresetn"
+      ],
+      "custom_rtl_bits": null
+    },
+    {
+      "endpoints": [
+        "reset/peripheral_aresetn",
+        "ram_controller/s_axi_aresetn",
+        "accelerator/aresetn"
+      ],
+      "custom_rtl_bits": 1
+    },
+    {
+      "endpoints": [
+        "accelerator/irq",
+        "ps/IRQ_F2P"
+      ],
+      "custom_rtl_bits": 1
+    }
+  ],
+  "note": "Conceptual module drawings, based on source ports and mappings; not a Vivado screenshot."
+}

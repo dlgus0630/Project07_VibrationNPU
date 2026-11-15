@@ -1,11 +1,18 @@
 #ifndef GOLDEN_H
 #define GOLDEN_H
+
 #include <stdint.h>
+
+/* 중간 FFT와 NPU 결과. 필드 순서·형식·배열 크기는 기존 ABI를 유지한다. */
 typedef struct {
-    int16_t re[64],im[64];
-    uint8_t features[4],hidden[4];
+    int16_t re[64];
+    int16_t im[64];
+    uint8_t features[4];
+    uint8_t hidden[4];
     int8_t logits[2];
     uint8_t class_id;
 } inference_result;
-void infer_integer(const int16_t samples[64],inference_result *result);
+
+void infer_integer(const int16_t samples[64], inference_result *result);
+
 #endif

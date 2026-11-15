@@ -1,0 +1,14 @@
+﻿board_port,direction,bits,module_port,package_pin
+motor_sw,IN,4,fourier_motor_control.sw,motor_sw[0]=G15; motor_sw[1]=P15; motor_sw[2]=W13; motor_sw[3]=T16
+motor_stop,IN,1,fourier_motor_control.stop_button,motor_stop=K18
+encoder_a,IN,1,fourier_motor_control.encoder_a,encoder_a=R14
+encoder_b,IN,1,fourier_motor_control.encoder_b,encoder_b=U14
+motor_pwm,OUT,1,fourier_motor_control.motor_pwm,motor_pwm=T14
+motor_in1,OUT,1,fourier_motor_control.motor_in1,motor_in1=T15
+motor_in2,OUT,1,fourier_motor_control.motor_in2,motor_in2=P14
+motor_armed,OUT,1,fourier_motor_control.motor_armed,motor_armed=M14
+motor_fault,OUT,1,fourier_motor_control.motor_fault,motor_fault=M15
+mpu_sclk,OUT,1,axi_vibration_top.mpu_sclk,mpu_sclk=V12
+mpu_mosi,OUT,1,axi_vibration_top.mpu_mosi,mpu_mosi=W16
+mpu_miso,IN,1,axi_vibration_top.mpu_miso,mpu_miso=J15
+mpu_cs_n,OUT,1,axi_vibration_top.mpu_cs_n,mpu_cs_n=H15

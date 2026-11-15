@@ -1,0 +1,50 @@
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "/home/dlgus0630/Downloads/fpga_fourier_pid_v4/Project07_VibrationNPU/build/vhdl_validation/run_4o5kri7_/reset_sync_ref.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module reset_sync_ref
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "/home/dlgus0630/Downloads/fpga_fourier_pid_v4/Project07_VibrationNPU/build/vhdl_validation/run_4o5kri7_/axi_vibration_top_ref.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module axi_vibration_top_ref
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "/home/dlgus0630/Downloads/fpga_fourier_pid_v4/Project07_VibrationNPU/build/vhdl_validation/run_4o5kri7_/encoder_quadrature_ref.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module encoder_quadrature_ref
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "/home/dlgus0630/Downloads/fpga_fourier_pid_v4/Project07_VibrationNPU/build/vhdl_validation/run_4o5kri7_/encoder_speed_hybrid_ref.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module encoder_speed_hybrid_ref
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "/home/dlgus0630/Downloads/fpga_fourier_pid_v4/Project07_VibrationNPU/build/vhdl_validation/run_4o5kri7_/fault_latch_ref.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module fault_latch_ref
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "/home/dlgus0630/Downloads/fpga_fourier_pid_v4/Project07_VibrationNPU/build/vhdl_validation/run_4o5kri7_/fft64_features_ref.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module fft64_features_ref
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "/home/dlgus0630/Downloads/fpga_fourier_pid_v4/Project07_VibrationNPU/build/vhdl_validation/run_4o5kri7_/fourier_motor_control_ref.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module fourier_motor_control_ref
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "/home/dlgus0630/Downloads/fpga_fourier_pid_v4/Project07_VibrationNPU/build/vhdl_validation/run_4o5kri7_/mac_pe_ref.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module mac_pe_ref
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "/home/dlgus0630/Downloads/fpga_fourier_pid_v4/Project07_VibrationNPU/build/vhdl_validation/run_4o5kri7_/mpu_reg_spi_ref.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module mpu_reg_spi_ref
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "/home/dlgus0630/Downloads/fpga_fourier_pid_v4/Project07_VibrationNPU/build/vhdl_validation/run_4o5kri7_/npu_2pe_ref.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module npu_2pe_ref
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "/home/dlgus0630/Downloads/fpga_fourier_pid_v4/Project07_VibrationNPU/build/vhdl_validation/run_4o5kri7_/pid_fixed_ref.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module pid_fixed_ref
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "/home/dlgus0630/Downloads/fpga_fourier_pid_v4/Project07_VibrationNPU/build/vhdl_validation/run_4o5kri7_/pwm_period_ref.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module pwm_period_ref
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "/home/dlgus0630/Downloads/fpga_fourier_pid_v4/Project07_VibrationNPU/build/vhdl_validation/run_4o5kri7_/safety_supervisor_ref.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module safety_supervisor_ref
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "/home/dlgus0630/Downloads/fpga_fourier_pid_v4/Project07_VibrationNPU/build/vhdl_validation/run_4o5kri7_/unsigned_divider_ref.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module unsigned_divider_ref
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "/home/dlgus0630/Downloads/fpga_fourier_pid_v4/Project07_VibrationNPU/build/vhdl_validation/run_4o5kri7_/vibration_core_ref.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module vibration_core_ref
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "/home/dlgus0630/Downloads/fpga_fourier_pid_v4/Project07_VibrationNPU/fourier/tb_vhdl/tb_fft_npu_vhdl.sv" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module tb_fft_npu_vhdl
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "/home/dlgus0630/Downloads/fpga_fourier_pid_v4/Project07_VibrationNPU/fourier/tb_vhdl/tb_mac.sv" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module tb_mac
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "/home/dlgus0630/Downloads/fpga_fourier_pid_v4/Project07_VibrationNPU/fourier/tb_vhdl/tb_core.sv" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module tb_core
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "/home/dlgus0630/Downloads/fpga_fourier_pid_v4/Project07_VibrationNPU/fourier/tb_vhdl/tb_axi.sv" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module tb_axi
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "/home/dlgus0630/Downloads/fpga_fourier_pid_v4/Project07_VibrationNPU/fourier/tb_vhdl/tb_spi.sv" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module tb_spi
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "/home/dlgus0630/Downloads/fpga_fourier_pid_v4/Project07_VibrationNPU/fourier/tb_vhdl/tb_fault_latch.sv" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module tb_fault_latch
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "/home/dlgus0630/Downloads/fpga_fourier_pid_v4/Project07_VibrationNPU/fourier/tb_vhdl/tb_safety_supervisor.sv" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module tb_safety_supervisor
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "/home/dlgus0630/Downloads/fpga_fourier_pid_v4/Project07_VibrationNPU/fourier/tb_vhdl/tb_core_equivalence.sv" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module tb_core_equivalence
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "/home/dlgus0630/Downloads/fpga_fourier_pid_v4/Project07_VibrationNPU/fourier/tb_vhdl/tb_pid_equivalence.sv" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module tb_pid_equivalence
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "/home/dlgus0630/Downloads/fpga_fourier_pid_v4/Project07_VibrationNPU/fourier/tb_vhdl/tb_motor_equivalence.sv" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module tb_motor_equivalence

@@ -1,0 +1,362 @@
+#-----------------------------------------------------------
+# Vivado v2024.2 (64-bit)
+# SW Build 5239630 on Fri Nov 08 22:34:34 MST 2024
+# IP Build 5239520 on Sun Nov 10 16:12:51 MST 2024
+# SharedData Build 5239561 on Fri Nov 08 14:39:27 MST 2024
+# Start of session at: Sun Nov 15 17:02:42 2026
+# Process ID         : 60265
+# Current directory  : /home/dlgus0630/Downloads/fpga_fourier_pid_v4/Project07_VibrationNPU
+# Command line       : vivado -mode batch -nojournal -log build/vhdl_structure_motor_synth.log -source vivado/check_vhdl_synthesis.tcl
+# Log file           : /home/dlgus0630/Downloads/fpga_fourier_pid_v4/Project07_VibrationNPU/build/vhdl_structure_motor_synth.log
+# Journal file       : 
+# Running On         : dlgus0630-850XAC
+# Platform           : Ubuntu
+# Operating System   : Ubuntu 24.04.4 LTS
+# Processor Detail   : Intel(R) Core(TM) i7-8750H CPU @ 2.20GHz
+# CPU Frequency      : 2200.028 MHz
+# CPU Physical cores : 6
+# CPU Logical cores  : 12
+# Host memory        : 16693 MB
+# Swap memory        : 32000 MB
+# Total Virtual      : 48694 MB
+# Available Virtual  : 40308 MB
+#-----------------------------------------------------------
+source vivado/check_vhdl_synthesis.tcl
+# set root [file normalize [file join [file dirname [info script]] ..]]
+# set outdir [file join $root build vhdl_synthesis_check]
+# file mkdir $outdir
+# cd $outdir
+# create_project -in_memory -part xc7z020clg400-1
+# set sources {
+#     fourier/vhdl/vibration_types.vhd fourier/vhdl/vibration_regs.vhd
+#     common/reset_sync.vhd fourier/vhdl/input_sync_rtl.vhd
+#     fourier/vhdl/mac_pe_rtl.vhd fourier/vhdl/fault_latch_rtl.vhd
+#     fourier/vhdl/safety_supervisor_rtl.vhd fourier/vhdl/unsigned_divider_rtl.vhd
+#     fourier/vhdl/pwm_period_rtl.vhd fourier/vhdl/mpu_spi_fsm.vhd
+#     fourier/vhdl/fft64_features_fsm.vhd fourier/vhdl/npu_2pe_fsm.vhd
+#     fourier/vhdl/vibration_core_fsm.vhd fourier/vhdl/pid_controller_fsm.vhd
+#     fourier/vhdl/encoder_quadrature_rtl.vhd fourier/vhdl/encoder_speed_rtl.vhd
+#     fourier/vhdl/motor_run_control_rtl.vhd
+#     fourier/vhdl/fourier_motor_struct.vhd fourier/vhdl/fourier_motor_control.vhd
+#     fourier/vhdl/axi_registers_rtl.vhd
+#     fourier/vhdl/axi_vibration_struct.vhd fourier/vhdl/axi_vibration_top.vhd
+# }
+# foreach source $sources { read_vhdl -vhdl2008 [file join $root $source] }
+# foreach memory [glob [file join $root data *.mem]] {
+#     file copy -force $memory [file join $outdir [file tail $memory]]
+#     add_files -norecurse $memory
+# }
+# set_property file_type {Memory Initialization Files} [get_files *.mem]
+# set top accelerator
+# if {[info exists ::env(VHDL_SYNTH_TOP)]} {set top $::env(VHDL_SYNTH_TOP)}
+# if {$top eq "accelerator"} {set top axi_vibration_top} elseif {$top eq "motor"} {set top fourier_motor_control} else {error "Invalid VHDL_SYNTH_TOP"}
+# synth_design -top $top -part xc7z020clg400-1 -mode out_of_context
+Command: synth_design -top fourier_motor_control -part xc7z020clg400-1 -mode out_of_context
+Starting synth_design
+Attempting to get a license for feature 'Synthesis' and/or device 'xc7z020'
+INFO: [Common 17-349] Got license for feature 'Synthesis' and/or device 'xc7z020'
+INFO: [Synth 8-7079] Multithreading enabled for synth_design using a maximum of 7 processes.
+INFO: [Synth 8-7078] Launching helper process for spawning children vivado processes
+INFO: [Synth 8-7075] Helper process launched with PID 60312
+---------------------------------------------------------------------------------
+Starting Synthesize : Time (s): cpu = 00:00:07 ; elapsed = 00:00:07 . Memory (MB): peak = 1708.598 ; gain = 230.762 ; free physical = 1749 ; free virtual = 37556
+---------------------------------------------------------------------------------
+INFO: [Synth 8-638] synthesizing module 'fourier_motor_control' [/home/dlgus0630/Downloads/fpga_fourier_pid_v4/Project07_VibrationNPU/fourier/vhdl/fourier_motor_control.vhd:55]
+INFO: [Synth 8-638] synthesizing module 'fourier_motor_impl' [/home/dlgus0630/Downloads/fpga_fourier_pid_v4/Project07_VibrationNPU/fourier/vhdl/fourier_motor_struct.vhd:66]
+	Parameter CLK_HZ bound to: 100000000 - type: integer 
+	Parameter FAULT_HZ bound to: 32 - type: integer 
+	Parameter FAULT_CONSEC bound to: 3 - type: integer 
+	Parameter WATCHDOG_CYCLES bound to: 50000000 - type: integer 
+INFO: [Synth 8-638] synthesizing module 'reset_sync' [/home/dlgus0630/Downloads/fpga_fourier_pid_v4/Project07_VibrationNPU/common/reset_sync.vhd:12]
+INFO: [Synth 8-256] done synthesizing module 'reset_sync' (0#1) [/home/dlgus0630/Downloads/fpga_fourier_pid_v4/Project07_VibrationNPU/common/reset_sync.vhd:12]
+INFO: [Synth 8-638] synthesizing module 'motor_run_control' [/home/dlgus0630/Downloads/fpga_fourier_pid_v4/Project07_VibrationNPU/fourier/vhdl/motor_run_control_rtl.vhd:40]
+	Parameter CLK_HZ bound to: 100000000 - type: integer 
+	Parameter FAULT_HZ bound to: 32 - type: integer 
+INFO: [Synth 8-256] done synthesizing module 'motor_run_control' (0#1) [/home/dlgus0630/Downloads/fpga_fourier_pid_v4/Project07_VibrationNPU/fourier/vhdl/motor_run_control_rtl.vhd:40]
+INFO: [Synth 8-638] synthesizing module 'safety_supervisor' [/home/dlgus0630/Downloads/fpga_fourier_pid_v4/Project07_VibrationNPU/fourier/vhdl/safety_supervisor_rtl.vhd:36]
+	Parameter TRIP_CONSEC bound to: 3 - type: integer 
+	Parameter DERATE_CONSEC bound to: 2 - type: integer 
+	Parameter WATCHDOG_CYCLES bound to: 50000000 - type: integer 
+INFO: [Synth 8-256] done synthesizing module 'safety_supervisor' (0#1) [/home/dlgus0630/Downloads/fpga_fourier_pid_v4/Project07_VibrationNPU/fourier/vhdl/safety_supervisor_rtl.vhd:36]
+INFO: [Synth 8-638] synthesizing module 'encoder_speed_hybrid' [/home/dlgus0630/Downloads/fpga_fourier_pid_v4/Project07_VibrationNPU/fourier/vhdl/encoder_speed_rtl.vhd:32]
+	Parameter CLK_HZ bound to: 100000000 - type: integer 
+INFO: [Synth 8-638] synthesizing module 'unsigned_divider' [/home/dlgus0630/Downloads/fpga_fourier_pid_v4/Project07_VibrationNPU/fourier/vhdl/unsigned_divider_rtl.vhd:28]
+INFO: [Synth 8-256] done synthesizing module 'unsigned_divider' (0#1) [/home/dlgus0630/Downloads/fpga_fourier_pid_v4/Project07_VibrationNPU/fourier/vhdl/unsigned_divider_rtl.vhd:28]
+INFO: [Synth 8-256] done synthesizing module 'encoder_speed_hybrid' (0#1) [/home/dlgus0630/Downloads/fpga_fourier_pid_v4/Project07_VibrationNPU/fourier/vhdl/encoder_speed_rtl.vhd:32]
+INFO: [Synth 8-638] synthesizing module 'pid_fixed' [/home/dlgus0630/Downloads/fpga_fourier_pid_v4/Project07_VibrationNPU/fourier/vhdl/pid_controller_fsm.vhd:30]
+INFO: [Synth 8-256] done synthesizing module 'pid_fixed' (0#1) [/home/dlgus0630/Downloads/fpga_fourier_pid_v4/Project07_VibrationNPU/fourier/vhdl/pid_controller_fsm.vhd:30]
+INFO: [Synth 8-638] synthesizing module 'encoder_quadrature' [/home/dlgus0630/Downloads/fpga_fourier_pid_v4/Project07_VibrationNPU/fourier/vhdl/encoder_quadrature_rtl.vhd:36]
+	Parameter CLK_HZ bound to: 100000000 - type: integer 
+INFO: [Synth 8-256] done synthesizing module 'encoder_quadrature' (0#1) [/home/dlgus0630/Downloads/fpga_fourier_pid_v4/Project07_VibrationNPU/fourier/vhdl/encoder_quadrature_rtl.vhd:36]
+INFO: [Synth 8-638] synthesizing module 'pwm_period' [/home/dlgus0630/Downloads/fpga_fourier_pid_v4/Project07_VibrationNPU/fourier/vhdl/pwm_period_rtl.vhd:24]
+	Parameter PERIOD bound to: 5000 - type: integer 
+INFO: [Synth 8-256] done synthesizing module 'pwm_period' (0#1) [/home/dlgus0630/Downloads/fpga_fourier_pid_v4/Project07_VibrationNPU/fourier/vhdl/pwm_period_rtl.vhd:24]
+INFO: [Synth 8-256] done synthesizing module 'fourier_motor_impl' (0#1) [/home/dlgus0630/Downloads/fpga_fourier_pid_v4/Project07_VibrationNPU/fourier/vhdl/fourier_motor_struct.vhd:66]
+INFO: [Synth 8-256] done synthesizing module 'fourier_motor_control' (0#1) [/home/dlgus0630/Downloads/fpga_fourier_pid_v4/Project07_VibrationNPU/fourier/vhdl/fourier_motor_control.vhd:55]
+---------------------------------------------------------------------------------
+Finished Synthesize : Time (s): cpu = 00:00:09 ; elapsed = 00:00:09 . Memory (MB): peak = 1790.566 ; gain = 312.730 ; free physical = 1683 ; free virtual = 37492
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Constraint Validation : Time (s): cpu = 00:00:10 ; elapsed = 00:00:11 . Memory (MB): peak = 1808.379 ; gain = 330.543 ; free physical = 1691 ; free virtual = 37499
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Loading Part and Timing Information
+---------------------------------------------------------------------------------
+Loading part: xc7z020clg400-1
+INFO: [Device 21-403] Loading part xc7z020clg400-1
+---------------------------------------------------------------------------------
+Finished Loading Part and Timing Information : Time (s): cpu = 00:00:10 ; elapsed = 00:00:11 . Memory (MB): peak = 1808.379 ; gain = 330.543 ; free physical = 1691 ; free virtual = 37500
+---------------------------------------------------------------------------------
+INFO: [Synth 8-802] inferred FSM for state register 'state_reg' in module 'pid_fixed'
+---------------------------------------------------------------------------------------------------
+                   State |                     New Encoding |                Previous Encoding 
+---------------------------------------------------------------------------------------------------
+                    idle |                      00000000001 |                             0000
+                  filter |                      00000000010 |                             0001
+                products |                      00000000100 |                             0010
+             products_hi |                      00000001000 |                             0011
+             propose_add |                      00000010000 |                             0100
+             propose_sub |                      00000100000 |                             0101
+            select_state |                      00001000000 |                             0110
+              output_add |                      00010000000 |                             0111
+              output_sub |                      00100000000 |                             1000
+                   clamp |                      01000000000 |                             1001
+                  finish |                      10000000000 |                             1010
+---------------------------------------------------------------------------------------------------
+INFO: [Synth 8-3354] encoded FSM with state register 'state_reg' using encoding 'one-hot' in module 'pid_fixed'
+---------------------------------------------------------------------------------
+Finished RTL Optimization Phase 2 : Time (s): cpu = 00:00:12 ; elapsed = 00:00:12 . Memory (MB): peak = 1834.199 ; gain = 356.363 ; free physical = 1690 ; free virtual = 37499
+---------------------------------------------------------------------------------
+No constraint files found.
+---------------------------------------------------------------------------------
+Start RTL Component Statistics 
+---------------------------------------------------------------------------------
+Detailed RTL Component Info : 
++---Adders : 
+	   4 Input   64 Bit       Adders := 1     
+	   3 Input   33 Bit       Adders := 1     
+	   2 Input   33 Bit       Adders := 2     
+	   3 Input   32 Bit       Adders := 5     
+	   2 Input   32 Bit       Adders := 5     
+	   3 Input   14 Bit       Adders := 1     
+	   3 Input   13 Bit       Adders := 1     
+	   2 Input    6 Bit       Adders := 1     
+	   2 Input    3 Bit       Adders := 1     
+	   2 Input    2 Bit       Adders := 1     
++---Registers : 
+	               34 Bit    Registers := 1     
+	               33 Bit    Registers := 3     
+	               32 Bit    Registers := 16    
+	               18 Bit    Registers := 4     
+	               14 Bit    Registers := 1     
+	               13 Bit    Registers := 7     
+	                6 Bit    Registers := 1     
+	                4 Bit    Registers := 2     
+	                3 Bit    Registers := 1     
+	                2 Bit    Registers := 7     
+	                1 Bit    Registers := 24    
++---Muxes : 
+	   3 Input   34 Bit        Muxes := 1     
+	   2 Input   33 Bit        Muxes := 1     
+	   2 Input   32 Bit        Muxes := 8     
+	   2 Input   13 Bit        Muxes := 14    
+	   4 Input   13 Bit        Muxes := 1     
+	   2 Input   12 Bit        Muxes := 1     
+	  11 Input    4 Bit        Muxes := 1     
+	   2 Input    1 Bit        Muxes := 46    
+	   3 Input    1 Bit        Muxes := 2     
+	  11 Input    1 Bit        Muxes := 1     
+	   4 Input    1 Bit        Muxes := 2     
+---------------------------------------------------------------------------------
+Finished RTL Component Statistics 
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Part Resource Summary
+---------------------------------------------------------------------------------
+Part Resources:
+DSPs: 220 (col length:60)
+BRAMs: 280 (col length: RAMB18 60 RAMB36 30)
+---------------------------------------------------------------------------------
+Finished Part Resource Summary
+---------------------------------------------------------------------------------
+No constraint files found.
+---------------------------------------------------------------------------------
+Start Cross Boundary and Area Optimization
+---------------------------------------------------------------------------------
+WARNING: [Synth 8-7080] Parallel synthesis criteria is not met
+DSP Report: Generating DSP window_product, operation Mode is: (A:0xe38e4)*B.
+DSP Report: operator window_product is absorbed into DSP window_product.
+DSP Report: Generating DSP ARG, operation Mode is: A*B2.
+DSP Report: register ARG is absorbed into DSP ARG.
+DSP Report: operator ARG is absorbed into DSP ARG.
+DSP Report: Generating DSP ARG, operation Mode is: A*B2.
+DSP Report: register ARG is absorbed into DSP ARG.
+DSP Report: operator ARG is absorbed into DSP ARG.
+DSP Report: Generating DSP ARG, operation Mode is: A*(B:0x1388).
+DSP Report: operator ARG is absorbed into DSP ARG.
+---------------------------------------------------------------------------------
+Finished Cross Boundary and Area Optimization : Time (s): cpu = 00:00:23 ; elapsed = 00:00:23 . Memory (MB): peak = 2008.285 ; gain = 530.449 ; free physical = 1551 ; free virtual = 37361
+---------------------------------------------------------------------------------
+ Sort Area is  ARG_2 : 0 0 : 2496 2496 : Used 1 time 0
+ Sort Area is  ARG_4 : 0 0 : 2496 2496 : Used 1 time 0
+ Sort Area is  window_product_0 : 0 0 : 1495 1495 : Used 1 time 0
+ Sort Area is  ARG_5 : 0 0 : 525 525 : Used 1 time 0
+---------------------------------------------------------------------------------
+Start ROM, RAM, DSP, Shift Register and Retiming Reporting
+---------------------------------------------------------------------------------
+
+DSP: Preliminary Mapping Report (see note below. The ' indicates corresponding REG is set)
++---------------------+---------------+--------+--------+--------+--------+--------+------+------+------+------+-------+------+------+
+|Module Name          | DSP Mapping   | A Size | B Size | C Size | D Size | P Size | AREG | BREG | CREG | DREG | ADREG | MREG | PREG | 
++---------------------+---------------+--------+--------+--------+--------+--------+------+------+------+------+-------+------+------+
+|encoder_speed_hybrid | (A:0xe38e4)*B | 20     | 13     | -      | -      | 33     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|pid_fixed            | A*B2          | 18     | 18     | -      | -      | 36     | 0    | 1    | -    | -    | -     | 0    | 0    | 
+|pid_fixed            | A*B2          | 18     | 18     | -      | -      | 36     | 0    | 1    | -    | -    | -     | 0    | 0    | 
+|pwm_period           | A*(B:0x1388)  | 13     | 13     | -      | -      | 26     | 0    | 0    | -    | -    | -     | 0    | 0    | 
++---------------------+---------------+--------+--------+--------+--------+--------+------+------+------+------+-------+------+------+
+
+Note: The table above is a preliminary report that shows the DSPs inferred at the current stage of the synthesis flow. Some DSP may be reimplemented as non DSP primitives later in the synthesis flow. Multiple instantiated DSPs are reported only once.
+---------------------------------------------------------------------------------
+Finished ROM, RAM, DSP, Shift Register and Retiming Reporting
+---------------------------------------------------------------------------------
+No constraint files found.
+---------------------------------------------------------------------------------
+Start Timing Optimization
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Timing Optimization : Time (s): cpu = 00:00:23 ; elapsed = 00:00:23 . Memory (MB): peak = 2008.285 ; gain = 530.449 ; free physical = 1551 ; free virtual = 37360
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Technology Mapping
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Technology Mapping : Time (s): cpu = 00:00:23 ; elapsed = 00:00:23 . Memory (MB): peak = 2008.285 ; gain = 530.449 ; free physical = 1548 ; free virtual = 37358
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start IO Insertion
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Flattening Before IO Insertion
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Flattening Before IO Insertion
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Final Netlist Cleanup
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Final Netlist Cleanup
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished IO Insertion : Time (s): cpu = 00:00:29 ; elapsed = 00:00:29 . Memory (MB): peak = 2112.098 ; gain = 634.262 ; free physical = 1433 ; free virtual = 37243
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Renaming Generated Instances
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Renaming Generated Instances : Time (s): cpu = 00:00:29 ; elapsed = 00:00:29 . Memory (MB): peak = 2112.098 ; gain = 634.262 ; free physical = 1433 ; free virtual = 37243
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Rebuilding User Hierarchy
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Rebuilding User Hierarchy : Time (s): cpu = 00:00:29 ; elapsed = 00:00:29 . Memory (MB): peak = 2112.098 ; gain = 634.262 ; free physical = 1431 ; free virtual = 37241
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Renaming Generated Ports
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Renaming Generated Ports : Time (s): cpu = 00:00:29 ; elapsed = 00:00:29 . Memory (MB): peak = 2112.098 ; gain = 634.262 ; free physical = 1431 ; free virtual = 37241
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Handling Custom Attributes
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Handling Custom Attributes : Time (s): cpu = 00:00:29 ; elapsed = 00:00:29 . Memory (MB): peak = 2112.098 ; gain = 634.262 ; free physical = 1431 ; free virtual = 37241
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Renaming Generated Nets
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Renaming Generated Nets : Time (s): cpu = 00:00:29 ; elapsed = 00:00:29 . Memory (MB): peak = 2112.098 ; gain = 634.262 ; free physical = 1431 ; free virtual = 37241
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Writing Synthesis Report
+---------------------------------------------------------------------------------
+
+DSP Final Report (the ' indicates corresponding REG is set)
++---------------------+-------------+--------+--------+--------+--------+--------+------+------+------+------+-------+------+------+
+|Module Name          | DSP Mapping | A Size | B Size | C Size | D Size | P Size | AREG | BREG | CREG | DREG | ADREG | MREG | PREG | 
++---------------------+-------------+--------+--------+--------+--------+--------+------+------+------+------+-------+------+------+
+|encoder_speed_hybrid | (A*B)'      | 20     | 5      | -      | -      | 33     | 0    | 0    | -    | -    | -     | 0    | 1    | 
+|pid_fixed            | A*B'        | 30     | 18     | -      | -      | 36     | 0    | 1    | -    | -    | -     | 0    | 0    | 
+|pid_fixed            | (A*B')'     | 30     | 18     | -      | -      | 36     | 0    | 1    | -    | -    | -     | 0    | 1    | 
+|pwm_period           | (A*B)'      | 13     | 13     | -      | -      | 26     | 0    | 0    | -    | -    | -     | 0    | 1    | 
++---------------------+-------------+--------+--------+--------+--------+--------+------+------+------+------+-------+------+------+
+
+
+Report BlackBoxes: 
++-+--------------+----------+
+| |BlackBox name |Instances |
++-+--------------+----------+
++-+--------------+----------+
+
+Report Cell Usage: 
++------+--------+------+
+|      |Cell    |Count |
++------+--------+------+
+|1     |CARRY4  |   185|
+|2     |DSP48E1 |     4|
+|3     |LUT1    |   120|
+|4     |LUT2    |   278|
+|5     |LUT3    |   192|
+|6     |LUT4    |   188|
+|7     |LUT5    |   134|
+|8     |LUT6    |   106|
+|9     |FDPE    |     2|
+|10    |FDRE    |   809|
+|11    |FDSE    |     2|
++------+--------+------+
+
+Report Instance Areas: 
++------+-----------------+---------------------+------+
+|      |Instance         |Module               |Cells |
++------+-----------------+---------------------+------+
+|1     |top              |                     |  2020|
+|2     |  U_IMPL         |fourier_motor_impl   |  2020|
+|3     |    U_ENCODER    |encoder_speed_hybrid |   770|
+|4     |      U_DIVIDER  |unsigned_divider     |   455|
+|5     |    U_PID        |pid_fixed            |   800|
+|6     |    U_PWM        |pwm_period           |    40|
+|7     |    U_QUADRATURE |encoder_quadrature   |   198|
+|8     |    U_RESET      |reset_sync           |     7|
+|9     |    U_RUN        |motor_run_control    |   115|
+|10    |    U_SAFETY     |safety_supervisor    |    90|
++------+-----------------+---------------------+------+
+---------------------------------------------------------------------------------
+Finished Writing Synthesis Report : Time (s): cpu = 00:00:29 ; elapsed = 00:00:29 . Memory (MB): peak = 2112.098 ; gain = 634.262 ; free physical = 1431 ; free virtual = 37241
+---------------------------------------------------------------------------------
+Synthesis finished with 0 errors, 0 critical warnings and 1 warnings.
+Synthesis Optimization Runtime : Time (s): cpu = 00:00:29 ; elapsed = 00:00:30 . Memory (MB): peak = 2112.098 ; gain = 634.262 ; free physical = 1431 ; free virtual = 37241
+Synthesis Optimization Complete : Time (s): cpu = 00:00:29 ; elapsed = 00:00:30 . Memory (MB): peak = 2112.105 ; gain = 634.262 ; free physical = 1431 ; free virtual = 37241
+INFO: [Project 1-571] Translating synthesized netlist
+Netlist sorting complete. Time (s): cpu = 00:00:00.02 ; elapsed = 00:00:00.02 . Memory (MB): peak = 2127.941 ; gain = 0.000 ; free physical = 1576 ; free virtual = 37386
+INFO: [Netlist 29-17] Analyzing 189 Unisim elements for replacement
+INFO: [Netlist 29-28] Unisim Transformation completed in 0 CPU seconds
+INFO: [Project 1-570] Preparing netlist for logic optimization
+INFO: [Opt 31-138] Pushed 0 inverter(s) to 0 load pin(s).
+Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00 . Memory (MB): peak = 2259.555 ; gain = 0.000 ; free physical = 1481 ; free virtual = 37291
+INFO: [Project 1-111] Unisim Transformation Summary:
+No Unisim elements were transformed.
+
+Synth Design complete | Checksum: b9126506
+INFO: [Common 17-83] Releasing license: Synthesis
+34 Infos, 1 Warnings, 0 Critical Warnings and 0 Errors encountered.
+synth_design completed successfully
+synth_design: Time (s): cpu = 00:00:40 ; elapsed = 00:00:35 . Memory (MB): peak = 2259.555 ; gain = 885.770 ; free physical = 1481 ; free virtual = 37291
+INFO: [Common 17-2834] synth_design peak Physical Memory [PSS] (MB): overall = 1713.547; main = 1713.547; forked = 319.797
+INFO: [Common 17-2834] synth_design peak Virtual Memory [VSS] (MB): overall = 2880.152; main = 2259.559; forked = 920.895
+# report_utilization -file [file join $outdir ${top}_utilization.rpt]
+# puts "VHDL SYNTHESIS PASS $top (out of context; not a routed timing report)"
+VHDL SYNTHESIS PASS fourier_motor_control (out of context; not a routed timing report)
+INFO: [Common 17-206] Exiting Vivado at Sun Nov 15 17:03:22 2026...

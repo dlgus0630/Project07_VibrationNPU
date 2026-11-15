@@ -1,0 +1,37 @@
+System Architecture & Verification
+진동 분류 NPU 기반 모터 속도 제어·보호 시스템 | Zybo Z7-20 (Zynq-7000 SoC)
+
+┌────────────────────────────────────┐                  ┌────────────────────────────────────────────────────────────────────┐
+│ CPU 영역 · ARM Cortex-A9 / C       │                  │ FPGA 영역 · Zynq PL / VHDL · 100 MHz                               │
+├────────────────────────────────────┤                  ├────────────────────────────────────────────────────────────────────┤
+│ UART 명령 · telemetry              │◀─ AXI4-Lite ─▶   │ AXI 레지스터 / START · DONE · 상태                                 │
+│ 센서 수집 · SPI 제어               │                  │ SPI Master (Mode 0)                                                │ ⇄ SPI ⇄ [MPU-6500]
+│ X축 INT16 × 64 samples             │                  │                                                                    │
+│                                    │                  │                                                                    │
+│ BRAM 입력 기록 · 실행 제어         │◀─ Port A ─▶      │ Dual-Port BRAM (4 KiB)                                             │
+│                                    │                  │ Port A: PS / Port B: FFT·NPU 코어                                  │
+│ C 정수 Golden Model                │                  │                     ⇅ Port B                                       │
+│ FFT · 특징 · INT8 MLP              │                  │ [FFT64 Q1.15] → [대역 특징 4개] → [INT8 NPU]                       │
+│ 특징·은닉·최종 결과 비교           │                  │ MLP 4 → 4 ReLU → 2 / MAC PE × 2                                    │
+│ 결과 읽기 · 출력                   │◀── 결과 ──       │ 특징 · 은닉 · logits · class → BRAM                                │
+│                                    │                  │                     │ class_valid / class_id                       │
+│ PS heartbeat / 운전 설정           │── heartbeat ─▶   │ [안전 감시] Warning → Derate → Fault Latch                         │
+│ Kp · Ki · Anti-windup 설정         │── 설정 ──▶       │ PS watchdog / 출력 선택·PWM 허용 제어                              │
+│                                    │                  │                                                                    │
+│ 속도·duty·상태 모니터              │◀── AXI 상태 ──   │ [속도 제어] Encoder A → 속도 추정 → PI (100 Hz)                    │
+│                                    │                  │                                    ↓                               │
+│                                    │                  │ 운전 허용·출력 선택 → PWM 생성 (20 kHz)                            │ → [L298N → DC 모터]
+│                                    │                  │ [진단] Encoder A/B → 방향·위치·오류                                │ ← [모터 인코더 A/B]
+│                                    │                  │ SW / STOP → 운전 허용 · 정지/리셋                                  │
+└────────────────────────────────────┘                  └────────────────────────────────────────────────────────────────────┘
+          ⇅ USB-UART
+ [PC 명령·모니터링·데이터 기록]
+
+┌─ Offline Analysis & Verification ──────────────────────────────────────────────────────────────────────────┐
+│ 실측 CSV·저장 기준값 → MATLAB / Simulink 재생·분석                                                         │
+│ Python / C Golden ↔ VHDL·XSim : 정수 중간값·결과·클록별 출력 비교                                          │
+│ 펌웨어 MMIO·UART 검증 / Vivado BD·단위 합성 / Vitis 앱 빌드                                                │
+└────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+
+센서 입력: SPI 수신값을 PS가 읽고 64개 샘플로 묶어 BRAM에 기록한다.
+출력 보호: NPU 분류 결과는 PL 안전 회로로 직접 전달되며 PI·PWM도 PL에서 동작한다.

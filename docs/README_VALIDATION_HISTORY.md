@@ -1,0 +1,276 @@
+# 이전 README 검증 기록
+
+2026-09-25 README 재구성 전의 설명을 보존한다. 여러 빌드 단계의 결과가 섞인 이력이며,
+최종 수치와 새 캡처의 기준은 [현재 README](../README.md)와 [화면 출처](SCREENSHOT_PROVENANCE.md)를 따른다.
+
+# Project07_VibrationNPU
+
+Zybo Z7-20에서 MPU-6500/9250의 진동 데이터를 수집하고, PL의 64-point FFT와 소형 INT8 NPU로
+두 상태를 분류하고 모터 안전 제어와 통합하는 FPGA/SoC 포트폴리오 프로젝트다.
+
+실측만 사용하는 별도 MATLAB·Simulink 2차 경로는 `RUN_MEASURED_STUDY`로 실행한다.
+진동 원본 360 windows와 모터 telemetry 5개 capture를 재생하고, 3차원 주파수/window
+스펙트럼을 만든다. [실측 재현 가이드](../docs/MATLAB_SIMULINK_MEASURED.md)를 참고한다.
+가정 기반 6자유도 `RUN_RESEARCH_STUDY`와 별도이며 MATLAB 실제 실행 검증은 남아 있다.
+
+## 구조
+
+```text
+MPU-6500/9250 -> SPI -> ARM Cortex-A9
+                    |
+                    v
+              AXI + Dual-port BRAM
+                    |
+                    v
+          FFT64 -> 4-band feature -> 4x4x2 INT8 NPU
+                    |                         |
+                    v                         v
+                  UART          PL safety supervisor
+                                  |       |       |
+                                warn   25% cap  latched stop
+                                                  |
+Encoder C1 -> hybrid 속도추정 -> PI/anti-windup ->+--> 20 kHz PWM -> L298N
+Encoder C2 -> quadrature 방향/fault 검출 (관측용, 루프에 피드백 없음)
+                     ^
+              speed_reference (AXI)
+```
+
+- PS: 센서 설정, 64개 sample 수집, BRAM 전송, 가속기 시작, 결과 출력
+- PL: radix-2 FFT, 주파수 대역 특징, 2개 MAC PE 기반 MLP 추론
+- 모터 제어: encoder C1 피드백 기반 폐루프 PI/anti-windup이 L298N에 20 kHz PWM을 출력하고,
+  safety supervisor가 2회 연속 이상 판정 시 25% 제한, 3회 연속 시 latch 정지시키며, SW3로
+  32 Hz 토크 리플 fault injection도 가능하다. 원래 `Project07_MotorControl`(Basys3)에서 순수
+  RTL로 개발·검증한 encoder hybrid 속도추정 + PI 제어기를 이 저장소의 Zybo PL로 이식해 한 보드로
+  통합했다 — Basys3 프로젝트는 삭제하지 않고 개발·검증 기준선으로 남겼다.
+- 제어 확장: Kp/Ki/anti-windup을 AXI로 런타임 튜닝할 수 있고(재합성 없이 A/B 비교), open-loop
+  duty override로 시스템 식별용 excitation을 만들 수 있다. Encoder C2로 quadrature 방향과
+  illegal transition/stall/overflow fault를 검출한다(순수 관측, PI 루프에는 관여하지 않음).
+- 안전 supervisor RTL: 1회 이상은 warning, 2회 연속은 PWM 25% 제한, 3회 연속은 latch 차단
+- PS heartbeat watchdog: ARM 소프트웨어가 100 ms마다 heartbeat를 쓰며 500 ms 단절 시 PL이 독립 차단
+- 학습: PC에서만 수행하며 FPGA는 inference만 수행
+- HDL: 직접 작성한 Verilog-2001, HDL Coder 미사용
+
+## 검증 결과
+
+| 항목 | 결과 |
+|---|---:|
+| 실제 데이터 | 정상 3 run 180 window, 토크 리플 3 run 180 window |
+| 분리 방법 | run 1/2 학습, run 3 검증; 인접 window 혼합 없음 |
+| FP32 검증 정확도 | 99.17% (119/120) |
+| INT8 검증 정확도 | 98.33% (118/120) |
+| INT8 혼동행렬 | normal 58/60, injected fault 60/60 |
+| 독립 C/정수 Golden | 20 window, 2,560 FFT component, 220 result PASS |
+| 재학습 전 MATLAB/Simulink | 20/20 PASS |
+| 재학습 전 bit 구현 자원 | LUT 10,628, FF 7,270, DSP 5, BRAM 1 |
+| 최종 latch bit timing | post-route setup +0.039 ns, hold +0.013 ns, DRC Error 0 |
+| Zybo replay (실측 모델) | 100/100 CPU-PL 일치 |
+| 실시간 분류 (센서 재고정 후) | 이상 60/60, 정상 28/30, 전체 97.8% |
+| 이상 판정 마진 | 최소 117 |
+| 실물 센서 | MPU-6500, WHO_AM_I `0x70`, 초기화 PASS |
+| 실측 sample 간격 | 998.8 us = 1001.2 Hz, 폐기 window 0건 |
+| PL FFT+NPU | 833 cycle = 8.33 us @ 100 MHz |
+| NPU 구간 | 18 cycle |
+| 가속기 end-to-end | 26.38 us (ARM 소프트웨어 847 us 대비 약 32배) |
+| 최종 MATLAB/Simulink | source digest 일치 PASS |
+| 최종 Vitis | safety XSA에 대해 ARM 앱 ELF build PASS. FSBL·BSP는 safety XSA로 재빌드하지 않았고, 실물 기동은 JTAG `ps7_init` + ELF 다운로드 경로라 FSBL을 사용하지 않는다 |
+| PL 안전 정지 실측 | 실제 class 1 연속 3회 후 모터 정지, `LD0 OFF / LD1 ON` |
+| 차단 전후 전류 | 0.13 A -> 0.01 A |
+| clear/rearm | SW0 OFF clear 후 SW0 ON 재회전, 0.13 A |
+| 안전 확장 구현 | warning → 25% 제한 → 복구/최종 latch, PS heartbeat watchdog |
+| 안전 확장 구현 결과 | setup +0.015 ns, hold +0.031 ns, DRC Error 0 |
+| 통제된 리플 완화 경로 | class `1,1,0`: warning → derated bit=1로 25% 제한 상태 → 정상 복구 확인. 레지스터 bit 확인이며 이 시험의 JD1 duty%는 미실측 |
+| JD1 duty 오실로스코프 실측 | baseline 50.0% → warning 50.0%(불변) → derate 25.0% → latch 0%(파형 소실) → SW0 clear/rearm 50.0%. 전부 RTL 계산값과 일치 |
+| 지속 이상 차단 경로 | class `1,1,1`: warning → 제한 → latch 정지 PASS |
+| 안전 확장 차단 전후 | 0.13 A → 0.01 A, SW0 clear/rearm 뒤 0.13 A |
+| Watchdog 실물 차단 | ARM 정지 중 모터 차단, `cause=2`, 0.13 A → 0.01 A |
+| PI/encoder 폐루프 실물 추종 | reference 2048에 대해 measured_speed 2040~2045 (오차 0.4% 이내), armed 유지, 진동 분류·안전 supervisor와 한 보드에서 동시 동작 |
+| 외란 시험 12→9→12 V (통합보드, 독립 2회 재현) | duty 64.2%→85.8%, drop 시 속도 최대 -14.6%, restore 시 overshoot +8.0%/+4.2%, 회복시간 약 1.5-2초, 두 회차 모두 safety trip 없음·진동 없음 |
+| Watchdog 근본원인 규명 | AXI로 카운터 직접 노출 후 실측: 참 100 MHz(오차 0.06% 이내), trip 452~508 ms — 설계값 500 ms와 일치. RTL은 처음부터 정상이었고 과거 "1.489~1.6초" 관측은 측정 방법론의 인공물 |
+| 최종 post-route (PI 런타임 튜닝 + encoder C2 포함) | setup +0.119 ns, hold +0.030 ns, DRC Error 0 |
+| 최종 자원 | LUT 12,228, register 8,119, BRAM tile 1, DSP 8 |
+| 최종 XSim | 9/9 PASS (PI 런타임 튜닝·open-loop override·anti-windup 비교·encoder C2 quadrature 포함) |
+| 시스템 식별 (open-loop, IDENTIFY_MOTOR.m) | plant gain 71.36 RPM/duty-pu, tau 0.620 s, dead time 0.060 s, test fit 40.3%(1차 선형모델의 한계, 정직하게 기록) |
+| 게인 비교 (원래 Kp=0.9,Ki=6/s vs 식별기반 Kp=1.40,Ki=2.25/s, 0→75% step) | overshoot 11.10% → 3.68%, 응답은 느려짐(IMC 튜닝 특유의 트레이드오프) |
+| Encoder C2 quadrature 실물 검증 | 방향(정방향 측 극성 실측 기준 확정), illegal transition 0건(회전 중), position 매끄럽게 누적 |
+| overflow_fault 실물 검증 | AXI 프리셋(`+-2^31` 경계 직전)+실제 전이로 3회 독립 재현, 매회 32비트 부호 wrap과 overflow_fault=1 확인 |
+
+실측 분류의 class 1은 자연 발생 베어링 고장이 아니라 PL이 만든 `25%<->75% @ 32 Hz` 토크 리플이다.
+정상 조건은 50% 고정 duty이며 두 조건 모두 12.0 V와 평균 duty 50%를 사용했다. 보드 측정 전체
+기록은 [artifacts/hardware_validation_2026-09-14.md](../artifacts/hardware_validation_2026-09-14.md)에
+있고 원본 CSV는 `measurements/hw_validation_2026-09-14/`에 있다. 안전 supervisor 확장의 bitstream은
+`fourier_safety_supervisor.bit` SHA-256 `a57f472a...eb255`, ARM ELF는 SHA-256
+`be278a0f...39a21`이다. 확장 실물 결과는
+[artifacts/safety_supervisor_hardware_2026-09-15.md](../artifacts/safety_supervisor_hardware_2026-09-15.md)에 있다.
+
+최종 실물 시험에서는 정상 class 0을 `3/3` 확인한 뒤 SW3 토크 리플을 입력했다. 판정열
+`0,1,1,1,0,0`에서 세 번째 연속 class 1 직후 모터가 정지했고 AXI status `0x004`는
+`0x0000000A`로 fault bit 3을 표시했다. `LD0 OFF / LD1 ON`, 전류 `0.13 A -> 0.01 A`를
+확인했으며 SW0 OFF clear와 SW0 ON rearm 뒤 모터가 0.13 A로 다시 회전했다.
+
+안전 확장 시험에서는 실제 토크 리플의 class `1,1,0`으로 warning과 25% 제한 뒤 자동 복구를
+확인했다. 저장된 실제 이상 window를 동일한 PL FFT/NPU에 3회 연속 통과시킨 class `1,1,1`에서는
+warning, 제한, classifier latch 정지를 확인했다. 별도로 Cortex-A9를 JTAG로 정지시켜
+`watchdog=1`, `cause=2`로 모터가 0.01 A에서 정지하는 것을 확인했고 SW0 clear/rearm 뒤 0.13 A로
+복귀했다. classifier latch 경로의 JD1 duty는 아래 오실로스코프 실측으로 확인했다.
+
+### 오실로스코프 실측 — JD1 PWM duty (classifier latch 경로)
+
+UART `x` 명령으로 저장된 실제 이상 window를 3회 통과시키며 JD1(L298N ENA/PWM)을 프로브로 직접
+측정했다. 표시된 duty/period 값은 스코프 화면 그대로이며 RTL의 `pwm_period` 계산값과 전부 일치한다.
+
+| baseline 50.0% | derate 25.0% | latch 0% (파형 소실) |
+|---|---|---|
+| ![baseline 50%](../measurements/scope_captures_2026-09-15/jd1_pwm_baseline_50pct.jpg) | ![derated 25%](../measurements/scope_captures_2026-09-15/jd1_pwm_derated_25pct.jpg) | ![latched 0%](../measurements/scope_captures_2026-09-15/jd1_pwm_latched_0pct.jpg) |
+
+latch 상태에서는 더 이상 주기 신호가 없어 스코프의 duty/frequency 자동측정이 `?`로 무효 표시되고
+트리거 상태도 `Trig'd`에서 `Auto`로 바뀐다. 이 측정 실패 자체가 PWM이 정적 LOW로 떨어졌다는 증거다.
+상세 절차와 표는
+[artifacts/safety_supervisor_hardware_2026-09-15.md](../artifacts/safety_supervisor_hardware_2026-09-15.md)의
+"Oscilloscope confirmation of JD1 duty cycle" 절에 있다.
+
+### 단일보드 통합 — Basys3 폐루프 제어기를 Zybo PL로 이식
+
+`Project07_MotorControl`(Basys3)에서 순수 RTL로 개발·검증한 encoder hybrid 속도추정과
+PI/anti-windup을 이 저장소의 Zybo PL로 이식해, 진동 분류 safety supervisor와 한 보드에서 함께
+동작시켰다. PI 출력은 기존 warning/25% 제한/latch 경로 앞단에 그대로 연결되며, 실물에서 폐루프
+속도제어가 reference 대비 0.4% 이내로 추종하는 것을 확인했다(위 표). 이식 과정에서 AXI로
+watchdog 카운터를 새로 노출하는 관측 레지스터를 추가했는데, 이 추가만으로 기존에 여유가 거의
+없던 critical path 두 곳(`pid_fixed.v`의 anti-windup 가산기, `encoder_speed_hybrid.v`의
+DSP48E1 승산 결과 비교/clamp)이 실제 timing 위반으로 넘어갔다. 각각에 한 클록 파이프라인
+레지스터를 추가해 계산 결과는 bit-exact로 유지한 채 해결했고(XSim으로 수정 전후 완료
+타임스탬프가 동일함을 확인), 최종 post-route는 setup +0.138 ns, hold +0.017 ns, DRC Error 0이다.
+
+12 → 9 → 12 V 외란 시험을 통합보드에서 독립적으로 2회 재현해 duty/속도 응답, overshoot, 회복시간을
+정량 확인했다(위 표) — 두 회차 모두 safety trip과 진동 없이 같은 패턴을 재현해 재현성까지
+확보했다. 통합 이후에도 진동 분류는 정상 판정과 fault injection 반응을 모두 유지한다. Basys3
+프로젝트는 삭제하지 않고 "개발·검증 기준선"으로 별도 보존한다. 이 단계의 bitstream 해시는
+`artifacts/single_board_integration_2026-09-16.md`에 있다(이후 PI 런타임 튜닝·encoder C2·
+overflow_fault까지 반영된 최종 bitstream 해시는 `HANDOFF.md`의 "gate와 artifact의 정확한 현재
+상태" 절 참고). 상세 데이터와 원본 로그는
+[artifacts/single_board_integration_2026-09-16.md](../artifacts/single_board_integration_2026-09-16.md)에
+있다.
+
+### Watchdog 지연 미스터리 — 근본원인 규명
+
+이전에는 500 ms로 설계된 PS heartbeat watchdog이 실측에서 1.489~1.6초에 트립하는 현상이
+관측됐었다. `watchdog_count` 레지스터를 AXI로 직접 노출해 재조사한 결과, 카운터는 처음부터 참
+100 MHz로 정확히 동작하고(설계값 대비 오차 0.06% 이내) 452~508 ms에 트립함을 두 차례 독립
+실측으로 확인했다 — RTL은 결함이 없었다. 이전 관측은 레지스터에 직접 접근하지 않고 외부 증상만
+관찰한 측정 방법론이 만든 인공물이었다. RTL 수정은 필요 없었고, 위에서 설명한 두 건의 파이프라인
+추가는 관측 레지스터 자체가 만든 새 타이밍 여유 문제를 해결한 것이지 watchdog 로직과는 무관하다.
+
+### PI 런타임 튜닝 · 시스템 식별 · encoder C2 quadrature
+
+Kp/Ki/anti-windup을 AXI 레지스터로 런타임 변경할 수 있게 확장해, 재합성 없이 서로 다른 튜닝을
+A/B 비교할 수 있다. Open-loop duty override(UART `p`)로 25/37.5/50/37.5/25% duty 계단을 자동
+생성해 시스템 식별용 excitation을 얻고, `IDENTIFY_MOTOR.m`(FOPDT/ARX, 60/20/20 split)으로 모델을
+식별했다 — plant gain 71.36 RPM/duty-pu, tau 0.620 s, dead time 0.060 s. 1차 선형 모델의
+test fit은 40.3%로 높지 않다(실제 모터의 정지마찰·인코더 양자화 노이즈 등 비선형성을 완전히
+설명하지 못하기 때문으로 보이며, 이 낮은 fit을 그대로 기록한다). IMC 튜닝 공식으로 얻은 게인
+(Kp=1.40, Ki=2.25/s)을 원래 손튜닝 게인(Kp=0.9, Ki=6/s)과 동일한 0→75% step으로 비교하면
+overshoot가 11.10%에서 3.68%로 줄고 응답은 느려진다 — IMC 튜닝의 전형적인 트레이드오프가
+그대로 나타났다.
+
+Anti-windup은 XSim에서(encoder 피드백을 차단한 포화 조건) 켰을 때와 껐을 때 적분값이 확실히
+다르게 수렴함을 확인했지만, 실물에서 이번 step 크기(duty 최대 ~85%)로는 duty 100% 포화 자체가
+거의 발생하지 않아 실질적인 차이가 미미했다 — 게인이 과도하게 공격적이지 않다는 방증으로 정직하게
+기록한다.
+
+Encoder 두 번째 채널(C2, B상)을 새로 배선해 quadrature 방향 판별과 illegal transition/stall/
+overflow fault 검출을 추가했다(`encoder_quadrature.v`, 순수 관측용 — PI 루프나 safety
+supervisor에는 관여하지 않는다). 배선 직후 B상이 플로팅 상태였을 때 노이즈로 illegal transition이
+1건 검출돼 검출기 자체의 동작을 실물로 증명했고, 배선 완료 후에는 더 이상 발생하지 않았다. 실측
+회전 방향에 맞춰 RTL의 forward/backward 정의를 한 번 맞바꿨고, 최종적으로 `direction=0`이
+실제 정방향과 정확히 일치함을 확인했다. overflow_fault는 32비트 카운터를 실제로 넘치게 하려면
+수십억 pulse가 필요해 처음엔 시뮬레이션으로만 검증했지만, `quad_position` 레지스터를 read-write로
+바꿔 `+-2^31` 경계 직전까지 AXI로 프리셋한 뒤 실제 전이 몇 개로 진짜 오버플로우를 유발하는
+방식으로 실물에서도 3회 독립 재현했다 — 매회 32비트 부호가 정확히 wrap되고 `overflow_fault=1`이
+확인됐다.
+
+상세 원본 데이터는
+[artifacts/single_board_integration_2026-09-17.md](../artifacts/single_board_integration_2026-09-17.md),
+실험 재현 절차는 [docs/CONTROL_EXTENSION_EXPERIMENT.md](../docs/CONTROL_EXTENSION_EXPERIMENT.md)에
+있다.
+
+## 실행
+
+MATLAB Online에서 프로젝트 전체를 업로드한 뒤 실행한다.
+
+```matlab
+cd Project07_VibrationNPU
+RUN_MATLAB_CHECKS
+```
+
+PC 검증과 Vivado 실행:
+
+```text
+python3 -m pip install -r requirements.txt
+python3 tools/offline_check.py
+python3 tools/run.py sim
+python3 tools/run.py build
+```
+
+실제 MPU-6500/9250 데이터는 독립 run으로 수집하고 분리한다. 수집 명령, 최소 반복 횟수와 재학습 절차는
+[docs/REAL_DATASET.md](../docs/REAL_DATASET.md)를 따른다.
+
+실측 분류 데이터는 정상 `50%` 고정 duty와 fault injection `25%<->75% @ 32 Hz`를 비교한다.
+두 조건의 평균 duty와 전원 전압은 같으며, 이 조건은 자연 발생 베어링 고장이 아니라 PL이 만든
+재현 가능한 토크 리플 시험 자극으로 기록한다. SW0은 arm, SW2..1은 정상 duty, SW3는 fault injection,
+BTN0은 비상 정지다.
+
+Vivado 2024.2와 Digilent Zybo Z7-20 board files가 필요하다. Vivado가 PATH에 없으면 `VIVADO`에
+실행 파일 경로를, 보드 파일을 별도로 설치했다면 `DIGILENT_BOARD_REPO`에 `new/board_files` 경로를
+지정한다. Vitis 실행과 UART 명령은 [docs/VITIS_2024_2.md](../docs/VITIS_2024_2.md)를 따른다.
+
+## 트러블슈팅: 센서 고정 상태 변화로 인한 이상 검출률 저하
+
+실측 모델을 올린 첫 실시간 측정에서 정상은 60/60 정답이었으나 이상 검출률이 학습 시 98%에서
+15%(9/60)로 떨어졌다. 재학습이나 모델 문제로 보이기 쉬운 증상이지만 원인은 연산 경로 밖에 있었다.
+
+배제 과정은 다음과 같다. 첫째, 같은 window에서 CPU와 PL 결과가 60/60 일치했으므로 FFT/NPU
+연산 경로와 AXI 전송은 정상이다. 둘째, fault injection RTL(`fourier_motor_control.v`,
+`FAULT_HZ=32`)의 마지막 변경 시각이 데이터 수집 시각보다 앞섰으므로 주입 파형 자체가 바뀐 것이
+아니다. 셋째, 샘플 간격을 직접 측정해 1001.2 Hz임을 확인했으므로 주파수 축 왜곡도 아니다.
+
+남은 것은 특징 분포였다. four-band feature 평균을 학습 데이터와 대조하니 정상 상태는 거의
+같았으나 이상 상태의 에너지가 band 0(16~94 Hz)에서 band 1(109~188 Hz)로 옮겨가 있었다.
+원시 스펙트럼에서도 상위 성분이 32 Hz의 1.5~2.5 배음에서 4 배음인 125.2 Hz로 바뀌어 있었다.
+모델은 band 0 증가를 이상의 근거로 학습했으므로 이 신호를 인식하지 못한다.
+
+전원을 내리고 센서를 gearbox bracket에 다시 고정한 뒤 같은 조건으로 재측정하니 band 0이
+0.98에서 2.90으로 복귀했고 이상 검출률은 60/60 = 100%, 전체 정확도 97.8%, 이상 판정 마진
+최소 117이 됐다. 재학습이나 RTL 수정 없이 기계적 전달 경로만 바로잡아 해결한 사례다.
+
+남은 불확실성이 있다. 재고정 직전에 센서가 실제로 느슨했는지는 직접 확인하지 않았으므로
+원인은 "고정 상태 변화"로만 기록하고 나사 풀림으로 단정하지 않는다. 재발을 빨리 판별하려면
+측정 시작 전에 정상 조건의 four-band feature 평균을 기준값과 비교하는 절차가 필요하다.
+
+## 폴더
+
+| 경로 | 내용 |
+|---|---|
+| `fourier/rtl` | FFT, NPU, AXI, SPI, 모터 PWM RTL |
+| `fourier/tb` | 자동 PASS/FAIL testbench 8개 |
+| `fourier/firmware` | ARM 앱과 독립 C 기준 모델 |
+| `data` | 학습 데이터, 정수 가중치, test vector |
+| `matlab` | MATLAB Golden 및 Simulink 함수 |
+| `vivado` | 프로젝트 생성, XSim, bitstream Tcl |
+| `tools` | 학습, 검증, UART 실측 데이터 수집 도구 |
+| `artifacts` | 통과한 bit/XSA/ELF, 보고서, 보드 측정 결과 |
+| `HANDOFF.md` | 다음 작업자가 먼저 읽을 진행 기록 |
+
+실물 배선 전에는 [docs/HARDWARE.md](../docs/HARDWARE.md)를 확인한다. 센서 breakout 전압과 L298N
+점퍼 상태를 확인하기 전까지 12 V 출력을 켜지 않는다.
+
+## MATLAB·Simulink 3차원 연구
+
+6자유도 하우징의 병진·회전, 마운트 결합, 3축 센서, 모드/주파수 응답/스펙트럼 분석과
+3차원 재생을 추가했다. 프로젝트 루트에서 `RUN_RESEARCH_STUDY('all')`을 실행하면 시나리오별
+연구 결과와 계층형 Simulink 모델을 `reports/research/`에 생성한다. 한 시나리오만 보려면
+`RUN_RESEARCH_STUDY('ripple')`을 실행한다.
+
+수식 유도와 실험 설계, 실행 옵션은
+[MATLAB·Simulink 연구 가이드](../docs/MATLAB_SIMULINK_RESEARCH.md)에 있다. 기존
+`RUN_MATLAB_CHECKS`는 그대로 사용한다. 새 경로는 이 작업 환경에 MATLAB이 없어 실행 검증되지
+않았다. 3축 신호를 생성하지만 배포 NPU는 기존 X축 학습 모델이며, 합성 시나리오의 판정과
+3D 화면은 실물 고장 진단 성능이나 기계적 폐루프 검증을 대신하지 않는다.

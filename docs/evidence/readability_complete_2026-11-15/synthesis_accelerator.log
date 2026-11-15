@@ -1,0 +1,483 @@
+#-----------------------------------------------------------
+# Vivado v2024.2 (64-bit)
+# SW Build 5239630 on Fri Nov 08 22:34:34 MST 2024
+# IP Build 5239520 on Sun Nov 10 16:12:51 MST 2024
+# SharedData Build 5239561 on Fri Nov 08 14:39:27 MST 2024
+# Start of session at: Sun Nov 15 22:04:23 2026
+# Process ID         : 22992
+# Current directory  : /home/dlgus0630/Downloads/fpga_fourier_pid_v4/Project07_VibrationNPU
+# Command line       : vivado -mode batch -nojournal -log build/readability_complete_accelerator_synth.log -source vivado/check_vhdl_synthesis.tcl
+# Log file           : /home/dlgus0630/Downloads/fpga_fourier_pid_v4/Project07_VibrationNPU/build/readability_complete_accelerator_synth.log
+# Journal file       : 
+# Running On         : dlgus0630-850XAC
+# Platform           : Ubuntu
+# Operating System   : Ubuntu 24.04.4 LTS
+# Processor Detail   : Intel(R) Core(TM) i7-8750H CPU @ 2.20GHz
+# CPU Frequency      : 3899.929 MHz
+# CPU Physical cores : 6
+# CPU Logical cores  : 12
+# Host memory        : 16693 MB
+# Swap memory        : 32000 MB
+# Total Virtual      : 48693 MB
+# Available Virtual  : 41812 MB
+#-----------------------------------------------------------
+source vivado/check_vhdl_synthesis.tcl
+# set root [file normalize [file join [file dirname [info script]] ..]]
+# set outdir [file join $root build vhdl_synthesis_check]
+# file mkdir $outdir
+# cd $outdir
+# create_project -in_memory -part xc7z020clg400-1
+# set sources {
+#     fourier/vhdl/vibration_types.vhd fourier/vhdl/vibration_regs.vhd
+#     common/reset_sync.vhd fourier/vhdl/input_sync_rtl.vhd
+#     fourier/vhdl/mac_pe_rtl.vhd fourier/vhdl/fault_latch_rtl.vhd
+#     fourier/vhdl/safety_supervisor_rtl.vhd fourier/vhdl/unsigned_divider_rtl.vhd
+#     fourier/vhdl/pwm_period_rtl.vhd fourier/vhdl/mpu_spi_fsm.vhd
+#     fourier/vhdl/fft64_features_fsm.vhd fourier/vhdl/npu_2pe_fsm.vhd
+#     fourier/vhdl/vibration_core_fsm.vhd fourier/vhdl/pid_controller_fsm.vhd
+#     fourier/vhdl/encoder_quadrature_rtl.vhd fourier/vhdl/encoder_speed_rtl.vhd
+#     fourier/vhdl/motor_run_control_rtl.vhd
+#     fourier/vhdl/fourier_motor_struct.vhd fourier/vhdl/fourier_motor_control.vhd
+#     fourier/vhdl/axi_registers_rtl.vhd
+#     fourier/vhdl/axi_vibration_struct.vhd fourier/vhdl/axi_vibration_top.vhd
+# }
+# foreach source $sources { read_vhdl -vhdl2008 [file join $root $source] }
+# foreach memory [glob [file join $root data *.mem]] {
+#     file copy -force $memory [file join $outdir [file tail $memory]]
+#     add_files -norecurse $memory
+# }
+# set_property file_type {Memory Initialization Files} [get_files *.mem]
+# set top accelerator
+# if {[info exists ::env(VHDL_SYNTH_TOP)]} {set top $::env(VHDL_SYNTH_TOP)}
+# if {$top eq "accelerator"} {set top axi_vibration_top} elseif {$top eq "motor"} {set top fourier_motor_control} else {error "Invalid VHDL_SYNTH_TOP"}
+# synth_design -top $top -part xc7z020clg400-1 -mode out_of_context
+Command: synth_design -top axi_vibration_top -part xc7z020clg400-1 -mode out_of_context
+Starting synth_design
+Attempting to get a license for feature 'Synthesis' and/or device 'xc7z020'
+INFO: [Common 17-349] Got license for feature 'Synthesis' and/or device 'xc7z020'
+INFO: [Synth 8-7079] Multithreading enabled for synth_design using a maximum of 7 processes.
+INFO: [Synth 8-7078] Launching helper process for spawning children vivado processes
+INFO: [Synth 8-7075] Helper process launched with PID 23350
+---------------------------------------------------------------------------------
+Starting Synthesize : Time (s): cpu = 00:00:04 ; elapsed = 00:00:04 . Memory (MB): peak = 1708.723 ; gain = 231.824 ; free physical = 3306 ; free virtual = 38993
+---------------------------------------------------------------------------------
+INFO: [Synth 8-638] synthesizing module 'axi_vibration_top' [/home/dlgus0630/Downloads/fpga_fourier_pid_v4/Project07_VibrationNPU/fourier/vhdl/axi_vibration_top.vhd:76]
+INFO: [Synth 8-638] synthesizing module 'axi_vibration_impl' [/home/dlgus0630/Downloads/fpga_fourier_pid_v4/Project07_VibrationNPU/fourier/vhdl/axi_vibration_struct.vhd:123]
+	Parameter CLK_HZ bound to: 100000000 - type: integer 
+INFO: [Synth 8-638] synthesizing module 'axi_registers' [/home/dlgus0630/Downloads/fpga_fourier_pid_v4/Project07_VibrationNPU/fourier/vhdl/axi_registers_rtl.vhd:89]
+INFO: [Synth 8-256] done synthesizing module 'axi_registers' (0#1) [/home/dlgus0630/Downloads/fpga_fourier_pid_v4/Project07_VibrationNPU/fourier/vhdl/axi_registers_rtl.vhd:89]
+INFO: [Synth 8-638] synthesizing module 'vibration_core' [/home/dlgus0630/Downloads/fpga_fourier_pid_v4/Project07_VibrationNPU/fourier/vhdl/vibration_core_fsm.vhd:33]
+INFO: [Synth 8-638] synthesizing module 'fft64_features' [/home/dlgus0630/Downloads/fpga_fourier_pid_v4/Project07_VibrationNPU/fourier/vhdl/fft64_features_fsm.vhd:27]
+INFO: [Synth 8-256] done synthesizing module 'fft64_features' (0#1) [/home/dlgus0630/Downloads/fpga_fourier_pid_v4/Project07_VibrationNPU/fourier/vhdl/fft64_features_fsm.vhd:27]
+INFO: [Synth 8-638] synthesizing module 'npu_2pe' [/home/dlgus0630/Downloads/fpga_fourier_pid_v4/Project07_VibrationNPU/fourier/vhdl/npu_2pe_fsm.vhd:27]
+INFO: [Synth 8-638] synthesizing module 'mac_pe' [/home/dlgus0630/Downloads/fpga_fourier_pid_v4/Project07_VibrationNPU/fourier/vhdl/mac_pe_rtl.vhd:24]
+INFO: [Synth 8-256] done synthesizing module 'mac_pe' (0#1) [/home/dlgus0630/Downloads/fpga_fourier_pid_v4/Project07_VibrationNPU/fourier/vhdl/mac_pe_rtl.vhd:24]
+INFO: [Synth 8-226] default block is never used [/home/dlgus0630/Downloads/fpga_fourier_pid_v4/Project07_VibrationNPU/fourier/vhdl/npu_2pe_fsm.vhd:184]
+INFO: [Synth 8-226] default block is never used [/home/dlgus0630/Downloads/fpga_fourier_pid_v4/Project07_VibrationNPU/fourier/vhdl/npu_2pe_fsm.vhd:244]
+INFO: [Synth 8-256] done synthesizing module 'npu_2pe' (0#1) [/home/dlgus0630/Downloads/fpga_fourier_pid_v4/Project07_VibrationNPU/fourier/vhdl/npu_2pe_fsm.vhd:27]
+INFO: [Synth 8-256] done synthesizing module 'vibration_core' (0#1) [/home/dlgus0630/Downloads/fpga_fourier_pid_v4/Project07_VibrationNPU/fourier/vhdl/vibration_core_fsm.vhd:33]
+INFO: [Synth 8-638] synthesizing module 'input_sync' [/home/dlgus0630/Downloads/fpga_fourier_pid_v4/Project07_VibrationNPU/fourier/vhdl/input_sync_rtl.vhd:19]
+INFO: [Synth 8-256] done synthesizing module 'input_sync' (0#1) [/home/dlgus0630/Downloads/fpga_fourier_pid_v4/Project07_VibrationNPU/fourier/vhdl/input_sync_rtl.vhd:19]
+INFO: [Synth 8-638] synthesizing module 'mpu_reg_spi' [/home/dlgus0630/Downloads/fpga_fourier_pid_v4/Project07_VibrationNPU/fourier/vhdl/mpu_spi_fsm.vhd:35]
+	Parameter CLK_HZ bound to: 100000000 - type: integer 
+INFO: [Synth 8-256] done synthesizing module 'mpu_reg_spi' (0#1) [/home/dlgus0630/Downloads/fpga_fourier_pid_v4/Project07_VibrationNPU/fourier/vhdl/mpu_spi_fsm.vhd:35]
+INFO: [Synth 8-256] done synthesizing module 'axi_vibration_impl' (0#1) [/home/dlgus0630/Downloads/fpga_fourier_pid_v4/Project07_VibrationNPU/fourier/vhdl/axi_vibration_struct.vhd:123]
+INFO: [Synth 8-256] done synthesizing module 'axi_vibration_top' (0#1) [/home/dlgus0630/Downloads/fpga_fourier_pid_v4/Project07_VibrationNPU/fourier/vhdl/axi_vibration_top.vhd:76]
+WARNING: [Synth 8-3936] Found unconnected internal register 'group_span_reg' and it is trimmed from '7' to '6' bits. [/home/dlgus0630/Downloads/fpga_fourier_pid_v4/Project07_VibrationNPU/fourier/vhdl/fft64_features_fsm.vhd:142]
+WARNING: [Synth 8-3936] Found unconnected internal register 'twiddle_index_reg' and it is trimmed from '6' to '5' bits. [/home/dlgus0630/Downloads/fpga_fourier_pid_v4/Project07_VibrationNPU/fourier/vhdl/fft64_features_fsm.vhd:146]
+WARNING: [Synth 8-4767] Trying to implement RAM 'fft_real_reg' in registers. Block RAM or DRAM implementation is not possible; see log for reasons.
+Reason is one or more of the following :
+	1: RAM has multiple writes via different ports in same process. If RAM inferencing intended, write to one port per process. 
+	2: Unable to determine number of words or word size in RAM. 
+	3: No valid read/write found for RAM. 
+RAM "fft_real_reg" dissolved into registers
+WARNING: [Synth 8-4767] Trying to implement RAM 'fft_imag_reg' in registers. Block RAM or DRAM implementation is not possible; see log for reasons.
+Reason is one or more of the following :
+	1: RAM has multiple writes via different ports in same process. If RAM inferencing intended, write to one port per process. 
+	2: Unable to determine number of words or word size in RAM. 
+	3: No valid read/write found for RAM. 
+RAM "fft_imag_reg" dissolved into registers
+WARNING: [Synth 8-7129] Port bram_rdata[31] in module vibration_core is either unconnected or has no load
+WARNING: [Synth 8-7129] Port bram_rdata[30] in module vibration_core is either unconnected or has no load
+WARNING: [Synth 8-7129] Port bram_rdata[29] in module vibration_core is either unconnected or has no load
+WARNING: [Synth 8-7129] Port bram_rdata[28] in module vibration_core is either unconnected or has no load
+WARNING: [Synth 8-7129] Port bram_rdata[27] in module vibration_core is either unconnected or has no load
+WARNING: [Synth 8-7129] Port bram_rdata[26] in module vibration_core is either unconnected or has no load
+WARNING: [Synth 8-7129] Port bram_rdata[25] in module vibration_core is either unconnected or has no load
+WARNING: [Synth 8-7129] Port bram_rdata[24] in module vibration_core is either unconnected or has no load
+WARNING: [Synth 8-7129] Port bram_rdata[23] in module vibration_core is either unconnected or has no load
+WARNING: [Synth 8-7129] Port bram_rdata[22] in module vibration_core is either unconnected or has no load
+WARNING: [Synth 8-7129] Port bram_rdata[21] in module vibration_core is either unconnected or has no load
+WARNING: [Synth 8-7129] Port bram_rdata[20] in module vibration_core is either unconnected or has no load
+WARNING: [Synth 8-7129] Port bram_rdata[19] in module vibration_core is either unconnected or has no load
+WARNING: [Synth 8-7129] Port bram_rdata[18] in module vibration_core is either unconnected or has no load
+WARNING: [Synth 8-7129] Port bram_rdata[17] in module vibration_core is either unconnected or has no load
+WARNING: [Synth 8-7129] Port bram_rdata[16] in module vibration_core is either unconnected or has no load
+WARNING: [Synth 8-7129] Port s_axi_awprot[2] in module axi_vibration_impl is either unconnected or has no load
+WARNING: [Synth 8-7129] Port s_axi_awprot[1] in module axi_vibration_impl is either unconnected or has no load
+WARNING: [Synth 8-7129] Port s_axi_awprot[0] in module axi_vibration_impl is either unconnected or has no load
+WARNING: [Synth 8-7129] Port s_axi_arprot[2] in module axi_vibration_impl is either unconnected or has no load
+WARNING: [Synth 8-7129] Port s_axi_arprot[1] in module axi_vibration_impl is either unconnected or has no load
+WARNING: [Synth 8-7129] Port s_axi_arprot[0] in module axi_vibration_impl is either unconnected or has no load
+---------------------------------------------------------------------------------
+Finished Synthesize : Time (s): cpu = 00:00:05 ; elapsed = 00:00:06 . Memory (MB): peak = 1806.660 ; gain = 329.762 ; free physical = 3200 ; free virtual = 38888
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Constraint Validation : Time (s): cpu = 00:00:06 ; elapsed = 00:00:06 . Memory (MB): peak = 1821.504 ; gain = 344.605 ; free physical = 3230 ; free virtual = 38918
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Loading Part and Timing Information
+---------------------------------------------------------------------------------
+Loading part: xc7z020clg400-1
+INFO: [Device 21-403] Loading part xc7z020clg400-1
+---------------------------------------------------------------------------------
+Finished Loading Part and Timing Information : Time (s): cpu = 00:00:06 ; elapsed = 00:00:06 . Memory (MB): peak = 1821.504 ; gain = 344.605 ; free physical = 3230 ; free virtual = 38918
+---------------------------------------------------------------------------------
+INFO: [Synth 8-802] inferred FSM for state register 'state_reg' in module 'fft64_features'
+INFO: [Synth 8-802] inferred FSM for state register 'state_reg' in module 'vibration_core'
+---------------------------------------------------------------------------------------------------
+                   State |                     New Encoding |                Previous Encoding 
+---------------------------------------------------------------------------------------------------
+                    idle |                        000000001 |                             0000
+                    lreq |                        000000010 |                             0001
+                   lwait |                        000000100 |                             0010
+                  lstore |                        000001000 |                             0011
+              read_state |                        000010000 |                             0100
+                    mult |                        000100000 |                             0101
+             write_state |                        001000000 |                             0110
+                    facc |                        010000000 |                             0111
+                  finish |                        100000000 |                             1000
+---------------------------------------------------------------------------------------------------
+INFO: [Synth 8-3354] encoded FSM with state register 'state_reg' using encoding 'one-hot' in module 'fft64_features'
+---------------------------------------------------------------------------------------------------
+                   State |                     New Encoding |                Previous Encoding 
+---------------------------------------------------------------------------------------------------
+                    idle |                           000001 |                              000
+                  fstart |                           000010 |                              001
+                   fwait |                           000100 |                              010
+                  nstart |                           001000 |                              011
+                   nwait |                           010000 |                              100
+                   store |                           100000 |                              101
+---------------------------------------------------------------------------------------------------
+INFO: [Synth 8-3354] encoded FSM with state register 'state_reg' using encoding 'one-hot' in module 'vibration_core'
+---------------------------------------------------------------------------------
+Finished RTL Optimization Phase 2 : Time (s): cpu = 00:00:12 ; elapsed = 00:00:10 . Memory (MB): peak = 1851.465 ; gain = 374.566 ; free physical = 3243 ; free virtual = 38930
+---------------------------------------------------------------------------------
+No constraint files found.
+---------------------------------------------------------------------------------
+Start RTL Component Statistics 
+---------------------------------------------------------------------------------
+Detailed RTL Component Info : 
++---Adders : 
+	   3 Input   34 Bit       Adders := 2     
+	   2 Input   34 Bit       Adders := 2     
+	   3 Input   32 Bit       Adders := 1     
+	   2 Input   32 Bit       Adders := 1     
+	   2 Input   17 Bit       Adders := 2     
+	   2 Input    7 Bit       Adders := 1     
+	   2 Input    6 Bit       Adders := 8     
+	   2 Input    5 Bit       Adders := 1     
+	   2 Input    4 Bit       Adders := 3     
+	   2 Input    3 Bit       Adders := 1     
+	   2 Input    2 Bit       Adders := 2     
++---Registers : 
+	               33 Bit    Registers := 2     
+	               32 Bit    Registers := 15    
+	               24 Bit    Registers := 2     
+	               18 Bit    Registers := 2     
+	               16 Bit    Registers := 137   
+	               13 Bit    Registers := 1     
+	               12 Bit    Registers := 1     
+	                8 Bit    Registers := 2     
+	                7 Bit    Registers := 1     
+	                6 Bit    Registers := 4     
+	                5 Bit    Registers := 2     
+	                4 Bit    Registers := 2     
+	                3 Bit    Registers := 2     
+	                2 Bit    Registers := 6     
+	                1 Bit    Registers := 29    
++---Muxes : 
+	   4 Input   32 Bit        Muxes := 1     
+	   2 Input   32 Bit        Muxes := 9     
+	   3 Input   32 Bit        Muxes := 1     
+	   2 Input   24 Bit        Muxes := 2     
+	   2 Input   17 Bit        Muxes := 2     
+	   2 Input   16 Bit        Muxes := 10    
+	   3 Input   11 Bit        Muxes := 1     
+	   9 Input    9 Bit        Muxes := 1     
+	   2 Input    9 Bit        Muxes := 3     
+	   2 Input    8 Bit        Muxes := 17    
+	   2 Input    5 Bit        Muxes := 1     
+	   3 Input    5 Bit        Muxes := 1     
+	   9 Input    4 Bit        Muxes := 1     
+	   2 Input    4 Bit        Muxes := 1     
+	   6 Input    3 Bit        Muxes := 1     
+	   3 Input    2 Bit        Muxes := 1     
+	   4 Input    2 Bit        Muxes := 4     
+	   2 Input    2 Bit        Muxes := 2     
+	   2 Input    1 Bit        Muxes := 67    
+	   9 Input    1 Bit        Muxes := 1     
+	   3 Input    1 Bit        Muxes := 6     
+	   4 Input    1 Bit        Muxes := 3     
+	   6 Input    1 Bit        Muxes := 1     
+---------------------------------------------------------------------------------
+Finished RTL Component Statistics 
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Part Resource Summary
+---------------------------------------------------------------------------------
+Part Resources:
+DSPs: 220 (col length:60)
+BRAMs: 280 (col length: RAMB18 60 RAMB36 30)
+---------------------------------------------------------------------------------
+Finished Part Resource Summary
+---------------------------------------------------------------------------------
+No constraint files found.
+---------------------------------------------------------------------------------
+Start Cross Boundary and Area Optimization
+---------------------------------------------------------------------------------
+WARNING: [Synth 8-7080] Parallel synthesis criteria is not met
+DSP Report: Generating DSP ARG, operation Mode is: A2*B2.
+DSP Report: register twiddle_real_value_reg is absorbed into DSP ARG.
+DSP Report: register lower_real_reg is absorbed into DSP ARG.
+DSP Report: operator ARG is absorbed into DSP ARG.
+DSP Report: Generating DSP SHIFT_RIGHT0, operation Mode is: PCIN-A2*B2.
+DSP Report: register twiddle_imag_value_reg is absorbed into DSP SHIFT_RIGHT0.
+DSP Report: register lower_imag_reg is absorbed into DSP SHIFT_RIGHT0.
+DSP Report: operator SHIFT_RIGHT0 is absorbed into DSP SHIFT_RIGHT0.
+DSP Report: operator ARG is absorbed into DSP SHIFT_RIGHT0.
+DSP Report: Generating DSP ARG, operation Mode is: A2*B2.
+DSP Report: register twiddle_imag_value_reg is absorbed into DSP ARG.
+DSP Report: register lower_real_reg is absorbed into DSP ARG.
+DSP Report: operator ARG is absorbed into DSP ARG.
+DSP Report: Generating DSP SHIFT_RIGHT0, operation Mode is: PCIN+A2*B2.
+DSP Report: register twiddle_real_value_reg is absorbed into DSP SHIFT_RIGHT0.
+DSP Report: register lower_imag_reg is absorbed into DSP SHIFT_RIGHT0.
+DSP Report: operator SHIFT_RIGHT0 is absorbed into DSP SHIFT_RIGHT0.
+DSP Report: operator ARG is absorbed into DSP SHIFT_RIGHT0.
+WARNING: [Synth 8-3917] design axi_vibration_top has port m_bram_addr[31] driven by constant 0
+WARNING: [Synth 8-3917] design axi_vibration_top has port m_bram_addr[30] driven by constant 0
+WARNING: [Synth 8-3917] design axi_vibration_top has port m_bram_addr[29] driven by constant 0
+WARNING: [Synth 8-3917] design axi_vibration_top has port m_bram_addr[28] driven by constant 0
+WARNING: [Synth 8-3917] design axi_vibration_top has port m_bram_addr[27] driven by constant 0
+WARNING: [Synth 8-3917] design axi_vibration_top has port m_bram_addr[26] driven by constant 0
+WARNING: [Synth 8-3917] design axi_vibration_top has port m_bram_addr[25] driven by constant 0
+WARNING: [Synth 8-3917] design axi_vibration_top has port m_bram_addr[24] driven by constant 0
+WARNING: [Synth 8-3917] design axi_vibration_top has port m_bram_addr[23] driven by constant 0
+WARNING: [Synth 8-3917] design axi_vibration_top has port m_bram_addr[22] driven by constant 0
+WARNING: [Synth 8-3917] design axi_vibration_top has port m_bram_addr[21] driven by constant 0
+WARNING: [Synth 8-3917] design axi_vibration_top has port m_bram_addr[20] driven by constant 0
+WARNING: [Synth 8-3917] design axi_vibration_top has port m_bram_addr[19] driven by constant 0
+WARNING: [Synth 8-3917] design axi_vibration_top has port m_bram_addr[18] driven by constant 0
+WARNING: [Synth 8-3917] design axi_vibration_top has port m_bram_addr[17] driven by constant 0
+WARNING: [Synth 8-3917] design axi_vibration_top has port m_bram_addr[16] driven by constant 0
+WARNING: [Synth 8-3917] design axi_vibration_top has port m_bram_addr[15] driven by constant 0
+WARNING: [Synth 8-3917] design axi_vibration_top has port m_bram_addr[14] driven by constant 0
+WARNING: [Synth 8-3917] design axi_vibration_top has port m_bram_addr[13] driven by constant 0
+WARNING: [Synth 8-3917] design axi_vibration_top has port m_bram_addr[12] driven by constant 0
+WARNING: [Synth 8-3917] design axi_vibration_top has port m_bram_addr[11] driven by constant 0
+WARNING: [Synth 8-3917] design axi_vibration_top has port m_bram_addr[9] driven by constant 0
+WARNING: [Synth 8-3917] design axi_vibration_top has port m_bram_addr[8] driven by constant 0
+WARNING: [Synth 8-3917] design axi_vibration_top has port m_bram_addr[1] driven by constant 0
+WARNING: [Synth 8-3917] design axi_vibration_top has port m_bram_addr[0] driven by constant 0
+WARNING: [Synth 8-7129] Port s_axi_awprot[2] in module axi_vibration_top is either unconnected or has no load
+WARNING: [Synth 8-7129] Port s_axi_awprot[1] in module axi_vibration_top is either unconnected or has no load
+WARNING: [Synth 8-7129] Port s_axi_awprot[0] in module axi_vibration_top is either unconnected or has no load
+WARNING: [Synth 8-7129] Port s_axi_arprot[2] in module axi_vibration_top is either unconnected or has no load
+WARNING: [Synth 8-7129] Port s_axi_arprot[1] in module axi_vibration_top is either unconnected or has no load
+WARNING: [Synth 8-7129] Port s_axi_arprot[0] in module axi_vibration_top is either unconnected or has no load
+WARNING: [Synth 8-7129] Port m_bram_rdata[31] in module axi_vibration_top is either unconnected or has no load
+WARNING: [Synth 8-7129] Port m_bram_rdata[30] in module axi_vibration_top is either unconnected or has no load
+WARNING: [Synth 8-7129] Port m_bram_rdata[29] in module axi_vibration_top is either unconnected or has no load
+WARNING: [Synth 8-7129] Port m_bram_rdata[28] in module axi_vibration_top is either unconnected or has no load
+WARNING: [Synth 8-7129] Port m_bram_rdata[27] in module axi_vibration_top is either unconnected or has no load
+WARNING: [Synth 8-7129] Port m_bram_rdata[26] in module axi_vibration_top is either unconnected or has no load
+WARNING: [Synth 8-7129] Port m_bram_rdata[25] in module axi_vibration_top is either unconnected or has no load
+WARNING: [Synth 8-7129] Port m_bram_rdata[24] in module axi_vibration_top is either unconnected or has no load
+WARNING: [Synth 8-7129] Port m_bram_rdata[23] in module axi_vibration_top is either unconnected or has no load
+WARNING: [Synth 8-7129] Port m_bram_rdata[22] in module axi_vibration_top is either unconnected or has no load
+WARNING: [Synth 8-7129] Port m_bram_rdata[21] in module axi_vibration_top is either unconnected or has no load
+WARNING: [Synth 8-7129] Port m_bram_rdata[20] in module axi_vibration_top is either unconnected or has no load
+WARNING: [Synth 8-7129] Port m_bram_rdata[19] in module axi_vibration_top is either unconnected or has no load
+WARNING: [Synth 8-7129] Port m_bram_rdata[18] in module axi_vibration_top is either unconnected or has no load
+WARNING: [Synth 8-7129] Port m_bram_rdata[17] in module axi_vibration_top is either unconnected or has no load
+WARNING: [Synth 8-7129] Port m_bram_rdata[16] in module axi_vibration_top is either unconnected or has no load
+---------------------------------------------------------------------------------
+Finished Cross Boundary and Area Optimization : Time (s): cpu = 00:00:35 ; elapsed = 00:00:33 . Memory (MB): peak = 2395.309 ; gain = 918.410 ; free physical = 2773 ; free virtual = 38463
+---------------------------------------------------------------------------------
+ Sort Area is fft64_features ARG_3 : 0 0 : 1969 4168 : Used 1 time 0
+ Sort Area is fft64_features ARG_3 : 0 1 : 2199 4168 : Used 1 time 0
+ Sort Area is fft64_features ARG_0 : 0 0 : 1969 4038 : Used 1 time 0
+ Sort Area is fft64_features ARG_0 : 0 1 : 2069 4038 : Used 1 time 0
+---------------------------------------------------------------------------------
+Start ROM, RAM, DSP, Shift Register and Retiming Reporting
+---------------------------------------------------------------------------------
+
+ROM: Preliminary Mapping Report
++---------------+------------+---------------+----------------+
+|Module Name    | RTL Object | Depth x Width | Implemented As | 
++---------------+------------+---------------+----------------+
+|fft64_features | TWRE[0]    | 32x16         | LUT            | 
+|fft64_features | TWIM[0]    | 32x16         | LUT            | 
+|fft64_features | TWRE[0]    | 32x16         | LUT            | 
+|fft64_features | TWIM[0]    | 32x16         | LUT            | 
++---------------+------------+---------------+----------------+
+
+
+DSP: Preliminary Mapping Report (see note below. The ' indicates corresponding REG is set)
++---------------+-------------+--------+--------+--------+--------+--------+------+------+------+------+-------+------+------+
+|Module Name    | DSP Mapping | A Size | B Size | C Size | D Size | P Size | AREG | BREG | CREG | DREG | ADREG | MREG | PREG | 
++---------------+-------------+--------+--------+--------+--------+--------+------+------+------+------+-------+------+------+
+|fft64_features | A2*B2       | 16     | 16     | -      | -      | 32     | 1    | 1    | -    | -    | -     | 0    | 0    | 
+|fft64_features | PCIN-A2*B2  | 16     | 16     | -      | -      | 33     | 1    | 1    | -    | -    | -     | 0    | 0    | 
+|fft64_features | A2*B2       | 16     | 16     | -      | -      | 32     | 1    | 1    | -    | -    | -     | 0    | 0    | 
+|fft64_features | PCIN+A2*B2  | 16     | 16     | -      | -      | 33     | 1    | 1    | -    | -    | -     | 0    | 0    | 
++---------------+-------------+--------+--------+--------+--------+--------+------+------+------+------+-------+------+------+
+
+Note: The table above is a preliminary report that shows the DSPs inferred at the current stage of the synthesis flow. Some DSP may be reimplemented as non DSP primitives later in the synthesis flow. Multiple instantiated DSPs are reported only once.
+---------------------------------------------------------------------------------
+Finished ROM, RAM, DSP, Shift Register and Retiming Reporting
+---------------------------------------------------------------------------------
+No constraint files found.
+---------------------------------------------------------------------------------
+Start Timing Optimization
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Timing Optimization : Time (s): cpu = 00:00:36 ; elapsed = 00:00:34 . Memory (MB): peak = 2395.309 ; gain = 918.410 ; free physical = 2773 ; free virtual = 38463
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Technology Mapping
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Technology Mapping : Time (s): cpu = 00:00:39 ; elapsed = 00:00:37 . Memory (MB): peak = 2395.309 ; gain = 918.410 ; free physical = 2779 ; free virtual = 38469
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start IO Insertion
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Flattening Before IO Insertion
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Flattening Before IO Insertion
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Final Netlist Cleanup
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Final Netlist Cleanup
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished IO Insertion : Time (s): cpu = 00:00:44 ; elapsed = 00:00:42 . Memory (MB): peak = 2395.309 ; gain = 918.410 ; free physical = 2777 ; free virtual = 38467
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Renaming Generated Instances
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Renaming Generated Instances : Time (s): cpu = 00:00:44 ; elapsed = 00:00:42 . Memory (MB): peak = 2395.309 ; gain = 918.410 ; free physical = 2777 ; free virtual = 38467
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Rebuilding User Hierarchy
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Rebuilding User Hierarchy : Time (s): cpu = 00:00:44 ; elapsed = 00:00:42 . Memory (MB): peak = 2395.309 ; gain = 918.410 ; free physical = 2780 ; free virtual = 38470
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Renaming Generated Ports
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Renaming Generated Ports : Time (s): cpu = 00:00:44 ; elapsed = 00:00:42 . Memory (MB): peak = 2395.309 ; gain = 918.410 ; free physical = 2777 ; free virtual = 38467
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Handling Custom Attributes
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Handling Custom Attributes : Time (s): cpu = 00:00:45 ; elapsed = 00:00:43 . Memory (MB): peak = 2395.309 ; gain = 918.410 ; free physical = 2775 ; free virtual = 38465
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Renaming Generated Nets
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Renaming Generated Nets : Time (s): cpu = 00:00:45 ; elapsed = 00:00:43 . Memory (MB): peak = 2395.309 ; gain = 918.410 ; free physical = 2775 ; free virtual = 38465
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Writing Synthesis Report
+---------------------------------------------------------------------------------
+
+DSP Final Report (the ' indicates corresponding REG is set)
++---------------+-----------------+--------+--------+--------+--------+--------+------+------+------+------+-------+------+------+
+|Module Name    | DSP Mapping     | A Size | B Size | C Size | D Size | P Size | AREG | BREG | CREG | DREG | ADREG | MREG | PREG | 
++---------------+-----------------+--------+--------+--------+--------+--------+------+------+------+------+-------+------+------+
+|fft64_features | A'*B'           | 30     | 18     | -      | -      | 0      | 1    | 1    | -    | -    | -     | 0    | 0    | 
+|fft64_features | (PCIN-(A'*B'))' | 30     | 18     | -      | -      | 33     | 1    | 1    | -    | -    | -     | 0    | 1    | 
+|fft64_features | A'*B'           | 30     | 18     | -      | -      | 0      | 1    | 1    | -    | -    | -     | 0    | 0    | 
+|fft64_features | (PCIN+A'*B')'   | 30     | 18     | -      | -      | 33     | 1    | 1    | -    | -    | -     | 0    | 1    | 
++---------------+-----------------+--------+--------+--------+--------+--------+------+------+------+------+-------+------+------+
+
+
+Report BlackBoxes: 
++-+--------------+----------+
+| |BlackBox name |Instances |
++-+--------------+----------+
++-+--------------+----------+
+
+Report Cell Usage: 
++------+--------+------+
+|      |Cell    |Count |
++------+--------+------+
+|1     |CARRY4  |   165|
+|2     |DSP48E1 |     4|
+|3     |LUT1    |    96|
+|4     |LUT2    |   375|
+|5     |LUT3    |   172|
+|6     |LUT4    |   171|
+|7     |LUT5    |  3243|
+|8     |LUT6    |  3490|
+|9     |MUXF7   |   774|
+|10    |MUXF8   |   324|
+|11    |FDRE    |  2871|
+|12    |FDSE    |    22|
++------+--------+------+
+
+Report Instance Areas: 
++------+----------------+-------------------+------+
+|      |Instance        |Module             |Cells |
++------+----------------+-------------------+------+
+|1     |top             |                   | 11707|
+|2     |  U_IMPL        |axi_vibration_impl | 11707|
+|3     |    U_CORE      |vibration_core     | 11136|
+|4     |      U_FFT     |fft64_features     | 10009|
+|5     |      U_NPU     |npu_2pe            |   867|
+|6     |        U_PE0   |mac_pe             |   319|
+|7     |        U_PE1   |mac_pe_0           |   316|
+|8     |    U_MISO_SYNC |input_sync         |     2|
+|9     |    U_REGS      |axi_registers      |   369|
+|10    |    U_SPI       |mpu_reg_spi        |   200|
++------+----------------+-------------------+------+
+---------------------------------------------------------------------------------
+Finished Writing Synthesis Report : Time (s): cpu = 00:00:45 ; elapsed = 00:00:43 . Memory (MB): peak = 2395.309 ; gain = 918.410 ; free physical = 2775 ; free virtual = 38465
+---------------------------------------------------------------------------------
+Synthesis finished with 0 errors, 0 critical warnings and 74 warnings.
+Synthesis Optimization Runtime : Time (s): cpu = 00:00:45 ; elapsed = 00:00:43 . Memory (MB): peak = 2395.309 ; gain = 918.410 ; free physical = 2775 ; free virtual = 38465
+Synthesis Optimization Complete : Time (s): cpu = 00:00:45 ; elapsed = 00:00:43 . Memory (MB): peak = 2395.316 ; gain = 918.410 ; free physical = 2775 ; free virtual = 38465
+INFO: [Project 1-571] Translating synthesized netlist
+Netlist sorting complete. Time (s): cpu = 00:00:00.06 ; elapsed = 00:00:00.06 . Memory (MB): peak = 2395.316 ; gain = 0.000 ; free physical = 2945 ; free virtual = 38635
+INFO: [Netlist 29-17] Analyzing 1267 Unisim elements for replacement
+INFO: [Netlist 29-28] Unisim Transformation completed in 0 CPU seconds
+WARNING: [Netlist 29-101] Netlist 'axi_vibration_top' is not ideal for floorplanning, since the cellview 'fft64_features' contains a large number of primitives.  Please consider enabling hierarchy in synthesis if you want to do floorplanning.
+INFO: [Project 1-570] Preparing netlist for logic optimization
+INFO: [Opt 31-138] Pushed 0 inverter(s) to 0 load pin(s).
+Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00 . Memory (MB): peak = 2435.328 ; gain = 0.000 ; free physical = 2942 ; free virtual = 38632
+INFO: [Project 1-111] Unisim Transformation Summary:
+No Unisim elements were transformed.
+
+Synth Design complete | Checksum: fe642fd
+INFO: [Common 17-83] Releasing license: Synthesis
+36 Infos, 75 Warnings, 0 Critical Warnings and 0 Errors encountered.
+synth_design completed successfully
+synth_design: Time (s): cpu = 00:00:51 ; elapsed = 00:00:47 . Memory (MB): peak = 2435.328 ; gain = 1062.480 ; free physical = 2942 ; free virtual = 38632
+INFO: [Common 17-2834] synth_design peak Physical Memory [PSS] (MB): overall = 2059.614; main = 1905.829; forked = 319.865
+INFO: [Common 17-2834] synth_design peak Virtual Memory [VSS] (MB): overall = 3316.207; main = 2435.332; forked = 920.895
+# report_utilization -file [file join $outdir ${top}_utilization.rpt]
+# puts "VHDL SYNTHESIS PASS $top (out of context; not a routed timing report)"
+VHDL SYNTHESIS PASS axi_vibration_top (out of context; not a routed timing report)
+INFO: [Common 17-206] Exiting Vivado at Sun Nov 15 22:05:13 2026...

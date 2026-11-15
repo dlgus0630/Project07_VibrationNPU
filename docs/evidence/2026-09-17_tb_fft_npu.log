@@ -1,0 +1,3 @@
+Time resolution is 1 ps
+TEST PASS tb_fft_npu 20 cases all complex bins and layer tensors
+$finish called at time : 164240 ns : File "/home/dlgus0630/Downloads/fpga_fourier_pid_v4/Project07_VibrationNPU/fourier/tb/tb_fft_npu.v" Line 31

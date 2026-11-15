@@ -1,0 +1,3 @@
+Time resolution is 1 ps
+TEST PASS tb_axi AW/W skew, backpressure, byte strobes, busy reject, SPI status, PI tuning regs, quad status
+$finish called at time : 26600 ns : File "/home/dlgus0630/Downloads/fpga_fourier_pid_v4/Project07_VibrationNPU/fourier/tb/tb_axi.v" Line 97

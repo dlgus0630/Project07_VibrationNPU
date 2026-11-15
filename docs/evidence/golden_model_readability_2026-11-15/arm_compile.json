@@ -1,0 +1,28 @@
+{
+  "status": "PASS",
+  "timestamp_utc": "2026-11-15T11:54:33.823267+00:00",
+  "compiler": "arm-xilinx-eabi-gcc.real (GCC) 13.3.0",
+  "command": [
+    "/tools/Xilinx/Vitis/2024.2/gnu/aarch32/lin/gcc-arm-none-eabi/bin/arm-none-eabi-gcc",
+    "-std=c11",
+    "-O2",
+    "-Wall",
+    "-Wextra",
+    "-Werror",
+    "-mcpu=cortex-a9",
+    "-mfloat-abi=hard",
+    "-mfpu=vfpv3",
+    "-c",
+    "fourier/firmware/golden.c",
+    "-o",
+    "build/golden_readability_arm.o"
+  ],
+  "compile_exit_code": 0,
+  "object_sha256": "a1db64ebcb4dc62fa0ec086fdd638c236550fb8bdf6804103a6a648679c2057f",
+  "object_format": "ELF32 ARM relocatable",
+  "source_sha256": {
+    "fourier/firmware/golden.c": "73dc07eaa45348f027268009197fe037ade9a8231f3d83622e7a866e394f9925",
+    "fourier/firmware/golden.h": "b3a0bec5f870e095a993382a98132913e8da07d508702d6cc0fa6c0e93e9ef1c",
+    "fourier/firmware/model_data.h": "a1832fe7dea905b0fbac2c0bae890ccdb98efda55b752aeba6440d8e40ec2771"
+  }
+}

@@ -1,0 +1,3 @@
+Time resolution is 1 ps
+TEST PASS tb_mac 65536 signed INT8 products plus bias and hold
+$finish called at time : 1310790 ns : File "/home/dlgus0630/Downloads/fpga_fourier_pid_v4/Project07_VibrationNPU/fourier/tb/tb_mac.v" Line 17

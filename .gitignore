@@ -4,7 +4,11 @@ __pycache__/
 *.pyc
 *.jou
 *.log
+!/docs/evidence/2026-09-17_tb_*.log
+!/docs/evidence/vhdl_2026-11-15/*.log
+!/docs/evidence/vhdl_structure_2026-11-15/*.log
+!/docs/evidence/vhdl_pid_readability_2026-11-15/*.log
+!/docs/evidence/readability_complete_2026-11-15/*.log
 *.str
 *.wdb
 .Xil/
-

@@ -1,0 +1,48 @@
+digraph G {
+graph [fontname="Noto Sans CJK KR", fontsize=24, rankdir=TB, bgcolor="white", pad=0.45, nodesep=0.5, ranksep=0.65, compound=true, dpi=150, labelloc=t, labeljust=l, label="06 · 모터 운전 허용 · 출력 선택 · PI 기동\nmotor_run_control의 병렬 프로세스를 세 구역으로 표현 · 별도 enum FSM 없음"];
+node [fontname="Noto Sans CJK KR", fontsize=17, shape=box, style="rounded,filled", fillcolor="#edf5fc", color="#476681", penwidth=1.6, margin="0.22,0.14"];
+edge [fontname="Noto Sans CJK KR", fontsize=14, color="#405b70", fontcolor="#263e50", penwidth=1.5, arrowsize=0.8];
+subgraph cluster_arm { label="arm_control_proc · warmup_count / seen_off / armed"; fontsize=20; color="#b3c5d2"; style="rounded"; margin=22;
+"warm" [label="초기 대기\nwarmup_count=0..4 / armed=0", shape=box, fillcolor="#edf5fc"];
+"wait" [label="OFF 관측 대기\nwarmup_count=4 / seen_off=0 / armed=0", shape=box, fillcolor="#edf5fc"];
+"off" [label="OFF 확인\nseen_off=1 / armed=0", shape=box, fillcolor="#edf5fc"];
+"on" [label="운전 명령 유지\narmed=1 / seen_off=1", shape=box, fillcolor="#edf5fc"];
+"warm" -> "warm" [label="warmup_count<4 / count++"];
+"warm" -> "wait" [label="warmup_count=4 AND sw_sync(0)=1"];
+"warm" -> "off" [label="warmup_count=4 AND sw_sync(0)=0"];
+"wait" -> "wait" [label="sw_sync(0)=1"];
+"wait" -> "off" [label="sw_sync(0)=0"];
+"off" -> "off" [label="sw_sync(0)=0"];
+"off" -> "on" [label="sw_sync(0)=1"];
+"on" -> "off" [label="sw_sync(0)=0"];
+"on" -> "on" [label="sw_sync(0)=1"];
+"reset" [label="모든 운전 조건\nrst=1 → warmup=0 / seen_off=0 / armed=0", shape=box, fillcolor="#f5f5f4"];
+"reset" -> "warm" [label="reset 우선", style="dashed", color="#987290"];
+}
+subgraph cluster_duty { label="drive_select_proc · 조합 선택 우선순위"; fontsize=20; color="#b3c5d2"; style="rounded"; margin=22;
+"ol" [label="open_loop_enable=1?", shape=diamond, fillcolor="#fff7e9"];
+"open" [label="requested_duty=open_loop_duty", shape=box, fillcolor="#fff3dd"];
+"ripple" [label="sw_sync(3)=1?", shape=diamond, fillcolor="#fff7e9"];
+"ri" [label="requested_duty=1024 또는 3072\nfault_phase에 따라 25% / 75%", shape=box, fillcolor="#fff3dd"];
+"pi" [label="requested_duty=pid_duty", shape=box, fillcolor="#fff3dd"];
+"limit" [label="안전 출력 제한\nderated=1 AND requested_duty>1024이면 duty=1024\n그 외 duty=requested_duty", shape=box, fillcolor="#eff7f0"];
+"ol" -> "open" [label="예"];
+"ol" -> "ripple" [label="아니오"];
+"ripple" -> "ri" [label="예"];
+"ripple" -> "pi" [label="아니오"];
+"open" -> "limit" [label=""];
+"ri" -> "limit" [label=""];
+"pi" -> "limit" [label=""];
+}
+subgraph cluster_control { label="독립 카운터와 제어 시작 경로"; fontsize=20; color="#b3c5d2"; style="rounded"; margin=22;
+"tick" [label="sample_tick_proc\nCLK_HZ/100 주기마다 sample_tick 한 클럭", shape=box, fillcolor="#eff7f0"];
+"speed" [label="encoder_speed_hybrid\ntick 스냅샷 → 계산 후 speed_valid", shape=box, fillcolor="#eff7f0"];
+"start" [label="pid_start_proc\nspeed_valid=1 AND enabled=1 AND pid_busy=0\n이면 pid_start=1, 그 외 0", shape=box, fillcolor="#eff7f0"];
+"tick" -> "speed" [label=""];
+"speed" -> "start" [label=""];
+}
+"notes" [label="읽는 기준 / 코드 근거\nsw는 switch_sync_proc의 두 FF로 동기화. clear_fault=NOT sw_sync(0).\nenabled=armed AND NOT rst AND reset_n AND NOT stop_button AND NOT fault_latched\narmed 명령과 실제 enabled 출력은 구분한다. fault가 armed 레지스터를 직접 지우지는 않는다.\nspeed_reference={0, sw_sync(2:1), 10개 0}.\nfourier_motor_control → U_IMPL/fourier_motor_impl에서 연결하며 wrapper 자체에는 FSM이 없다.", shape=box, fillcolor="#f5f5f4"];
+"on" -> "ol" [label="", style="invis", weight="20"];
+"limit" -> "tick" [label="", style="invis", weight="20"];
+"start" -> "notes" [label="", style="invis", weight="20"];
+}

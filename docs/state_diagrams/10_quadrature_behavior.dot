@@ -1,0 +1,35 @@
+digraph G {
+graph [fontname="Noto Sans CJK KR", fontsize=24, rankdir=TB, bgcolor="white", pad=0.45, nodesep=0.5, ranksep=0.65, compound=true, dpi=150, labelloc=t, labeljust=l, label="10 · A/B 위상 전이 · 위치 · 오류 감시\nstate는 이전 A/B 위상 2비트 · 제어 순서 FSM과 구분하는 입력 위상 전이도"];
+node [fontname="Noto Sans CJK KR", fontsize=17, shape=box, style="rounded,filled", fillcolor="#edf5fc", color="#476681", penwidth=1.6, margin="0.22,0.14"];
+edge [fontname="Noto Sans CJK KR", fontsize=14, color="#405b70", fontcolor="#263e50", penwidth=1.5, arrowsize=0.8];
+subgraph cluster_phase { label="phase_decode_comb_proc · state & state_now"; fontsize=20; color="#b3c5d2"; style="rounded"; margin=22;
+"p00" [label="A/B = 00\n이전 관측 위상", shape=box, fillcolor="#edf5fc"];
+"p10" [label="A/B = 10\n이전 관측 위상", shape=box, fillcolor="#edf5fc"];
+"p11" [label="A/B = 11\n이전 관측 위상", shape=box, fillcolor="#edf5fc"];
+"p01" [label="A/B = 01\n이전 관측 위상", shape=box, fillcolor="#edf5fc"];
+"p00" -> "p10" [label="정방향 / direction=0\nposition+1"];
+"p10" -> "p00" [label="역방향 / direction=1\nposition-1"];
+"p10" -> "p11" [label="정방향 / direction=0\nposition+1"];
+"p11" -> "p10" [label="역방향 / direction=1\nposition-1"];
+"p11" -> "p01" [label="정방향 / direction=0\nposition+1"];
+"p01" -> "p11" [label="역방향 / direction=1\nposition-1"];
+"p01" -> "p00" [label="정방향 / direction=0\nposition+1"];
+"p00" -> "p01" [label="역방향 / direction=1\nposition-1"];
+"p00" -> "p11" [label="두 비트 동시 변화: illegal", style="dashed", color="#987290", dir="both"];
+"p10" -> "p01" [label="두 비트 동시 변화: illegal", style="dashed", color="#987290", dir="both"];
+}
+subgraph cluster_position { label="position_proc · 우선순위"; fontsize=20; color="#b3c5d2"; style="rounded"; margin=22;
+"pos" [label="상승 에지 위치 갱신\n1. rst → position=0\n2. position_wr_en → preset 저장\n3. moved AND valid_forward → +1\n4. moved AND valid_backward → -1\n5. 그 외 유지", shape=box, fillcolor="#eff7f0"];
+}
+subgraph cluster_fault { label="fault_status_proc / timeout_count_proc · 위상 디코드와 병렬"; fontsize=20; color="#b3c5d2"; style="rounded"; margin=22;
+"illegal" [label="불법 전이\nmoved AND NOT valid_forward AND NOT valid_backward\nillegal_transition_fault=1 / count 포화 증가", shape=box, fillcolor="#fcebec"];
+"timeout" [label="무펄스 timeout\nNOT moved AND enabled AND duty/=0\nAND timeout_count>=TIMEOUT_CLOCKS-1 → timeout_fault=1", shape=box, fillcolor="#fcebec"];
+"overflow" [label="위치 overflow\n유효한 정/역방향 전이에서 부호 범위 초과\n→ overflow_fault=1", shape=box, fillcolor="#fcebec"];
+}
+"notes" [label="읽는 기준 / 코드 근거\nrst=1: 입력 동기화 / 이전 위상=00 / 위치·방향·오류 초기화.\nstate_now=a_sync(1)&b_sync(1). moved이면 다음 비교용 state를 갱신한다.\n동일 위상은 이동 없음. 불법 전이는 위치와 방향을 바꾸지 않는다.\nposition preset이 같은 클럭 이동보다 우선하지만, 오류 검사는 별도 프로세스다.\nclear는 오류 flag만 초기화: illegal count와 timeout_count를 초기화하지 않는다.\nrst 이외에 clear와 새 오류가 겹치면 뒤에 기록되는 새 오류가 우선한다.", shape=box, fillcolor="#f5f5f4"];
+"p11" -> "pos" [label="", style="invis", weight="20"];
+"pos" -> "illegal" [label="", style="invis", weight="20"];
+"illegal" -> "notes" [label="", style="invis", weight="20"];
+"timeout" -> "notes" [label="", style="invis", weight="20"];
+"overflow" -> "notes" [label="", style="invis", weight="20"];
+}

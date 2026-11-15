@@ -1,0 +1,39 @@
+{
+  "status": "PASS",
+  "timestamp_utc": "2026-11-15T11:52:20.248762+00:00",
+  "tool": "gcc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0",
+  "undefined_behavior_sanitizer": true,
+  "random_seed": 20261115,
+  "groups": {
+    "existing_fixtures": 20,
+    "recorded_windows": 360,
+    "directed_test_vectors": 271,
+    "random_test_vectors": 10000
+  },
+  "total_frames": 10651,
+  "compared_values_per_frame": 139,
+  "fields": [
+    "re[64]",
+    "im[64]",
+    "features[4]",
+    "hidden[4]",
+    "logits[2]",
+    "class_id"
+  ],
+  "note": "Generated vectors are software verification inputs, not measured observations.",
+  "source_sha256": {
+    "docs/evidence/golden_model_readability_2026-11-15/golden_before.c": "55aade8cd80203adb46a904c34099c9bed094e644547fe80980648af5ed06cd3",
+    "tools/check_golden_equivalence.py": "03a9a8a0462c864d5723ef7c800a23a66de880bfcb0f5587d0320c7fa8ab1080",
+    "fourier/firmware/golden.c": "73dc07eaa45348f027268009197fe037ade9a8231f3d83622e7a866e394f9925",
+    "fourier/firmware/golden.h": "b3a0bec5f870e095a993382a98132913e8da07d508702d6cc0fa6c0e93e9ef1c",
+    "fourier/firmware/model_data.h": "a1832fe7dea905b0fbac2c0bae890ccdb98efda55b752aeba6440d8e40ec2771",
+    "data/cases.csv": "1eeaff719ee5d9a992d947f9bf9022926758b5c83b63a17695a609c91cf17b47",
+    "data/dataset_source.json": "8a45356ab9be8e62de4135aef43c06998c2f25c3f20daf5a14fcb2e94d25de63",
+    "measurements/final_50pct/normal_50_01.csv": "6501af2a5d956507cf726f4546a2fc77e21dec68aee7011438cd8804d04a0204",
+    "measurements/final_50pct/normal_50_02.csv": "2fa3baf19d35b5afdaf8cf1b2a385e23d20a39708ff06dc27e444633dd7d4b9d",
+    "measurements/final_50pct/normal_50_03.csv": "5c54633a2b04906b88ca9e9d029780a6b40aaae6614638ac527c3134216c0172",
+    "measurements/final_50pct/fault_ripple_01.csv": "950eb9b4cf7a2c16182cb53cf9a79fd0b4a0e6de9da3c5a9ea2a655d03bf0e32",
+    "measurements/final_50pct/fault_ripple_02.csv": "d084a353b43a9eebb20a089c87e82f5f4102f53eecac130bfb29d854be436e36",
+    "measurements/final_50pct/fault_ripple_03.csv": "ca41366b82d8a0669320c616ce9e41d6db6a553542503d692845c8a5df2c5465"
+  }
+}

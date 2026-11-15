@@ -1,0 +1,210 @@
+{
+  "status": "PASS",
+  "timestamp_utc": "2026-11-15T13:13:13.644210+00:00",
+  "scenarios": {
+    "replay_pair": {
+      "commands": "r",
+      "trace_lines": 170,
+      "trace_sha256": "4f19dad9ff42a9516ddbd055c8134c6841983f0f1bf4d2b40eb6bcf5e132ef3d"
+    },
+    "replay_fault": {
+      "commands": "x",
+      "trace_lines": 88,
+      "trace_sha256": "7bb8c0f225caaa5b4629014d8811ba59e24d12df9fe7098f2dc32f9418c70df5"
+    },
+    "benchmark": {
+      "commands": "b",
+      "trace_lines": 8206,
+      "trace_sha256": "24e5b3b2b74b717ac063c7d2ce0bf366c4befe2935270560417f8cb3f1c85f10"
+    },
+    "safety": {
+      "commands": "f",
+      "trace_lines": 9,
+      "trace_sha256": "b4fefbb4f96618fe80c6343d9dab014367ffe783f96ee89553c6206e25cd87cb"
+    },
+    "gain_and_integrator_commands": {
+      "commands": "gGwWog",
+      "trace_lines": 24,
+      "trace_sha256": "1eaa56966e66ababc69d69d2eb5019c0f44ee1599f460e58556961bbbfee003d"
+    },
+    "telemetry_restart": {
+      "commands": "tftTTtT",
+      "trace_lines": 192,
+      "trace_sha256": "82c087074d791d50b6e22d2f490b314a8c40afd1de10de644a3b22e6014220e9"
+    },
+    "open_loop_from_idle": {
+      "commands": "p",
+      "trace_lines": 52651,
+      "trace_sha256": "a155c7395fd929023742de4d929538eb93f4395cb1d4855f8d52608f0815a6f7"
+    },
+    "open_loop_while_streaming": {
+      "commands": "tpT",
+      "trace_lines": 52741,
+      "trace_sha256": "e8b207156aee4ec0395e1957c3b637e370704a7a491e255ac059fe0bf0f87e62"
+    },
+    "sensor_6500": {
+      "commands": "isd",
+      "trace_lines": 3990,
+      "trace_sha256": "220137bd70f6b676cf1c7c2e6bbd897c1a7a155caf8699ebd6234fe8c15faf4b"
+    },
+    "sensor_9250": {
+      "commands": "isd",
+      "trace_lines": 3990,
+      "trace_sha256": "fb4caa81ae29952f78f76e7a83755b50dad8a237e2e685acea3b5f8723ca3106"
+    },
+    "sensor_signed_samples": {
+      "commands": "isd",
+      "trace_lines": 3990,
+      "trace_sha256": "c9af20ab06e06183a250cbbe29958a60677b3628229b3e8825c4b7a064aed3be"
+    },
+    "unknown_sensor": {
+      "commands": "is",
+      "trace_lines": 11,
+      "trace_sha256": "a3307cd9c975ae6236c2c545c431368c1c56a3b7336ebff045fb75017b793110"
+    },
+    "configuration_mismatch": {
+      "commands": "is",
+      "trace_lines": 41,
+      "trace_sha256": "2b471ec3b1c6bcce6c0dfa2a540de4e4d002674422c8aedc21d9a39683cfd983"
+    },
+    "spi_timeout": {
+      "commands": "i",
+      "trace_lines": 59,
+      "trace_sha256": "4faf54c3e9218bc090fa2be6dbd85c8f399fdbaa3691181d9d803e114b49651a"
+    },
+    "data_ready_timeout": {
+      "commands": "is",
+      "trace_lines": 100,
+      "trace_sha256": "06377010649404716a1528b1e54733b97ed99224c887fc939ef75654577109d0"
+    },
+    "sample_interval_error": {
+      "commands": "is",
+      "trace_lines": 91,
+      "trace_sha256": "91afc3f92b59e638777b32512e3c9aa2df355fef7603a365a4ec0192303bbbbd"
+    },
+    "pl_timeout": {
+      "commands": "r",
+      "trace_lines": 344,
+      "trace_sha256": "9b67fae5111713383b1351d8f9d6dba9a36653547532e5dbb52c93946e97a497"
+    },
+    "pl_status_error": {
+      "commands": "r",
+      "trace_lines": 144,
+      "trace_sha256": "9c1fe3f83cab70685a53eb0b6ae83772026d5052e640cdc067ab1e042979a61d"
+    },
+    "result_mismatch": {
+      "commands": "rb",
+      "trace_lines": 252,
+      "trace_sha256": "f521eac9f8006fd7283a85fe0e22c06becbc9ae657998aea26f1105e2be0ac89"
+    },
+    "uninitialized_sensor": {
+      "commands": "sd?",
+      "trace_lines": 8,
+      "trace_sha256": "193c2c53f5ea82cf6ee38ee43e72b088091ea7e6f4434d97ceeedb1e05cf63da"
+    }
+  },
+  "host_checker": {
+    "unchanged": {
+      "exit_code": 0,
+      "stdout": "HOST C PASS: 20 windows, 2560 FFT components, 220 result values\n",
+      "stderr": ""
+    },
+    "fft_re": {
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "HOST C FAIL case 0 element 0\n"
+    },
+    "fft_im": {
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "HOST C FAIL case 0 element 0\n"
+    },
+    "features": {
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "HOST C FAIL case 0 element 0\n"
+    },
+    "hidden": {
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "HOST C FAIL case 0 element 0\n"
+    },
+    "logits": {
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "HOST C FAIL case 0 element 0\n"
+    },
+    "class": {
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "HOST C FAIL case 0 element 2\n"
+    },
+    "truncated": {
+      "exit_code": 2,
+      "stdout": "",
+      "stderr": "truncated vector\n"
+    }
+  },
+  "result_layout": {
+    "status": "PASS",
+    "sizeof_and_offsets": "268 0 128 256 260 264 266"
+  },
+  "arm_compile": {
+    "status": "PASS",
+    "bsp_include": "/home/dlgus0630/workspace/Project07_VibrationNPU_vitis/fourier_plat/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/include",
+    "objects": {
+      "main.c": {
+        "object_sha256": "0a07c756f92990191d5bd311bf5d9b161143bbd9e6ef6d84b192949c4d0a1288"
+      },
+      "app_platform.c": {
+        "object_sha256": "9df91ccff6f3b7d60929abc7bae039f94806037d0fe06d4d3c8818fc0e0272c1"
+      },
+      "app_telemetry.c": {
+        "object_sha256": "5d3358c2fbb8ce91cc7f6a6d9d05191282349d0221e531726759452d35007ec1"
+      },
+      "sensor_spi.c": {
+        "object_sha256": "64d970aad311c0029441f4c70f274b5ec3141193a676de89552d46e7fd045927"
+      },
+      "app_inference.c": {
+        "object_sha256": "cdcda7d4c9214365888595241390f1d6fcb4fc328430403fd65d241979ea072e"
+      },
+      "motor_commands.c": {
+        "object_sha256": "95e4792c9654d8e38af8c595c353c592b1fe76d28592d82d9e3c8eee02fd5257"
+      },
+      "golden.c": {
+        "object_sha256": "a1db64ebcb4dc62fa0ec086fdd638c236550fb8bdf6804103a6a648679c2057f"
+      }
+    },
+    "link": "PASS",
+    "elf_sha256": "91546a9096db61f3ab962cddd966981dd74134f8df87317c749c387cc84bf2ea",
+    "tool": "arm-xilinx-eabi-gcc.real (GCC) 13.3.0"
+  },
+  "source_sha256": {
+    "tools/check_firmware_equivalence.py": "ca43269303ae3f0f1e058b304753e5a8845b7eaa7275b53255ceceffafd02b87",
+    "fourier/firmware/golden.c": "73dc07eaa45348f027268009197fe037ade9a8231f3d83622e7a866e394f9925",
+    "fourier/firmware/app_inference.c": "2fedc63e8a8d16785f84a763aa5e398c8bb145f389c901b34cd34852dbb7568a",
+    "fourier/firmware/app_telemetry.c": "290c2a62472b8b2b50b4ec6b466510a79c49b4c1dd23f87991f845eb3337ed4e",
+    "fourier/firmware/main.c": "b9ebd5bd491cc45666aa8d958480d9dcf30b40da4259dcd6939ce310729524cb",
+    "fourier/firmware/motor_commands.c": "378d0159f5894a4c1a61026bc45e373eca44b34693b49db5fa5ef1e1d267dc99",
+    "fourier/firmware/host_check.c": "db07d0ab7988f3b89e2cb2ff05509287994cda3506cb675f20b1ec0ae12ae51e",
+    "fourier/firmware/app_platform.c": "dbda0f90d773252cfc4e7ab5e1bbadb76fbafa561e42b1390e7b31f2f63de985",
+    "fourier/firmware/sensor_spi.c": "435d5e34099005787f12b6c44827b583203f38481ab624988b2c583c0c254548",
+    "fourier/firmware/app_registers.h": "0e831d45cad89c3579c95146498b0535b9da97042b06ab85a8760ac975631124",
+    "fourier/firmware/app_platform.h": "e89584a4b8d1a7db2701dc830722166ac15b1805ead90ccf0082469452400b0e",
+    "fourier/firmware/golden.h": "d13a13f394a03aa2fbdaf03254c41fc0405179c3aa65aa085afde0da7d6d0bba",
+    "fourier/firmware/motor_commands.h": "708dae0141bcf7777a4698bf40403d31959262630bdee980f896e66c80ba9abc",
+    "fourier/firmware/model_data.h": "a1832fe7dea905b0fbac2c0bae890ccdb98efda55b752aeba6440d8e40ec2771",
+    "fourier/firmware/app_telemetry.h": "e2ddd3c744eb4892a1d91334a8dc5d63780d41592756d203cc5c666f7cb66a19",
+    "fourier/firmware/app_inference.h": "efa534d76162d592b7ffe62cf224ed641ad4a4bca39598d541fc0f507818ecf4",
+    "fourier/firmware/sensor_spi.h": "0cb78eb2193bc765a0042b5c5793640954218d1c58a8404f9bf9b3da8126b2b3",
+    "fourier/tb_host/firmware_protocol_driver.c": "14d23d41318347bafcce8dfda2df3938b36cc40a61a33beba58ad95d59a97057",
+    "fourier/tb_host/bsp_mock/xil_cache.h": "45280e832052d434f2acd017399a9dd7b6055999a7282a0c3efbfab3c3cd96d9",
+    "fourier/tb_host/bsp_mock/mock_bsp.h": "9f41ed39cfc7bf4636b2d9205a7a57b8df8f196402179ef3c4c82c70f96d29c7",
+    "fourier/tb_host/bsp_mock/xuartps_hw.h": "45280e832052d434f2acd017399a9dd7b6055999a7282a0c3efbfab3c3cd96d9",
+    "fourier/tb_host/bsp_mock/xil_io.h": "45280e832052d434f2acd017399a9dd7b6055999a7282a0c3efbfab3c3cd96d9",
+    "fourier/tb_host/bsp_mock/xiltimer.h": "45280e832052d434f2acd017399a9dd7b6055999a7282a0c3efbfab3c3cd96d9",
+    "fourier/tb_host/bsp_mock/sleep.h": "45280e832052d434f2acd017399a9dd7b6055999a7282a0c3efbfab3c3cd96d9",
+    "fourier/tb_host/bsp_mock/xparameters.h": "45280e832052d434f2acd017399a9dd7b6055999a7282a0c3efbfab3c3cd96d9"
+  },
+  "note": "Host BSP software protocol test; timer values are not hardware measurements."
+}

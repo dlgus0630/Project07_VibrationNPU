@@ -1,0 +1,32 @@
+digraph G {
+graph [fontname="Noto Sans CJK KR", fontsize=24, rankdir=TB, bgcolor="white", pad=0.45, nodesep=0.5, ranksep=0.65, compound=true, dpi=150, labelloc=t, labeljust=l, label="04 · 고정소수점 PI + anti-windup FSM · 11 states\nRTL 상태천이도 · 실선: nextstate_proc에서 추출 · 파선: 공통 reset / 복구"];
+node [fontname="Noto Sans CJK KR", fontsize=17, shape=box, style="rounded,filled", fillcolor="#edf5fc", color="#476681", penwidth=1.6, margin="0.22,0.14"];
+edge [fontname="Noto Sans CJK KR", fontsize=14, color="#405b70", fontcolor="#263e50", penwidth=1.5, arrowsize=0.8];
+"IDLE" [label="IDLE  [0]\nstart 수락: error_reg=reference-measured\ny_hold 저장 / busy=1", shape=box, fillcolor="#edf5fc"];
+"FILTER" [label="FILTER  [1]\n측정 변화 필터 derivative와 y_previous 저장\n제어 계산의 d_term은 0", shape=box, fillcolor="#edf5fc"];
+"PRODUCTS" [label="PRODUCTS  [2]\nP=(Kp×error)>>16 저장\n적분 후보 하위 합 + carry 저장 / d_term=0", shape=box, fillcolor="#edf5fc"];
+"PRODUCTS_HI" [label="PRODUCTS_HI  [3]\n상위 합 + 이전 carry 결합\n적분 후보를 -4096..4096으로 제한", shape=box, fillcolor="#edf5fc"];
+"PROPOSE_ADD" [label="PROPOSE_ADD  [4]\nproposed_sum=P+integral_candidate", shape=box, fillcolor="#edf5fc"];
+"PROPOSE_SUB" [label="PROPOSE_SUB  [5]\nproposed_value=proposed_sum-d_term", shape=box, fillcolor="#edf5fc"];
+"SELECT_STATE" [label="SELECT_STATE  [6]\nanti-windup 선택값을 integral / selected_i에 저장", shape=box, fillcolor="#edf5fc"];
+"OUTPUT_ADD" [label="OUTPUT_ADD  [7]\noutput_sum=P+selected_i", shape=box, fillcolor="#edf5fc"];
+"OUTPUT_SUB" [label="OUTPUT_SUB  [8]\noutput_value=output_sum-d_term", shape=box, fillcolor="#edf5fc"];
+"CLAMP" [label="CLAMP  [9]\nduty=clamp(output_value, 0, 4096)", shape=box, fillcolor="#edf5fc"];
+"FINISH" [label="FINISH  [10]\nbusy=0 / done=1 (한 클럭)", shape=box, fillcolor="#edf5fc"];
+"IDLE" -> "FILTER" [label="(start = '1')"];
+"IDLE" -> "IDLE" [label="NOT ((start = '1'))"];
+"FILTER" -> "PRODUCTS" [label="다음 clk"];
+"PRODUCTS" -> "PRODUCTS_HI" [label="다음 clk"];
+"PRODUCTS_HI" -> "PROPOSE_ADD" [label="다음 clk"];
+"PROPOSE_ADD" -> "PROPOSE_SUB" [label="다음 clk"];
+"PROPOSE_SUB" -> "SELECT_STATE" [label="다음 clk"];
+"SELECT_STATE" -> "OUTPUT_ADD" [label="다음 clk"];
+"OUTPUT_ADD" -> "OUTPUT_SUB" [label="다음 clk"];
+"OUTPUT_SUB" -> "CLAMP" [label="다음 clk"];
+"CLAMP" -> "FINISH" [label="다음 clk"];
+"FINISH" -> "IDLE" [label="다음 clk"];
+"reset" [label="모든 상태 / 미사용 인코딩\nrst=1: 다음 상승 에지에 IDLE\nOTHERS: 다음 상태 IDLE", shape=box, fillcolor="#f5f5f4"];
+"reset" -> "IDLE" [label="우선 reset / 예외 복구", style="dashed", color="#987290"];
+"notes" [label="읽는 기준 / 코드 근거\nclocked_proc / nextstate_proc와 계산 레지스터 프로세스는 병렬 동작.\nanti_windup_enable=1 AND\n[(proposed_value>4096 AND error_reg>0) OR (proposed_value<0 AND error_reg<0)]\n이면 이전 integral 유지. 그 외에는 새 후보 선택.\nKp/Ki: signed 18-bit Q16. ki_gain에는 Ts가 반영되어 있다.\n상위 모터에서 rst=controller_reset=rst OR NOT enabled.\n노드 동작: 해당 현재 상태에서 처리하는 클럭 기준.\n조건 불충족 self-loop는 next_state 기본값=state에서 추출.", shape=box, fillcolor="#f5f5f4"];
+"FINISH" -> "notes" [label="", style="invis", color="#987290"];
+}

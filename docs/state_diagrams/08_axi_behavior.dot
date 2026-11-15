@@ -1,0 +1,36 @@
+digraph G {
+graph [fontname="Noto Sans CJK KR", fontsize=24, rankdir=TB, bgcolor="white", pad=0.45, nodesep=0.5, ranksep=0.65, compound=true, dpi=150, labelloc=t, labeljust=l, label="08 · AXI4-Lite 독립 수신 · 응답 · 제어 상태\naddress_pending / data_pending / BVALID / RVALID의 프로토콜 동작 · enum FSM 없음"];
+node [fontname="Noto Sans CJK KR", fontsize=17, shape=box, style="rounded,filled", fillcolor="#edf5fc", color="#476681", penwidth=1.6, margin="0.22,0.14"];
+edge [fontname="Noto Sans CJK KR", fontsize=14, color="#405b70", fontcolor="#263e50", penwidth=1.5, arrowsize=0.8];
+subgraph cluster_write { label="write_address_proc / write_data_proc / write_response_proc / register_write_proc"; fontsize=20; color="#b3c5d2"; style="rounded"; margin=22;
+"empty" [label="AW=미보관 / W=미보관\nBVALID=0 / AWREADY=1 / WREADY=1", shape=box, fillcolor="#edf5fc"];
+"addr" [label="AW만 보관\naddress_pending=1 / data_pending=0", shape=box, fillcolor="#edf5fc"];
+"data" [label="W만 보관\naddress_pending=0 / data_pending=1", shape=box, fillcolor="#edf5fc"];
+"both" [label="AW와 W 보관 완료\nwrite_commit=address_pending AND data_pending AND NOT BVALID", shape=box, fillcolor="#edf5fc"];
+"b" [label="쓰기 응답 대기\nwrite_commit 처리 에지: pending 0 / BVALID=1\n주소·WSTRB·busy 조건에 따라 OKAY 또는 SLVERR", shape=box, fillcolor="#edf5fc"];
+"empty" -> "addr" [label="AWVALID AND AWREADY"];
+"empty" -> "data" [label="WVALID AND WREADY"];
+"empty" -> "both" [label="AW / W handshake가 같은 클럭"];
+"addr" -> "both" [label="W handshake"];
+"data" -> "both" [label="AW handshake"];
+"both" -> "b" [label="다음 clk / register write 또는 거부"];
+"b" -> "b" [label="BREADY=0 / 응답 보존"];
+"b" -> "empty" [label="BREADY=1 / BVALID=0"];
+}
+subgraph cluster_read { label="register_read_proc · 쓰기 경로와 병렬"; fontsize=20; color="#b3c5d2"; style="rounded"; margin=22;
+"ar" [label="RVALID=0 / ARREADY=aresetn\n읽기 주소 수락 가능", shape=box, fillcolor="#edf5fc"];
+"r" [label="RVALID=1 / ARREADY=0\nAR handshake 시점의 RDATA/RRESP 보관", shape=box, fillcolor="#edf5fc"];
+"ar" -> "r" [label="ARVALID AND ARREADY"];
+"r" -> "r" [label="RREADY=0 / 데이터·응답 유지"];
+"r" -> "ar" [label="RREADY=1"];
+}
+subgraph cluster_sticky { label="status_latch_proc / 명령 펄스 · 위 경로와 병렬"; fontsize=20; color="#b3c5d2"; style="rounded"; margin=22;
+"status" [label="완료·오류 보관\ncore_done → sticky_done=1 → irq\nspi_done → spi_done_sticky=1\nCONTROL clear/start가 같은 클럭 완료보다 우선", shape=box, fillcolor="#eff7f0"];
+"pulses" [label="register_write_proc\n수락된 쓰기에서만 core_start / spi_start\nps_heartbeat / quad_position_wr_en 한 클럭 발생\ncore busy 중 START: SLVERR / sticky_error", shape=box, fillcolor="#eff7f0"];
+}
+"notes" [label="읽는 기준 / 코드 근거\naresetn=0: 모든 프로토콜 pending/valid와 sticky 상태 초기화.\nAW/W는 각각 독립 수신하며, 두 보관 비트가 모두 1인 다음 처리 에지에 commit.\nBVALID 동안 새 AW/W 수락 없음. RVALID 동안 새 AR 수락 없음.\naxi_vibration_top → U_IMPL/axi_vibration_impl → U_REGS, U_CORE, U_SPI, U_MISO_SYNC.\n두 구조 연결 entity에는 자체 FSM이 없다. BRAM byte 주소=word 주소 <<2.", shape=box, fillcolor="#f5f5f4"];
+"b" -> "ar" [label="", style="invis", weight="20"];
+"r" -> "status" [label="", style="invis", weight="20"];
+"status" -> "pulses" [label="", style="invis", weight="20"];
+"pulses" -> "notes" [label="", style="invis", weight="20"];
+}

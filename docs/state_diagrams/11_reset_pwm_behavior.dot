@@ -1,0 +1,26 @@
+digraph G {
+graph [fontname="Noto Sans CJK KR", fontsize=24, rankdir=TB, bgcolor="white", pad=0.45, nodesep=0.5, ranksep=0.65, compound=true, dpi=150, labelloc=t, labeljust=l, label="11 · 리셋 동기 해제 · PWM 주기와 duty 적재\nreset_pipe / count / threshold 레지스터의 실제 갱신 조건 · enum FSM 없음"];
+node [fontname="Noto Sans CJK KR", fontsize=17, shape=box, style="rounded,filled", fillcolor="#edf5fc", color="#476681", penwidth=1.6, margin="0.22,0.14"];
+edge [fontname="Noto Sans CJK KR", fontsize=14, color="#405b70", fontcolor="#263e50", penwidth=1.5, arrowsize=0.8];
+subgraph cluster_reset { label="reset_sync · 비동기 인가 / 두 클럭 동기 해제"; fontsize=20; color="#b3c5d2"; style="rounded"; margin=22;
+"r11" [label="reset_pipe=11\nsync_reset=1", shape=box, fillcolor="#edf5fc"];
+"r10" [label="reset_pipe=10\nsync_reset=1", shape=box, fillcolor="#edf5fc"];
+"r00" [label="reset_pipe=00\nsync_reset=0", shape=box, fillcolor="#edf5fc"];
+"r11" -> "r10" [label="async_reset=0 / rising_edge(clk)"];
+"r10" -> "r00" [label="async_reset=0 / rising_edge(clk)"];
+"r00" -> "r00" [label="async_reset=0 / rising_edge(clk)"];
+"any" [label="어느 reset_pipe 값에서나\nasync_reset=1 → 즉시 11\n클럭을 기다리지 않음", shape=box, fillcolor="#f5f5f4"];
+"any" -> "r11" [label="비동기 인가", style="dashed", color="#987290"];
+}
+subgraph cluster_pwm { label="pwm_period · 카운터와 threshold는 병렬 레지스터"; fontsize=20; color="#b3c5d2"; style="rounded"; margin=22;
+"disabled" [label="rst=1 OR enable=0\n조합 경로: pwm=0 즉시\n다음 clk: count=0 / threshold=0 / active_duty=0", shape=box, fillcolor="#edf5fc"];
+"count" [label="enable=1 AND rst=0\ncount=0..PERIOD-1\ncount<threshold이면 pwm=1, 그 외 0", shape=box, fillcolor="#edf5fc"];
+"disabled" -> "count" [label="enable=1 AND rst=0"];
+"count" -> "count" [label="count<PERIOD-1 / 다음 clk count++\nthreshold / active_duty 유지", tailport="w", headport="w"];
+"count" -> "count" [label="count=PERIOD-1 / 다음 clk count=0\nthreshold=floor(min(duty,4096)×PERIOD/4096)\nactive_duty=min(duty,4096)", tailport="e", headport="e"];
+"count" -> "disabled" [label="rst=1 OR enable=0"];
+}
+"notes" [label="읽는 기준 / 코드 근거\n모터 async_reset=NOT reset_n OR stop_button. reset_pipe 초기값은 11.\nPWM 기본 PERIOD=5000: 상위 100 MHz에서 20 kHz.\nduty는 count=PERIOD-1을 처리하는 에지에서만 적재한다.\nreset/disable 후 재활성 시 threshold=0인 첫 주기를 보낸 뒤 첫 duty가 반영된다.\n운전 차단은 주기 경계를 기다리지 않는 조합 경로다.\nreset_sync의 동기 해제 지연은 두 클럭이다.", shape=box, fillcolor="#f5f5f4"];
+"r00" -> "disabled" [label="", style="invis", weight="20"];
+"count" -> "notes" [label="", style="invis", weight="20"];
+}

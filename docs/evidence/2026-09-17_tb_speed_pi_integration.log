@@ -1,0 +1,3 @@
+Time resolution is 1 ps
+TEST PASS tb_speed_pi_integration
+$finish called at time : 123750 ns : File "/home/dlgus0630/Downloads/fpga_fourier_pid_v4/Project07_VibrationNPU/fourier/tb/tb_speed_pi_integration.v" Line 102

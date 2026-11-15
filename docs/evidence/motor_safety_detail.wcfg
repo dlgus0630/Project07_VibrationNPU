@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wave_config>
+   <wave_state>
+   </wave_state>
+   <db_ref_list>
+      <db_ref path="/home/dlgus0630/Downloads/fpga_fourier_pid_v4/Project07_VibrationNPU/build/fourier_sim/fourier_sim.sim/sim_1/behav/xsim/tb_fourier_motor_behav.wdb" id="1">
+         <top_modules>
+            <top_module name="glbl" />
+            <top_module name="tb_fourier_motor" />
+         </top_modules>
+      </db_ref>
+   </db_ref_list>
+   <zoom_setting>
+      <ZoomStartTime time="4,517,400.000 ns"></ZoomStartTime>
+      <ZoomEndTime time="4,519,367.780 ns"></ZoomEndTime>
+      <Cursor1Time time="4,517,820.000 ns"></Cursor1Time>
+   </zoom_setting>
+   <column_width_setting>
+      <NameColumnWidth column_width="260"></NameColumnWidth>
+      <ValueColumnWidth column_width="82"></ValueColumnWidth>
+   </column_width_setting>
+   <WVObjectSize size="10" />
+   <wvobject type="logic" fp_name="/tb_fourier_motor/class_valid">
+      <obj_property name="ElementShortName">class_valid</obj_property>
+      <obj_property name="ObjectShortName">class_valid</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/tb_fourier_motor/class_id">
+      <obj_property name="ElementShortName">class_id</obj_property>
+      <obj_property name="ObjectShortName">class_id</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/tb_fourier_motor/motor_fault_consec">
+      <obj_property name="ElementShortName">motor_fault_consec[7:0]</obj_property>
+      <obj_property name="ObjectShortName">motor_fault_consec[7:0]</obj_property>
+      <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/tb_fourier_motor/motor_warning">
+      <obj_property name="ElementShortName">motor_warning</obj_property>
+      <obj_property name="ObjectShortName">motor_warning</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/tb_fourier_motor/motor_derated">
+      <obj_property name="ElementShortName">motor_derated</obj_property>
+      <obj_property name="ObjectShortName">motor_derated</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/tb_fourier_motor/motor_fault">
+      <obj_property name="ElementShortName">motor_fault</obj_property>
+      <obj_property name="ObjectShortName">motor_fault</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/tb_fourier_motor/armed">
+      <obj_property name="ElementShortName">armed</obj_property>
+      <obj_property name="ObjectShortName">armed</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/tb_fourier_motor/requested_duty">
+      <obj_property name="ElementShortName">requested_duty[12:0]</obj_property>
+      <obj_property name="ObjectShortName">requested_duty[12:0]</obj_property>
+      <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/tb_fourier_motor/pwm">
+      <obj_property name="ElementShortName">pwm</obj_property>
+      <obj_property name="ObjectShortName">pwm</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/tb_fourier_motor/sw">
+      <obj_property name="ElementShortName">sw[3:0]</obj_property>
+      <obj_property name="ObjectShortName">sw[3:0]</obj_property>
+      <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+   </wvobject>
+</wave_config>

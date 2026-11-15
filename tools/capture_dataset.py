@@ -171,7 +171,8 @@ def load_run(path):
     if not sidecar.is_file():
         raise ValueError(f"missing run metadata sidecar: {sidecar}")
     meta = json.loads(sidecar.read_text(encoding="utf-8"))
-    rows = list(csv.DictReader(path.open(encoding="utf-8")))
+    with path.open(encoding="utf-8", newline="") as handle:
+        rows = list(csv.DictReader(handle))
     if not rows or set(rows[0]) != set(FIELDS):
         raise ValueError(f"invalid capture CSV schema: {path}")
     run_ids = {row["run_id"] for row in rows}

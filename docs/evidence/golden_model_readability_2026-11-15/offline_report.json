@@ -1,0 +1,5 @@
+{
+  "cases": 20,
+  "fft_max_complex_error_lsb": 6.0,
+  "host_c": "HOST C PASS: 20 windows, 2560 FFT components, 220 result values"
+}

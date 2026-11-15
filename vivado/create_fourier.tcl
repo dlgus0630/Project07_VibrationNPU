@@ -1,6 +1,10 @@
 source [file join [file dirname [info script]] common.tcl]
 if {[info exists ::env(DIGILENT_BOARD_REPO)]} {set_param board.repoPaths [list $::env(DIGILENT_BOARD_REPO)]}
-create_project -force fourier [file join $root build fourier] -part xc7z020clg400-1
+set project_dir [file join $root build fourier]
+if {[info exists ::env(VHDL_CHECK_PROJECT_DIR)]} {
+    set project_dir [file normalize $::env(VHDL_CHECK_PROJECT_DIR)]
+}
+create_project -force fourier $project_dir -part xc7z020clg400-1
 set boards [lsort -dictionary [get_board_parts -quiet *:zybo-z7-20:part0:*]]
 if {[llength $boards]==0} {error "Install Digilent Zybo Z7-20 board files (2024.2 Board Store), or set DIGILENT_BOARD_REPO to new/board_files. Do not substitute guessed DDR settings."}
 set_property board_part [lindex $boards end] [current_project]

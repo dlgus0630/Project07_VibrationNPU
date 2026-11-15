@@ -1,0 +1,31 @@
+digraph G {
+graph [fontname="Noto Sans CJK KR", fontsize=24, rankdir=TB, bgcolor="white", pad=0.45, nodesep=0.5, ranksep=0.65, compound=true, dpi=150, labelloc=t, labeljust=l, label="02 · FFT64 + 4-band feature FSM · 9 states\nRTL 상태천이도 · 실선: nextstate_proc에서 추출 · 파선: 공통 reset / 복구"];
+node [fontname="Noto Sans CJK KR", fontsize=17, shape=box, style="rounded,filled", fillcolor="#edf5fc", color="#476681", penwidth=1.6, margin="0.22,0.14"];
+edge [fontname="Noto Sans CJK KR", fontsize=14, color="#405b70", fontcolor="#263e50", penwidth=1.5, arrowsize=0.8];
+"IDLE" [label="IDLE  [0]\nstart 수락: busy=1 / load_index=0", shape=box, fillcolor="#edf5fc"];
+"LREQ" [label="LREQ  [1]\nsample_en=1 / sample_addr=load_index", shape=box, fillcolor="#edf5fc"];
+"LWAIT" [label="LWAIT  [2]\nBRAM 읽기 대기 한 상태", shape=box, fillcolor="#edf5fc"];
+"LSTORE" [label="LSTORE  [3]\nbit-reverse 위치에 INT16 입력 저장\nimag=0 / 미완료 시 load_index 증가", shape=box, fillcolor="#edf5fc"];
+"READ_STATE" [label="READ_STATE  [4]\nA/B 복소 값과 twiddle 레지스터 적재", shape=box, fillcolor="#edf5fc"];
+"MULT" [label="MULT  [5]\n복소 곱을 산술 >>15 후 저장", shape=box, fillcolor="#edf5fc"];
+"WRITE_STATE" [label="WRITE_STATE  [6]\nbutterfly A ± B·W /2, INT16 포화\n메모리와 pair/group/stage 순번 갱신", shape=box, fillcolor="#edf5fc"];
+"FACC" [label="FACC  [7]\nbin 1..31의 |Re|+|Im| 대역 누적\n미완료 시 frequency_bin 증가", shape=box, fillcolor="#edf5fc"];
+"FINISH" [label="FINISH  [8]\n4개 대역 합 >>5 / 0..127 포화\nfeatures 저장 / busy=0 / done=1", shape=box, fillcolor="#edf5fc"];
+"IDLE" -> "LREQ" [label="(start = '1')"];
+"IDLE" -> "IDLE" [label="NOT ((start = '1'))"];
+"LREQ" -> "LWAIT" [label="다음 clk"];
+"LWAIT" -> "LSTORE" [label="다음 clk"];
+"LSTORE" -> "READ_STATE" [label="(load_index = 63)"];
+"LSTORE" -> "LREQ" [label="NOT ((load_index = 63))"];
+"READ_STATE" -> "MULT" [label="다음 clk"];
+"MULT" -> "WRITE_STATE" [label="다음 clk"];
+"WRITE_STATE" -> "FACC" [label="last_pair AND last_group AND last_stage"];
+"WRITE_STATE" -> "READ_STATE" [label="NOT (last_pair AND last_group AND last_stage)"];
+"FACC" -> "FINISH" [label="(frequency_bin = 31)"];
+"FACC" -> "FACC" [label="NOT ((frequency_bin = 31))"];
+"FINISH" -> "IDLE" [label="다음 clk"];
+"reset" [label="모든 상태 / 미사용 인코딩\nrst=1: 다음 상승 에지에 IDLE\nOTHERS: 다음 상태 IDLE", shape=box, fillcolor="#f5f5f4"];
+"reset" -> "IDLE" [label="우선 reset / 예외 복구", style="dashed", color="#987290"];
+"notes" [label="읽는 기준 / 코드 근거\nload_index: 0..63 / fft_stage: 1..6\nlast_pair: pair_index=half_span-1\nlast_group: group_base+group_span>=64\nlast_stage: fft_stage=6\n대역: 1..6 / 7..12 / 13..20 / 21..31\n실제 상태 이름 READ_STATE, WRITE_STATE를 유지한다.\n노드 동작: 해당 현재 상태에서 처리하는 클럭 기준.\n조건 불충족 self-loop는 next_state 기본값=state에서 추출.", shape=box, fillcolor="#f5f5f4"];
+"FINISH" -> "notes" [label="", style="invis", color="#987290"];
+}

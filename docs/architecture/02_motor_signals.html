@@ -1,0 +1,223 @@
+<!doctype html><meta charset="utf-8"><style>html,body{margin:0;padding:0;background:white}svg{display:block}</style><svg xmlns="http://www.w3.org/2000/svg" width="2440" height="2140" viewBox="0 0 2440 2140">
+<defs><pattern id="hatch" width="16" height="16" patternUnits="userSpaceOnUse" patternTransform="rotate(35)"><rect width="16" height="16" fill="#edf6fb"/><line x1="0" x2="0" y1="0" y2="16" stroke="#d9eaf3" stroke-width="2"/></pattern>
+<marker id="bus" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#368c47"/></marker>
+<marker id="io" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#1688b5"/></marker>
+<marker id="module" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#3f4852"/></marker>
+<marker id="clock" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#8058a6"/></marker>
+</defs>
+<rect width="100%" height="100%" fill="white"/>
+<style>text{font-family:"Noto Sans CJK KR","DejaVu Sans",sans-serif;fill:#202f3c}.signal{font-family:"DejaVu Sans Mono",monospace;paint-order:stroke;stroke:#fff;stroke-width:6px;stroke-linejoin:round}.small{fill:#536473}</style>
+<text x="60" y="65" text-anchor="start" style="font-size:36px;font-weight:700;">
+<tspan x="60" dy="0">Motor Control · Internal Signal Architecture</tspan>
+</text>
+<text x="60" y="110" text-anchor="start" style="font-size:20px;">
+<tspan x="60" dy="0">fourier_motor_struct.vhd / entity fourier_motor_impl · U_IMPL 내부 연결 · Sheet 2 / 3</tspan>
+</text>
+<rect x="280" y="170" width="1900" height="1730" rx="12" fill="url(#hatch)" stroke="#586d7c" stroke-width="2.5"/>
+<text x="300" y="206" text-anchor="start" style="font-size:25px;font-weight:700;">
+<tspan x="300" dy="0">motor / fourier_motor_control</tspan>
+</text>
+<rect x="380" y="255" width="420" height="125" rx="15" fill="#ffffff" stroke="#495b69" stroke-width="2.4"/>
+<text x="590.0" y="292" text-anchor="middle" style="font-size:23px;font-weight:700;">
+<tspan x="590.0" dy="0">U_RESET / reset_sync</tspan>
+</text>
+<text x="590.0" y="328" text-anchor="middle" style="font-size:19px;">
+<tspan x="590.0" dy="0">async assertion / 2-clock release</tspan>
+</text>
+<text x="35" y="260" text-anchor="start" style="font-size:22px;" class="signal">
+<tspan x="35" dy="0">reset_n</tspan>
+<tspan x="35" dy="31.459999999999997">stop_button</tspan>
+</text>
+<polyline points="35,320 380,320" fill="none" stroke="#1688b5" stroke-width="4" marker-end="url(#io)"/>
+<text x="400" y="420" text-anchor="start" style="font-size:18px;" class="signal">
+<tspan x="400" dy="0">async_reset = NOT reset_n OR stop_button</tspan>
+<tspan x="400" dy="25.74">rst → U_RUN / U_SAFETY / U_ENCODER / U_QUADRATURE / U_PWM</tspan>
+</text>
+<text x="1500" y="270" text-anchor="start" style="font-size:22px;font-weight:700;">
+<tspan x="1500" dy="0">공통 클럭</tspan>
+</text>
+<text x="1500" y="315" text-anchor="start" style="font-size:21px;" class="signal">
+<tspan x="1500" dy="0">clk ← FCLK_CLK0 (100 MHz)</tspan>
+</text>
+<text x="1120" y="365" text-anchor="start" style="font-size:19px;" class="signal">
+<tspan x="1120" dy="0">controller_reset = rst OR NOT enabled</tspan>
+</text>
+<polyline points="800,320 1000,320" fill="none" stroke="#8058a6" stroke-width="2.6" marker-end="url(#clock)" stroke-dasharray="9 6"/>
+<text x="830" y="300" text-anchor="start" style="font-size:20px;" class="signal">
+<tspan x="830" dy="0">rst</tspan>
+</text>
+<text x="1015" y="310" text-anchor="start" style="font-size:18px;">
+<tspan x="1015" dy="0">내부 rst 배포</tspan>
+</text>
+<rect x="380" y="565" width="560" height="255" rx="15" fill="#ffffff" stroke="#495b69" stroke-width="2.4"/>
+<text x="660.0" y="602" text-anchor="middle" style="font-size:23px;font-weight:700;">
+<tspan x="660.0" dy="0">U_RUN / motor_run_control</tspan>
+</text>
+<text x="660.0" y="638" text-anchor="middle" style="font-size:19px;">
+<tspan x="660.0" dy="0">SW 동기화 / OFF→ON arm</tspan>
+<tspan x="660.0" dy="27.169999999999998">sample_tick / pid_start</tspan>
+<tspan x="660.0" dy="27.169999999999998">reference / duty 선택 / derating</tspan>
+</text>
+<rect x="1480" y="565" width="580" height="255" rx="15" fill="#ffffff" stroke="#495b69" stroke-width="2.4"/>
+<text x="1770.0" y="602" text-anchor="middle" style="font-size:23px;font-weight:700;">
+<tspan x="1770.0" dy="0">U_SAFETY / safety_supervisor</tspan>
+</text>
+<text x="1770.0" y="638" text-anchor="middle" style="font-size:19px;">
+<tspan x="1770.0" dy="0">연속 class 판정 / PS heartbeat</tspan>
+<tspan x="1770.0" dy="27.169999999999998">warning / derated / fault latch</tspan>
+<tspan x="1770.0" dy="27.169999999999998">원인 / 누적 횟수 / watchdog count</tspan>
+</text>
+<text x="35" y="600" text-anchor="start" style="font-size:22px;" class="signal">
+<tspan x="35" dy="0">sw[3:0]</tspan>
+</text>
+<polyline points="35,645 380,645" fill="none" stroke="#1688b5" stroke-width="4" marker-end="url(#io)"/>
+<text x="1450" y="475" text-anchor="start" style="font-size:20px;" class="signal">
+<tspan x="1450" dy="0">class_valid / class_id</tspan>
+<tspan x="1450" dy="28.599999999999998">ps_heartbeat</tspan>
+</text>
+<polyline points="1770,505 1770,565" fill="none" stroke="#3f4852" stroke-width="2.6" marker-end="url(#module)"/>
+<polyline points="940,610 1480,610" fill="none" stroke="#3f4852" stroke-width="2.6" marker-end="url(#module)"/>
+<text x="1020" y="585" text-anchor="start" style="font-size:18px;" class="signal">
+<tspan x="1020" dy="0">armed_command → armed</tspan>
+<tspan x="1020" dy="25.74">clear_fault → clear</tspan>
+</text>
+<polyline points="1480,755 940,755" fill="none" stroke="#3f4852" stroke-width="2.6" marker-end="url(#module)"/>
+<text x="1020" y="715" text-anchor="start" style="font-size:18px;" class="signal">
+<tspan x="1020" dy="0">latched → fault_latched</tspan>
+<tspan x="1020" dy="25.74">motor_derated → derated</tspan>
+</text>
+<polyline points="2060,690 2370,690" fill="none" stroke="#1688b5" stroke-width="4" marker-end="url(#io)"/>
+<text x="2080" y="575" text-anchor="start" style="font-size:17px;" class="signal">
+<tspan x="2080" dy="0">motor_fault</tspan>
+<tspan x="2080" dy="24.31">motor_warning / motor_derated</tspan>
+<tspan x="2080" dy="24.31">motor_watchdog_fault</tspan>
+<tspan x="2080" dy="24.31">motor_fault_cause[1:0]</tspan>
+</text>
+<rect x="380" y="1050" width="560" height="200" rx="15" fill="#ffffff" stroke="#495b69" stroke-width="2.4"/>
+<text x="660.0" y="1087" text-anchor="middle" style="font-size:23px;font-weight:700;">
+<tspan x="660.0" dy="0">U_ENCODER / encoder_speed_hybrid</tspan>
+</text>
+<text x="660.0" y="1123" text-anchor="middle" style="font-size:19px;">
+<tspan x="660.0" dy="0">A 펄스 동기화 / 주기 + 창 방식</tspan>
+<tspan x="660.0" dy="27.169999999999998">U_DIVIDER / unsigned_divider</tspan>
+</text>
+<text x="35" y="1100" text-anchor="start" style="font-size:22px;" class="signal">
+<tspan x="35" dy="0">encoder_a</tspan>
+</text>
+<polyline points="35,1150 380,1150" fill="none" stroke="#1688b5" stroke-width="4" marker-end="url(#io)"/>
+<polyline points="540,820 540,1050" fill="none" stroke="#3f4852" stroke-width="2.6" marker-end="url(#module)"/>
+<text x="560" y="925" text-anchor="start" style="font-size:20px;" class="signal">
+<tspan x="560" dy="0">sample_tick</tspan>
+</text>
+<polyline points="940,1100 1020,1100 1020,925 800,925 800,820" fill="none" stroke="#3f4852" stroke-width="2.6" marker-end="url(#module)"/>
+<text x="1035" y="950" text-anchor="start" style="font-size:19px;" class="signal">
+<tspan x="1035" dy="0">speed_valid</tspan>
+</text>
+<rect x="1480" y="1050" width="580" height="230" rx="15" fill="#ffffff" stroke="#495b69" stroke-width="2.4"/>
+<text x="1770.0" y="1087" text-anchor="middle" style="font-size:23px;font-weight:700;">
+<tspan x="1770.0" dy="0">U_PID / pid_fixed</tspan>
+</text>
+<text x="1770.0" y="1123" text-anchor="middle" style="font-size:19px;">
+<tspan x="1770.0" dy="0">reference / measured / Q16 gains</tspan>
+<tspan x="1770.0" dy="27.169999999999998">PI / anti-windup / duty saturation</tspan>
+<tspan x="1770.0" dy="27.169999999999998">rst ← controller_reset</tspan>
+</text>
+<polyline points="940,1180 1480,1180" fill="none" stroke="#3f4852" stroke-width="2.6" marker-end="url(#module)"/>
+<text x="1035" y="1150" text-anchor="start" style="font-size:20px;" class="signal">
+<tspan x="1035" dy="0">measured_speed[12:0]</tspan>
+</text>
+<polyline points="940,665 1200,665 1200,1080 1480,1080" fill="none" stroke="#3f4852" stroke-width="2.6" marker-end="url(#module)"/>
+<text x="1220" y="875" text-anchor="start" style="font-size:17px;" class="signal">
+<tspan x="1220" dy="0">pid_start → start</tspan>
+<tspan x="1220" dy="24.31">speed_reference[12:0] → reference</tspan>
+</text>
+<polyline points="1480,1240 1120,1240 1120,810 940,810" fill="none" stroke="#3f4852" stroke-width="2.6" marker-end="url(#module)"/>
+<text x="1135" y="1000" text-anchor="start" style="font-size:18px;" class="signal">
+<tspan x="1135" dy="0">pid_busy</tspan>
+<tspan x="1135" dy="25.74">pid_duty[12:0]</tspan>
+</text>
+<text x="2100" y="990" text-anchor="start" style="font-size:17px;" class="signal">
+<tspan x="2100" dy="0">kp_gain[17:0]</tspan>
+<tspan x="2100" dy="24.31">ki_gain[17:0]</tspan>
+<tspan x="2100" dy="24.31">anti_windup_enable</tspan>
+</text>
+<polyline points="2370,1130 2060,1130" fill="none" stroke="#1688b5" stroke-width="4" marker-end="url(#io)"/>
+<text x="35" y="720" text-anchor="start" style="font-size:17px;" class="signal">
+<tspan x="35" dy="0">open_loop_enable</tspan>
+<tspan x="35" dy="24.31">open_loop_duty[12:0]</tspan>
+</text>
+<polyline points="35,780 380,780" fill="none" stroke="#1688b5" stroke-width="4" marker-end="url(#io)"/>
+<rect x="380" y="1510" width="560" height="245" rx="15" fill="#ffffff" stroke="#495b69" stroke-width="2.4"/>
+<text x="660.0" y="1547" text-anchor="middle" style="font-size:23px;font-weight:700;">
+<tspan x="660.0" dy="0">U_QUADRATURE / encoder_quadrature</tspan>
+</text>
+<text x="660.0" y="1583" text-anchor="middle" style="font-size:19px;">
+<tspan x="660.0" dy="0">encoder_a / encoder_b</tspan>
+<tspan x="660.0" dy="27.169999999999998">방향 / 위치 / 불법 전이</tspan>
+<tspan x="660.0" dy="27.169999999999998">무펄스 timeout / position overflow</tspan>
+</text>
+<text x="35" y="1570" text-anchor="start" style="font-size:22px;" class="signal">
+<tspan x="35" dy="0">encoder_a</tspan>
+<tspan x="35" dy="31.459999999999997">encoder_b</tspan>
+</text>
+<polyline points="35,1625 380,1625" fill="none" stroke="#1688b5" stroke-width="4" marker-end="url(#io)"/>
+<rect x="1480" y="1510" width="580" height="170" rx="15" fill="#ffffff" stroke="#495b69" stroke-width="2.4"/>
+<text x="1770.0" y="1547" text-anchor="middle" style="font-size:23px;font-weight:700;">
+<tspan x="1770.0" dy="0">U_PWM / pwm_period</tspan>
+</text>
+<text x="1770.0" y="1583" text-anchor="middle" style="font-size:19px;">
+<tspan x="1770.0" dy="0">duty 0..4096 → 20 kHz PWM</tspan>
+<tspan x="1770.0" dy="27.169999999999998">enable ← enabled / rst ← rst</tspan>
+</text>
+<polyline points="940,780 1320,780 1320,1555 1480,1555" fill="none" stroke="#3f4852" stroke-width="2.6" marker-end="url(#module)"/>
+<text x="1340" y="1390" text-anchor="start" style="font-size:17px;" class="signal">
+<tspan x="1340" dy="0">requested_duty[12:0] → duty</tspan>
+<tspan x="1340" dy="24.31">enabled → enable</tspan>
+</text>
+<polyline points="1320,1460 1050,1460 1050,1555 940,1555" fill="none" stroke="#3f4852" stroke-width="2.6" marker-end="url(#module)"/>
+<circle cx="1320" cy="1460" r="5" fill="#3f4852"/>
+<text x="950" y="1420" text-anchor="start" style="font-size:17px;" class="signal">
+<tspan x="950" dy="0">enabled / requested_duty[12:0]</tspan>
+<tspan x="950" dy="24.31">clear_fault</tspan>
+</text>
+<text x="420" y="1430" text-anchor="start" style="font-size:18px;" class="signal">
+<tspan x="420" dy="0">quad_position_wr_en</tspan>
+<tspan x="420" dy="25.74">quad_position_wr_value[31:0]</tspan>
+</text>
+<polyline points="660,1460 660,1510" fill="none" stroke="#3f4852" stroke-width="2.6" marker-end="url(#module)"/>
+<polyline points="2060,1600 2370,1600" fill="none" stroke="#1688b5" stroke-width="4" marker-end="url(#io)"/>
+<text x="2080" y="1560" text-anchor="start" style="font-size:20px;" class="signal">
+<tspan x="2080" dy="0">motor_pwm</tspan>
+</text>
+<text x="1500" y="1760" text-anchor="start" style="font-size:20px;" class="signal">
+<tspan x="1500" dy="0">motor_in1 = enabled</tspan>
+<tspan x="1500" dy="28.599999999999998">motor_in2 = &#x27;0&#x27;</tspan>
+<tspan x="1500" dy="28.599999999999998">motor_armed = enabled</tspan>
+</text>
+<text x="310" y="1840" text-anchor="start" style="font-size:19px;">
+<tspan x="310" dy="0">검정 선: 이 파일의 local signal 이름 / 외부 모터·AXI 포트는 신호표에서 대응 관계 확인</tspan>
+</text>
+<rect x="60" y="1950" width="2320" height="140" rx="12" fill="white" stroke="#586d7c" stroke-width="2.5"/>
+<text x="80" y="1986" text-anchor="start" style="font-size:25px;font-weight:700;">
+<tspan x="80" dy="0">범례 · Source-based module diagram</tspan>
+</text>
+<polyline points="85.0,2033 150.0,2033" fill="none" stroke="#368c47" stroke-width="4" marker-end="url(#bus)"/>
+<text x="165.0" y="2040" text-anchor="start" style="font-size:19px;">
+<tspan x="165.0" dy="0">AXI / BRAM 버스</tspan>
+</text>
+<polyline points="652.5,2033 717.5,2033" fill="none" stroke="#1688b5" stroke-width="4" marker-end="url(#io)"/>
+<text x="732.5" y="2040" text-anchor="start" style="font-size:19px;">
+<tspan x="732.5" dy="0">경계 입출력</tspan>
+</text>
+<polyline points="1220.0,2033 1285.0,2033" fill="none" stroke="#3f4852" stroke-width="2.6" marker-end="url(#module)"/>
+<text x="1300.0" y="2040" text-anchor="start" style="font-size:19px;">
+<tspan x="1300.0" dy="0">모듈 간 신호</tspan>
+</text>
+<polyline points="1787.5,2033 1852.5,2033" fill="none" stroke="#8058a6" stroke-width="2.6" marker-end="url(#clock)" stroke-dasharray="9 6"/>
+<text x="1867.5" y="2040" text-anchor="start" style="font-size:19px;">
+<tspan x="1867.5" dy="0">공통 클럭 / 리셋</tspan>
+</text>
+<text x="80" y="2075" text-anchor="start" style="font-size:17px;">
+<tspan x="80" dy="0">흰색: 사용자 RTL·프로세스 / 보라색: Xilinx IP / 주황색: 메모리 / [n:0]: 비트 폭 / ●: 접속점 / 교차선은 접속 아님</tspan>
+</text>
+</svg>

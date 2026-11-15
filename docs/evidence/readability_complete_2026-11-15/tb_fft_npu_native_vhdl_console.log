@@ -1,0 +1,18 @@
+
+****** xsim v2024.2 (64-bit)
+  **** SW Build 5239630 on Fri Nov 08 22:34:34 MST 2024
+  **** IP Build 5239520 on Sun Nov 10 16:12:51 MST 2024
+  **** SharedData Build 5239561 on Fri Nov 08 14:39:27 MST 2024
+  **** Start of session at: Sun Nov 15 22:02:57 2026
+    ** Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
+    ** Copyright 2022-2024 Advanced Micro Devices, Inc. All Rights Reserved.
+
+source xsim.dir/tb_fft_npu_native_vhdl_vhdl/xsim_script.tcl
+# xsim {tb_fft_npu_native_vhdl_vhdl} -autoloadwcfg -runall
+Time resolution is 1 ps
+run -all
+Note: TEST PASS tb_fft_npu_native_vhdl: 20 Golden cases and NPU 18 cycles
+Time: 164240 ns  Iteration: 1  Process: /tb_fft_npu_native_vhdl/stim_proc  File: /home/dlgus0630/Downloads/fpga_fourier_pid_v4/Project07_VibrationNPU/fourier/tb_vhdl/tb_fft_npu_native_vhdl.vhd
+$stop called at time : 164240 ns
+exit
+INFO: [Common 17-206] Exiting xsim at Sun Nov 15 22:03:01 2026...

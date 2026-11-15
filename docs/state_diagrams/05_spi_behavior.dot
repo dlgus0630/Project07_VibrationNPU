@@ -1,0 +1,27 @@
+digraph G {
+graph [fontname="Noto Sans CJK KR", fontsize=24, rankdir=TB, bgcolor="white", pad=0.45, nodesep=0.5, ranksep=0.65, compound=true, dpi=150, labelloc=t, labeljust=l, label="05 · SPI Mode-0 전송 동작\nbusy / sclk / bitcnt 기반 프로토콜 · 상자의 IDLE/LOW/HIGH는 설명용 이름"];
+node [fontname="Noto Sans CJK KR", fontsize=17, shape=box, style="rounded,filled", fillcolor="#edf5fc", color="#476681", penwidth=1.6, margin="0.22,0.14"];
+edge [fontname="Noto Sans CJK KR", fontsize=14, color="#405b70", fontcolor="#263e50", penwidth=1.5, arrowsize=0.8];
+subgraph cluster_spi { label="mpu_reg_spi · transaction_proc / spi_divider_proc / receive_*_proc"; fontsize=20; color="#b3c5d2"; style="rounded"; margin=22;
+"idle" [label="IDLE 관점 · busy=0\ncs_n=1 / sclk=0", shape=box, fillcolor="#edf5fc"];
+"low" [label="LOW 관점 · busy=1, sclk=0\nclock_tick 대기 / CS 유지", shape=box, fillcolor="#edf5fc"];
+"high" [label="HIGH 관점 · busy=1, sclk=1\nclock_tick 대기 / CS 유지", shape=box, fillcolor="#edf5fc"];
+"idle" -> "idle" [label="start=0"];
+"idle" -> "low" [label="start_accepted=start AND NOT busy\ncs_n=0 / mosi=rd / divcnt=0\nread_two=1: bitcnt=23, 그 외 15"];
+"low" -> "low" [label="clock_tick=0"];
+"low" -> "high" [label="clock_tick=1 / sclk=1\nrx <= rx(22:0) & miso"];
+"high" -> "high" [label="clock_tick=0"];
+"high" -> "low" [label="clock_tick=1 AND bitcnt>0\nsclk=0 / bitcnt-- / 다음 MOSI 비트"];
+"high" -> "idle" [label="transfer_complete: clock_tick=1 AND bitcnt=0\nbusy=0 / cs_n=1 / sclk=0 / done=1\nrdata=rx(7:0), 24-bit이면 rdata16=rx(15:0)"];
+}
+subgraph cluster_sync { label="input_sync · input_sync_proc · 별도 병렬 입력 경로"; fontsize=20; color="#b3c5d2"; style="rounded"; margin=22;
+"miso" [label="mpu_miso\n비동기 입력", shape=box, fillcolor="#eff7f0"];
+"ff0" [label="sync_pipe(0)\n첫 번째 플립플롭", shape=box, fillcolor="#eff7f0"];
+"ff1" [label="sync_pipe(1)\n두 번째 플립플롭 → U_SPI.miso", shape=box, fillcolor="#eff7f0"];
+"miso" -> "ff0" [label="clk"];
+"ff0" -> "ff1" [label="clk"];
+}
+"notes" [label="읽는 기준 / 코드 근거\nclock_tick = busy AND divcnt=HALF_DIV-1\nHALF_DIV=max(1, ceil(CLK_HZ/(2×SPI_HZ))). 실제 상위 CLK_HZ=100 MHz.\nrst=1: 동기 초기화 / input_sync의 sync_pipe=00.\nbusy=1 동안 새 start 수락 없음. done은 매 클럭 기본 0.\n이 도면은 busy/sclk 조건에서 도출한 전송 동작도다.", shape=box, fillcolor="#f5f5f4"];
+"high" -> "miso" [label="", style="invis", weight="20"];
+"ff1" -> "notes" [label="", style="invis", weight="20"];
+}

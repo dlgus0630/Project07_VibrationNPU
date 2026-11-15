@@ -1,5 +1,15 @@
 # 설계 계약
 
+## 구현 언어
+
+FPGA RTL은 `fourier/vhdl/`와 `common/reset_sync.vhd`의 VHDL을 사용한다.
+이 문서의 수치·주소·타이밍 계약은 기존 Verilog 구현에서 그대로 유지한다.
+`fourier/rtl/*.v`는 비교 기준이며, ARM의 공개 인터페이스·모델 상수와 실측 자료는 유지한다.
+C 기준 모델은 [역할별 함수](fourier/firmware/README.md)로 정리하고 원본 정수 결과와 비교한다.
+Vivado 최상위 연결 호환성과 검증 범위는 [VHDL 전환 기록](docs/VHDL_MIGRATION.md)을 따른다.
+실제 모듈 계층과 프로세스별 역할은 [VHDL 코드 구성](fourier/vhdl/README.md)을 따른다.
+`*_struct.vhd`는 모듈을 연결하고, 기능 파일에서는 상태·데이터·카운터의 기록 책임을 나눈다.
+
 ## 수치 형식
 
 | 데이터 | 형식과 처리 |
@@ -90,3 +100,30 @@ IN1이 함께 0이 된다. `motor_fault` 출력은 Zybo LD1(M15)로 낸다.
 `fault_latch`와 `fourier_motor_control`은 같은 100 MHz 클럭과 같은 리셋 도메인에서 동작하고
 `class_valid`/`class_id`도 그 도메인에서 생성되므로 두 모듈 사이에 CDC 동기화 단을 두지 않는다.
 비동기 입력인 SW만 기존과 같이 `sw_meta`/`sw_sync` 2단 동기화를 거친 뒤 `clear`로 쓴다.
+
+## MATLAB·Simulink 6자유도 연구 확장
+
+`RUN_RESEARCH_STUDY('all')`은 6자유도 하우징과 마운트의 결합 동역학, XYZ 가속도 센서,
+기존 X축 정수 FFT/NPU, 안전 상태 관찰과 MATLAB 3차원 재생을 연결한다. 새 연구 경로는
+`RUN_MATLAB_CHECKS`의 기존 golden 계약과 검증 마커를 대체하지 않는다. 학습 모델은 현재도
+실측 X축 정상/주입 토크 리플용이며, 합성 불평형·불정렬 시나리오의 판정은 지정한 입력에 대한
+모델 반응으로 기록한다. 안전 상태 표시는 prescribed excitation에 대한 관찰이며 기계적 폐루프
+정지 응답을 의미하지 않는다.
+
+좌표계, 마운트 행렬 유도, ZOH 이산화, 센서식, 모드/FRF/PSD/STFT, 64 ms 프레임 계약과
+재현 실험은 [MATLAB·Simulink 연구 가이드](docs/MATLAB_SIMULINK_RESEARCH.md)를 따른다.
+새 경로는 이 작업 환경에 MATLAB이 없어 실행 검증되지 않았으며 사용자의 MATLAB에서 생성·실행
+결과를 확인해야 한다.
+
+## MATLAB·Simulink 2차 실측 전용 재현
+
+`RUN_MEASURED_STUDY`는 `measurements/final_50pct`의 실제 X축 360 windows와 원본 모터
+telemetry 5개 capture만 사용한다. 기존 source manifest의 hash·학습/검증 run 분리를
+검사하고, 원본 64-sample 단위의 정수 FFT/NPU와 제어기 telemetry를 별도 Simulink 모델에서
+재생한다. 기계 파라미터나 미측정 Y/Z 축을 생성하지 않는다.
+
+3차원 표현은 주파수 × window × 실측 기반 PSD [counts²/Hz]다. 약 0.384 s 간격의 host window 시각은
+연속 센서 시각으로 쓰지 않으며 모터 `time_s`는 `sample/100`의 명목 시간으로 표시한다.
+Simulink tick도 원본 재생 순서로 취급한다. 입력 출처, 시간 계약, 통계 해석과 실행 방법은
+[실측 MATLAB·Simulink 가이드](docs/MATLAB_SIMULINK_MEASURED.md)를 따른다. 이 경로도
+작성 환경에는 MATLAB이 없어 실제 `.slx` 생성·실행 성공 여부는 MATLAB 환경에서 확인해야 한다.

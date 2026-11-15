@@ -1,0 +1,28 @@
+# 프로젝트 VHDL 읽기 규칙 : 예약어 대문자, 신호 이름 소문자, 3칸 들여쓰기.
+rule:
+  global:
+    indent_size: 3
+  group:
+    case::keyword:
+      case: upper
+  library_500:
+    case: lower
+  use_clause_500:
+    disable: true
+  instantiation_008:
+    case: upper
+  generic_007:
+    case: upper
+  constant_004:
+    case: upper
+  # 초기값은 원본 FPGA 기동 동작과 TB 자극을 보존한다.
+  signal_007:
+    disable: true
+  variable_007:
+    disable: true
+  # 설계에서는 entity/architecture를 직접 지정해 연결 대상을 명확히 한다.
+  instantiation_034:
+    disable: true
+  # reference는 VHDL-2008에서 유효하며 기존 PID 포트 이름을 유지한다.
+  reserved_001:
+    disable: true

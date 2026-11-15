@@ -1,0 +1,48 @@
+INFO: [VRFC 10-163] Analyzing VHDL file "/home/dlgus0630/Downloads/fpga_fourier_pid_v4/Project07_VibrationNPU/fourier/vhdl/vibration_types.vhd" into library xil_defaultlib
+INFO: [VRFC 10-163] Analyzing VHDL file "/home/dlgus0630/Downloads/fpga_fourier_pid_v4/Project07_VibrationNPU/fourier/vhdl/vibration_regs.vhd" into library xil_defaultlib
+INFO: [VRFC 10-163] Analyzing VHDL file "/home/dlgus0630/Downloads/fpga_fourier_pid_v4/Project07_VibrationNPU/common/reset_sync.vhd" into library xil_defaultlib
+INFO: [VRFC 10-3107] analyzing entity 'reset_sync'
+INFO: [VRFC 10-163] Analyzing VHDL file "/home/dlgus0630/Downloads/fpga_fourier_pid_v4/Project07_VibrationNPU/fourier/vhdl/input_sync_rtl.vhd" into library xil_defaultlib
+INFO: [VRFC 10-3107] analyzing entity 'input_sync'
+INFO: [VRFC 10-163] Analyzing VHDL file "/home/dlgus0630/Downloads/fpga_fourier_pid_v4/Project07_VibrationNPU/fourier/vhdl/mac_pe_rtl.vhd" into library xil_defaultlib
+INFO: [VRFC 10-3107] analyzing entity 'mac_pe'
+INFO: [VRFC 10-163] Analyzing VHDL file "/home/dlgus0630/Downloads/fpga_fourier_pid_v4/Project07_VibrationNPU/fourier/vhdl/fault_latch_rtl.vhd" into library xil_defaultlib
+INFO: [VRFC 10-3107] analyzing entity 'fault_latch'
+INFO: [VRFC 10-163] Analyzing VHDL file "/home/dlgus0630/Downloads/fpga_fourier_pid_v4/Project07_VibrationNPU/fourier/vhdl/safety_supervisor_rtl.vhd" into library xil_defaultlib
+INFO: [VRFC 10-3107] analyzing entity 'safety_supervisor'
+INFO: [VRFC 10-163] Analyzing VHDL file "/home/dlgus0630/Downloads/fpga_fourier_pid_v4/Project07_VibrationNPU/fourier/vhdl/unsigned_divider_rtl.vhd" into library xil_defaultlib
+INFO: [VRFC 10-3107] analyzing entity 'unsigned_divider'
+INFO: [VRFC 10-163] Analyzing VHDL file "/home/dlgus0630/Downloads/fpga_fourier_pid_v4/Project07_VibrationNPU/fourier/vhdl/pwm_period_rtl.vhd" into library xil_defaultlib
+INFO: [VRFC 10-3107] analyzing entity 'pwm_period'
+INFO: [VRFC 10-163] Analyzing VHDL file "/home/dlgus0630/Downloads/fpga_fourier_pid_v4/Project07_VibrationNPU/fourier/vhdl/mpu_spi_fsm.vhd" into library xil_defaultlib
+INFO: [VRFC 10-3107] analyzing entity 'mpu_reg_spi'
+INFO: [VRFC 10-163] Analyzing VHDL file "/home/dlgus0630/Downloads/fpga_fourier_pid_v4/Project07_VibrationNPU/fourier/vhdl/fft64_features_fsm.vhd" into library xil_defaultlib
+INFO: [VRFC 10-3107] analyzing entity 'fft64_features'
+INFO: [VRFC 10-163] Analyzing VHDL file "/home/dlgus0630/Downloads/fpga_fourier_pid_v4/Project07_VibrationNPU/fourier/vhdl/npu_2pe_fsm.vhd" into library xil_defaultlib
+INFO: [VRFC 10-3107] analyzing entity 'npu_2pe'
+INFO: [VRFC 10-163] Analyzing VHDL file "/home/dlgus0630/Downloads/fpga_fourier_pid_v4/Project07_VibrationNPU/fourier/vhdl/vibration_core_fsm.vhd" into library xil_defaultlib
+INFO: [VRFC 10-3107] analyzing entity 'vibration_core'
+INFO: [VRFC 10-163] Analyzing VHDL file "/home/dlgus0630/Downloads/fpga_fourier_pid_v4/Project07_VibrationNPU/fourier/vhdl/pid_controller_fsm.vhd" into library xil_defaultlib
+INFO: [VRFC 10-3107] analyzing entity 'pid_fixed'
+INFO: [VRFC 10-163] Analyzing VHDL file "/home/dlgus0630/Downloads/fpga_fourier_pid_v4/Project07_VibrationNPU/fourier/vhdl/encoder_quadrature_rtl.vhd" into library xil_defaultlib
+INFO: [VRFC 10-3107] analyzing entity 'encoder_quadrature'
+INFO: [VRFC 10-163] Analyzing VHDL file "/home/dlgus0630/Downloads/fpga_fourier_pid_v4/Project07_VibrationNPU/fourier/vhdl/encoder_speed_rtl.vhd" into library xil_defaultlib
+INFO: [VRFC 10-3107] analyzing entity 'encoder_speed_hybrid'
+INFO: [VRFC 10-163] Analyzing VHDL file "/home/dlgus0630/Downloads/fpga_fourier_pid_v4/Project07_VibrationNPU/fourier/vhdl/motor_run_control_rtl.vhd" into library xil_defaultlib
+INFO: [VRFC 10-3107] analyzing entity 'motor_run_control'
+INFO: [VRFC 10-163] Analyzing VHDL file "/home/dlgus0630/Downloads/fpga_fourier_pid_v4/Project07_VibrationNPU/fourier/vhdl/fourier_motor_struct.vhd" into library xil_defaultlib
+INFO: [VRFC 10-3107] analyzing entity 'fourier_motor_impl'
+INFO: [VRFC 10-163] Analyzing VHDL file "/home/dlgus0630/Downloads/fpga_fourier_pid_v4/Project07_VibrationNPU/fourier/vhdl/fourier_motor_control.vhd" into library xil_defaultlib
+INFO: [VRFC 10-3107] analyzing entity 'fourier_motor_control'
+INFO: [VRFC 10-163] Analyzing VHDL file "/home/dlgus0630/Downloads/fpga_fourier_pid_v4/Project07_VibrationNPU/fourier/vhdl/axi_registers_rtl.vhd" into library xil_defaultlib
+INFO: [VRFC 10-3107] analyzing entity 'axi_registers'
+INFO: [VRFC 10-163] Analyzing VHDL file "/home/dlgus0630/Downloads/fpga_fourier_pid_v4/Project07_VibrationNPU/fourier/vhdl/axi_vibration_struct.vhd" into library xil_defaultlib
+INFO: [VRFC 10-3107] analyzing entity 'axi_vibration_impl'
+INFO: [VRFC 10-163] Analyzing VHDL file "/home/dlgus0630/Downloads/fpga_fourier_pid_v4/Project07_VibrationNPU/fourier/vhdl/axi_vibration_top.vhd" into library xil_defaultlib
+INFO: [VRFC 10-3107] analyzing entity 'axi_vibration_top'
+INFO: [VRFC 10-163] Analyzing VHDL file "/home/dlgus0630/Downloads/fpga_fourier_pid_v4/Project07_VibrationNPU/fourier/tb_vhdl/tb_reset_sync_vhdl.vhd" into library xil_defaultlib
+INFO: [VRFC 10-3107] analyzing entity 'tb_reset_sync_vhdl'
+INFO: [VRFC 10-163] Analyzing VHDL file "/home/dlgus0630/Downloads/fpga_fourier_pid_v4/Project07_VibrationNPU/fourier/tb_vhdl/tb_mac_pe_vhdl.vhd" into library xil_defaultlib
+INFO: [VRFC 10-3107] analyzing entity 'tb_mac_pe_vhdl'
+INFO: [VRFC 10-163] Analyzing VHDL file "/home/dlgus0630/Downloads/fpga_fourier_pid_v4/Project07_VibrationNPU/fourier/tb_vhdl/tb_fft_npu_native_vhdl.vhd" into library xil_defaultlib
+INFO: [VRFC 10-3107] analyzing entity 'tb_fft_npu_native_vhdl'
